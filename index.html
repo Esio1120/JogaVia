@@ -1,0 +1,996 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#14211B">
+<title>JogaVia — Fußball in Wien</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+<style>
+  :root{
+    --bg:#F4F5F0; --surface:#FFFFFF; --surface-2:#EAEDE5;
+    --fg:#14211B; --muted:#5E6E66; --line:#D6DBD2; --line-strong:#B9C2B7;
+    --accent:#1B7A4B; --accent-soft:#E1EFE7; --on-accent:#FFFFFF;
+    --flag:#B3122B; --flag-soft:#FAE6E9;
+    --kaefig:#1B7A4B; --rasen:#3E8E3E; --kunstrasen:#0F766E; --halle:#7A5CB8; --beach:#C2810A; --sonstige:#6B7A72;
+    --shadow:0 1px 2px rgba(20,33,27,.08), 0 12px 32px -18px rgba(20,33,27,.35);
+    --display:"Anton","Arial Narrow",sans-serif;
+    --ui:"Archivo",system-ui,-apple-system,"Segoe UI",sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+    --top:56px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0E1613; --surface:#141F1A; --surface-2:#1B2721;
+      --fg:#E7EFE9; --muted:#94A79D; --line:#26352E; --line-strong:#3A4C43;
+      --accent:#4CB981; --accent-soft:#16301F; --on-accent:#0E1613;
+      --flag:#E4697D; --flag-soft:#2C1519;
+      --kaefig:#4CB981; --rasen:#7BC46C; --kunstrasen:#2DD4BF; --halle:#A78BFA; --beach:#E3B341; --sonstige:#94A79D;
+      --shadow:0 1px 2px rgba(0,0,0,.5), 0 14px 34px -18px rgba(0,0,0,.9);
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;background:var(--bg);color:var(--fg);font-family:var(--ui);font-size:15px;line-height:1.45;
+    -webkit-font-smoothing:antialiased;overscroll-behavior:none;
+  }
+  button{font-family:inherit;font-size:inherit;cursor:pointer}
+  input,select{font-family:inherit;font-size:16px}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  header{
+    position:fixed;top:0;left:0;right:0;height:var(--top);z-index:30;
+    display:flex;align-items:center;gap:10px;padding:0 12px;
+    background:var(--surface);border-bottom:1px solid var(--line);
+  }
+  .brand{font-family:var(--display);font-size:26px;letter-spacing:.02em;line-height:1;user-select:none}
+  .brand span{color:var(--accent)}
+  .grow{flex:1}
+  .ghost{
+    background:none;border:1px solid var(--line-strong);color:var(--fg);
+    border-radius:999px;padding:7px 13px;font-weight:600;font-size:13px;white-space:nowrap;
+  }
+  .ghost:hover{border-color:var(--accent);color:var(--accent)}
+  .avatar{width:32px;height:32px;border-radius:50%;object-fit:cover;border:1.5px solid var(--accent);display:block}
+  .avatar-fallback{
+    width:32px;height:32px;border-radius:50%;background:var(--accent);color:var(--on-accent);
+    display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;
+  }
+  #accountBtn{display:flex;align-items:center;gap:8px;background:none;border:0;padding:0}
+
+  #controls{
+    position:fixed;top:var(--top);left:0;right:0;z-index:20;
+    background:var(--surface);border-bottom:1px solid var(--line);
+    padding:10px 12px 8px;display:flex;flex-direction:column;gap:8px;
+  }
+  #search{
+    width:100%;padding:9px 12px;border:1px solid var(--line-strong);border-radius:8px;
+    background:var(--bg);color:var(--fg);
+  }
+  .chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{
+    flex:0 0 auto;border:1px solid var(--line-strong);background:var(--surface);color:var(--muted);
+    border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600;white-space:nowrap;
+    display:flex;align-items:center;gap:6px;
+  }
+  .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+  .chip .dot{width:8px;height:8px;border-radius:50%;background:currentColor;opacity:.85}
+  .statusline{
+    display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:11px;
+    letter-spacing:.08em;text-transform:uppercase;color:var(--muted);
+  }
+  .linkish{background:none;border:0;color:var(--accent);font-family:var(--mono);font-size:11px;
+    letter-spacing:.08em;text-transform:uppercase;font-weight:600;padding:0}
+
+  main{position:absolute;top:0;bottom:0;left:0;right:0}
+  #map{position:absolute;inset:0}
+  #list{
+    position:absolute;inset:0;overflow-y:auto;background:var(--bg);
+    padding:12px 12px 24px;
+  }
+  .row{
+    background:var(--surface);border:1px solid var(--line);border-radius:10px;
+    padding:12px 14px;margin-bottom:8px;display:flex;gap:12px;align-items:flex-start;width:100%;text-align:left;
+  }
+  .row:hover{border-color:var(--accent)}
+  .row .marker{width:12px;height:12px;border-radius:50%;flex:0 0 auto;margin-top:5px}
+  .row h3{margin:0 0 2px;font-size:15px;font-weight:600}
+  .row p{margin:0;font-size:13px;color:var(--muted)}
+  .empty{text-align:center;color:var(--muted);padding:40px 20px}
+
+  .maplibregl-ctrl-bottom-left,.maplibregl-ctrl-bottom-right{z-index:5}
+  .maplibregl-ctrl-attrib{font-size:10px}
+
+  #sheet{
+    position:fixed;left:0;right:0;bottom:0;z-index:40;
+    background:var(--surface);border-top:1px solid var(--line);
+    border-radius:16px 16px 0 0;box-shadow:var(--shadow);
+    padding:14px 16px calc(16px + env(safe-area-inset-bottom));
+    transform:translateY(110%);transition:transform .22s ease;max-height:72vh;overflow-y:auto;
+  }
+  #sheet.open{transform:translateY(0)}
+  @media (prefers-reduced-motion:reduce){#sheet{transition:none}}
+  @media (min-width:720px){
+    #sheet{left:auto;right:16px;bottom:16px;width:380px;border-radius:14px;border:1px solid var(--line)}
+    #sheet.open{transform:translateY(0)}
+  }
+  .sheet-head{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px}
+  .sheet-head h2{margin:0;font-size:19px;font-weight:700;line-height:1.25;flex:1}
+  .closebtn{background:none;border:0;color:var(--muted);font-size:22px;line-height:1;padding:2px 4px}
+  .badges{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+  .badge{
+    font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+    padding:3px 8px;border-radius:3px;background:var(--surface-2);color:var(--muted);border:1px solid var(--line)
+  }
+  .badge.on{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
+  .badge.warn{background:var(--flag-soft);color:var(--flag);border-color:var(--flag)}
+  .facts{width:100%;border-collapse:collapse;margin-bottom:12px;font-size:14px}
+  .facts th{text-align:left;font-weight:500;color:var(--muted);padding:5px 0;width:42%}
+  .facts td{text-align:right;padding:5px 0;font-weight:600}
+  .actions{display:flex;flex-direction:column;gap:8px}
+  .btn{
+    display:block;width:100%;text-align:center;text-decoration:none;
+    background:var(--accent);color:var(--on-accent);border:0;border-radius:9px;
+    padding:12px;font-weight:700;font-size:15px;
+  }
+  .btn.secondary{background:var(--surface-2);color:var(--fg);border:1px solid var(--line-strong)}
+  .btn[disabled]{background:var(--surface-2);color:var(--muted);border:1px dashed var(--line-strong);cursor:not-allowed}
+  .hint{font-size:12.5px;color:var(--muted);margin:6px 0 0;text-align:center}
+
+  #modal{position:fixed;inset:0;z-index:50;background:rgba(10,18,15,.55);display:flex;align-items:flex-end;justify-content:center}
+  @media (min-width:720px){#modal{align-items:center}}
+  .panel{
+    background:var(--surface);width:100%;max-width:440px;border-radius:16px 16px 0 0;
+    padding:18px 18px calc(20px + env(safe-area-inset-bottom));max-height:92vh;overflow-y:auto;box-shadow:var(--shadow);
+  }
+  @media (min-width:720px){.panel{border-radius:14px;padding-bottom:20px}}
+  .panel h2{font-family:var(--display);font-weight:400;font-size:26px;margin:0 0 4px;letter-spacing:.01em}
+  .panel .lead{margin:0 0 16px;color:var(--muted);font-size:14px}
+  .field{margin-bottom:12px}
+  .field label{display:block;font-size:12.5px;font-weight:600;color:var(--muted);margin-bottom:4px}
+  .field input,.field select{
+    width:100%;padding:10px 12px;border:1px solid var(--line-strong);border-radius:8px;
+    background:var(--bg);color:var(--fg);
+  }
+  .switcher{display:flex;gap:8px;margin-top:12px}
+  .switcher button{flex:1}
+  .err{background:var(--flag-soft);color:var(--flag);border:1px solid var(--flag);border-radius:8px;padding:9px 12px;font-size:13.5px;margin-bottom:12px}
+  .danger-link{background:none;border:0;color:var(--flag);font-size:13px;font-weight:600;padding:8px 0;width:100%}
+
+  #toast{
+    position:fixed;left:50%;transform:translateX(-50%);bottom:24px;z-index:60;
+    background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:13.5px;font-weight:600;
+    box-shadow:var(--shadow);max-width:90vw;text-align:center;
+  }
+  [hidden]{display:none !important}
+  .avatar-edit{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+  .avatar-edit img,.avatar-edit .avatar-fallback{width:56px;height:56px;font-size:20px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">Joga<span>Via</span></div>
+  <div class="grow"></div>
+  <button id="langBtn" class="ghost" type="button">EN</button>
+  <button id="accountBtn" type="button"><span class="ghost" id="accountLabel">Anmelden</span></button>
+</header>
+
+<div id="controls">
+  <input id="search" type="search" autocomplete="off">
+  <div class="chips" id="artChips"></div>
+  <div class="chips">
+    <button class="chip" type="button" id="chipLit" aria-pressed="false"></button>
+    <button class="chip" type="button" id="chipFree" aria-pressed="false"></button>
+    <select id="district" class="chip" style="padding-right:8px"></select>
+  </div>
+  <div class="statusline">
+    <span id="count"></span>
+    <div class="grow"></div>
+    <button class="linkish" id="viewToggle" type="button"></button>
+    <button class="linkish" id="resetBtn" type="button"></button>
+  </div>
+</div>
+
+<main>
+  <div id="map"></div>
+  <div id="list" hidden></div>
+</main>
+
+<aside id="sheet" aria-live="polite">
+  <div class="sheet-head">
+    <h2 id="sheetName"></h2>
+    <button class="closebtn" id="sheetClose" type="button" aria-label="Schliessen">&times;</button>
+  </div>
+  <div class="badges" id="sheetBadges"></div>
+  <table class="facts"><tbody id="sheetFacts"></tbody></table>
+  <div class="actions">
+    <a class="btn secondary" id="sheetRoute" target="_blank" rel="noopener"></a>
+    <button class="btn" id="sheetOrganize" type="button" disabled></button>
+  </div>
+  <p class="hint" id="sheetHint"></p>
+</aside>
+
+<div id="modal" hidden>
+  <div class="panel" id="panel" role="dialog" aria-modal="true"></div>
+</div>
+
+<div id="toast" hidden></div>
+
+<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  var SUPABASE_URL = "https://ngeymudilvcishweefow.supabase.co";
+  var SUPABASE_KEY = "sb_publishable_NnIdoQ9sTsMkbRbuu_mYHw_T2bQ-iSZ";
+
+  var STRINGS = {
+    de: {
+      search: "Platz oder Bezirk suchen",
+      allDistricts: "Alle Bezirke", district: "Bezirk",
+      lit: "Beleuchtet", free: "Frei zugänglich",
+      showList: "Liste", showMap: "Karte", reset: "Zurücksetzen",
+      countOne: "1 Platz", countMany: "{n} Plätze", countNone: "Keine Treffer",
+      signIn: "Anmelden", signOut: "Abmelden", profile: "Profil",
+      kaefig: "Käfig", rasen: "Rasen", kunstrasen: "Kunstrasen",
+      halle: "Halle", beach: "Beach", sonstige: "Sonstige",
+      surface: "Belag", lighting: "Beleuchtung", access: "Zugang", checked: "Geprüft",
+      yes: "ja", no: "nein", unknown: "unbekannt",
+      accessFrei: "frei zugänglich", accessBuchung: "Buchung nötig", accessVerein: "Verein",
+      route: "In Karten öffnen", organize: "Hier Spiel organisieren",
+      soonHint: "Spiele organisieren kommt im nächsten Schritt. Die Angaben stammen aus OpenStreetMap und sind noch ungeprüft.",
+      registerTitle: "Konto anlegen", loginTitle: "Willkommen zurück",
+      registerLead: "Damit deine Spiele und dein Profil erhalten bleiben.",
+      loginLead: "Melde dich mit deiner E-Mail-Adresse an.",
+      email: "E-Mail", password: "Passwort", passwordHint: "mindestens 8 Zeichen",
+      createAccount: "Konto anlegen", doLogin: "Anmelden",
+      haveAccount: "Ich habe schon ein Konto", noAccount: "Neu hier? Konto anlegen",
+      profileTitle: "Dein Profil", profileLead: "So sehen dich die anderen Spieler.",
+      displayName: "Anzeigename", positionLabel: "Position", levelLabel: "Niveau",
+      save: "Speichern", saved: "Gespeichert", cancel: "Schließen",
+      changePicture: "Bild wählen", uploading: "Bild wird hochgeladen …",
+      posEgal: "egal", posTor: "Tor", posAbwehr: "Abwehr", posMittelfeld: "Mittelfeld", posSturm: "Sturm",
+      lvlAnfaenger: "Anfänger", lvlFreizeit: "Freizeit", lvlAmbitioniert: "Ambitioniert", lvlWettkampf: "Wettkampf",
+      deleteAccount: "Konto löschen", deleteConfirm: "Konto wirklich löschen? Das lässt sich nicht rückgängig machen.",
+      deleted: "Konto gelöscht.",
+      needName: "Bitte gib einen Anzeigenamen an (mindestens 2 Zeichen).",
+      loadError: "Plätze konnten nicht geladen werden: ",
+      games: "Spiele hier", noGames: "Noch keine Spiele an diesem Platz"
+    },
+    en: {
+      search: "Search pitch or district",
+      allDistricts: "All districts", district: "District",
+      lit: "Floodlit", free: "Open access",
+      showList: "List", showMap: "Map", reset: "Reset",
+      countOne: "1 pitch", countMany: "{n} pitches", countNone: "No matches",
+      signIn: "Sign in", signOut: "Sign out", profile: "Profile",
+      kaefig: "Cage", rasen: "Grass", kunstrasen: "Artificial turf",
+      halle: "Indoor", beach: "Beach", sonstige: "Other",
+      surface: "Surface", lighting: "Floodlights", access: "Access", checked: "Verified",
+      yes: "yes", no: "no", unknown: "unknown",
+      accessFrei: "open to all", accessBuchung: "booking required", accessVerein: "club only",
+      route: "Open in Maps", organize: "Organise a game here",
+      soonHint: "Organising games is the next step. Details come from OpenStreetMap and are not verified yet.",
+      registerTitle: "Create account", loginTitle: "Welcome back",
+      registerLead: "So your games and profile stick around.",
+      loginLead: "Sign in with your email address.",
+      email: "Email", password: "Password", passwordHint: "at least 8 characters",
+      createAccount: "Create account", doLogin: "Sign in",
+      haveAccount: "I already have an account", noAccount: "New here? Create an account",
+      profileTitle: "Your profile", profileLead: "This is how other players see you.",
+      displayName: "Display name", positionLabel: "Position", levelLabel: "Level",
+      save: "Save", saved: "Saved", cancel: "Close",
+      changePicture: "Choose picture", uploading: "Uploading picture …",
+      posEgal: "any", posTor: "Goalkeeper", posAbwehr: "Defence", posMittelfeld: "Midfield", posSturm: "Attack",
+      lvlAnfaenger: "Beginner", lvlFreizeit: "Casual", lvlAmbitioniert: "Competitive", lvlWettkampf: "Serious",
+      deleteAccount: "Delete account", deleteConfirm: "Really delete your account? This cannot be undone.",
+      deleted: "Account deleted.",
+      needName: "Please enter a display name (at least 2 characters).",
+      loadError: "Could not load pitches: ",
+      games: "Games here", noGames: "No games at this pitch yet"
+    }
+  };
+
+  var lang = "de";
+  try { lang = localStorage.getItem("jogavia-lang") || (navigator.language || "de").slice(0,2); } catch(e){}
+  if (lang !== "en") lang = "de";
+
+  function t(key, n){
+    var s = (STRINGS[lang] && STRINGS[lang][key]) || STRINGS.de[key] || key;
+    if (n !== undefined) s = s.replace("{n}", String(n));
+    return s;
+  }
+
+  var ARTS = ["kaefig","rasen","kunstrasen","halle","beach","sonstige"];
+  var ARTCOLORS = {
+    kaefig:"#1B7A4B", rasen:"#3E8E3E", kunstrasen:"#0F766E",
+    halle:"#7A5CB8", beach:"#C2810A", sonstige:"#6B7A72"
+  };
+  var DISTRICTS = ["Innere Stadt","Leopoldstadt","Landstraße","Wieden","Margareten","Mariahilf","Neubau",
+    "Josefstadt","Alsergrund","Favoriten","Simmering","Meidling","Hietzing","Penzing",
+    "Rudolfsheim-Fünfhaus","Ottakring","Hernals","Währing","Döbling","Brigittenau",
+    "Floridsdorf","Donaustadt","Liesing"];
+
+  function el(id){ return document.getElementById(id); }
+  function clear(node){ while(node.firstChild) node.removeChild(node.firstChild); }
+  function make(tag, cls, text){
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text !== undefined && text !== null) n.textContent = String(text);
+    return n;
+  }
+  var toastTimer = null;
+  function toast(msg){
+    var box = el("toast");
+    box.textContent = msg;
+    box.hidden = false;
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ box.hidden = true; }, 2600);
+  }
+  function darkMode(){
+    return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  }
+  function initials(name){
+    var parts = String(name || "?").trim().split(" ").filter(Boolean);
+    var s = parts[0] ? parts[0][0] : "?";
+    if (parts.length > 1) s += parts[1][0];
+    return s.toUpperCase();
+  }
+
+  var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  var venues = [];
+  var filtered = [];
+  var filterArt = null;
+  var filterLit = false;
+  var filterFree = false;
+  var filterDistrict = 0;
+  var query = "";
+  var listMode = false;
+  var map = null;
+  var mapReady = false;
+  var selectedId = null;
+  var session = null;
+  var profile = null;
+
+  function basemapTiles(){
+    var style = darkMode() ? "dark_all" : "light_all";
+    return ["a","b","c","d"].map(function(s){
+      return "https://" + s + ".basemaps.cartocdn.com/" + style + "/{z}/{x}/{y}@2x.png";
+    });
+  }
+
+  function buildMap(){
+    map = new maplibregl.Map({
+      container: "map",
+      style: {
+        version: 8,
+        sources: {
+          basemap: {
+            type: "raster",
+            tiles: basemapTiles(),
+            tileSize: 256,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>-Mitwirkende, &copy; <a href="https://carto.com/attributions">CARTO</a>'
+          }
+        },
+        layers: [{ id: "basemap", type: "raster", source: "basemap" }]
+      },
+      center: [16.3738, 48.2082],
+      zoom: 10.4,
+      minZoom: 9,
+      maxZoom: 18,
+      attributionControl: true
+    });
+    map.addControl(new maplibregl.NavigationControl({ showCompass:false }), "bottom-right");
+    map.addControl(new maplibregl.GeolocateControl({
+      positionOptions:{ enableHighAccuracy:true }, trackUserLocation:false
+    }), "bottom-right");
+
+    map.on("load", function(){
+      map.addSource("venues", {
+        type: "geojson",
+        data: toGeoJSON([]),
+        cluster: true,
+        clusterRadius: 46,
+        clusterMaxZoom: 13
+      });
+      map.addLayer({
+        id: "clusters", type: "circle", source: "venues", filter: ["has","point_count"],
+        paint: {
+          "circle-color": darkMode() ? "#4CB981" : "#1B7A4B",
+          "circle-opacity": 0.82,
+          "circle-radius": ["step", ["get","point_count"], 15, 5, 20, 20, 26, 60, 33],
+          "circle-stroke-width": 2,
+          "circle-stroke-color": darkMode() ? "#0E1613" : "#FFFFFF"
+        }
+      });
+      map.addLayer({
+        id: "points", type: "circle", source: "venues", filter: ["!", ["has","point_count"]],
+        paint: {
+          "circle-color": ["match", ["get","art"],
+            "kaefig", ARTCOLORS.kaefig, "rasen", ARTCOLORS.rasen, "kunstrasen", ARTCOLORS.kunstrasen,
+            "halle", ARTCOLORS.halle, "beach", ARTCOLORS.beach, ARTCOLORS.sonstige],
+          "circle-radius": ["interpolate", ["linear"], ["zoom"], 10, 4.5, 14, 7, 17, 11],
+          "circle-stroke-width": 2,
+          "circle-stroke-color": darkMode() ? "#0E1613" : "#FFFFFF"
+        }
+      });
+      map.addLayer({
+        id: "selected", type: "circle", source: "venues",
+        filter: ["==", ["get","id"], -1],
+        paint: {
+          "circle-color": "rgba(0,0,0,0)",
+          "circle-radius": ["interpolate", ["linear"], ["zoom"], 10, 10, 17, 20],
+          "circle-stroke-width": 3,
+          "circle-stroke-color": darkMode() ? "#E7EFE9" : "#14211B"
+        }
+      });
+
+      map.on("click", "clusters", function(e){
+        var f = map.queryRenderedFeatures(e.point, { layers:["clusters"] })[0];
+        if (!f) return;
+        map.getSource("venues").getClusterExpansionZoom(f.properties.cluster_id).then(function(z){
+          map.easeTo({ center: f.geometry.coordinates, zoom: z });
+        }).catch(function(){});
+      });
+      map.on("click", "points", function(e){
+        var f = e.features[0];
+        openSheet(Number(f.properties.id));
+      });
+      ["clusters","points"].forEach(function(layer){
+        map.on("mouseenter", layer, function(){ map.getCanvas().style.cursor = "pointer"; });
+        map.on("mouseleave", layer, function(){ map.getCanvas().style.cursor = ""; });
+      });
+
+      mapReady = true;
+      pushToMap();
+    });
+  }
+
+  function toGeoJSON(rows){
+    return {
+      type: "FeatureCollection",
+      features: rows.map(function(v){
+        return {
+          type: "Feature",
+          geometry: { type:"Point", coordinates:[v.lon, v.lat] },
+          properties: { id: v.id, art: v.art }
+        };
+      })
+    };
+  }
+
+  function pushToMap(){
+    if (!mapReady || !map.getSource("venues")) return;
+    map.getSource("venues").setData(toGeoJSON(filtered));
+    map.setFilter("selected", ["==", ["get","id"], selectedId === null ? -1 : selectedId]);
+  }
+
+  function applyFilters(){
+    var q = query.trim().toLowerCase();
+    filtered = venues.filter(function(v){
+      if (filterArt && v.art !== filterArt) return false;
+      if (filterLit && v.beleuchtung !== true) return false;
+      if (filterFree && v.zugang !== "frei") return false;
+      if (filterDistrict && v.bezirk !== filterDistrict) return false;
+      if (q){
+        var hay = (v.name + " " + districtName(v.bezirk)).toLowerCase();
+        if (hay.indexOf(q) === -1) return false;
+      }
+      return true;
+    });
+    var n = filtered.length;
+    el("count").textContent = n === 0 ? t("countNone") : (n === 1 ? t("countOne") : t("countMany", n));
+    pushToMap();
+    if (listMode) renderList();
+  }
+
+  function districtName(nr){
+    if (!nr || nr < 1 || nr > 23) return "";
+    return nr + ". " + DISTRICTS[nr - 1];
+  }
+
+  function renderList(){
+    var box = el("list");
+    clear(box);
+    if (!filtered.length){
+      box.appendChild(make("p","empty", t("countNone")));
+      return;
+    }
+    var shown = filtered.slice(0, 300);
+    shown.forEach(function(v){
+      var row = make("button","row");
+      row.type = "button";
+      var dot = make("span","marker");
+      dot.style.background = ARTCOLORS[v.art] || ARTCOLORS.sonstige;
+      var text = make("span");
+      text.style.flex = "1";
+      text.appendChild(make("h3", null, v.name));
+      var meta = [t(v.art), districtName(v.bezirk)];
+      if (v.beleuchtung === true) meta.push(t("lit"));
+      text.appendChild(make("p", null, meta.filter(Boolean).join(" · ")));
+      row.appendChild(dot);
+      row.appendChild(text);
+      row.addEventListener("click", function(){ openSheet(v.id); });
+      box.appendChild(row);
+    });
+    if (filtered.length > shown.length){
+      box.appendChild(make("p","empty", "+ " + (filtered.length - shown.length)));
+    }
+  }
+
+  function openSheet(id){
+    var v = venues.filter(function(x){ return x.id === id; })[0];
+    if (!v) return;
+    selectedId = id;
+    el("sheetName").textContent = v.name;
+
+    var badges = el("sheetBadges");
+    clear(badges);
+    var artBadge = make("span","badge on", t(v.art));
+    artBadge.style.borderColor = ARTCOLORS[v.art] || ARTCOLORS.sonstige;
+    artBadge.style.color = ARTCOLORS[v.art] || ARTCOLORS.sonstige;
+    artBadge.style.background = "transparent";
+    badges.appendChild(artBadge);
+    if (districtName(v.bezirk)) badges.appendChild(make("span","badge", districtName(v.bezirk)));
+    if (v.beleuchtung === true) badges.appendChild(make("span","badge on", t("lit")));
+    if (v.zugang === "frei") badges.appendChild(make("span","badge on", t("accessFrei")));
+    if (v.zugang === "verein") badges.appendChild(make("span","badge warn", t("accessVerein")));
+    if (v.zugang === "buchung") badges.appendChild(make("span","badge warn", t("accessBuchung")));
+
+    var facts = el("sheetFacts");
+    clear(facts);
+    function addFact(label, value){
+      var tr = make("tr");
+      tr.appendChild(make("th", null, label));
+      tr.appendChild(make("td", null, value));
+      facts.appendChild(tr);
+    }
+    addFact(t("surface"), v.belag || t("unknown"));
+    addFact(t("lighting"), v.beleuchtung === true ? t("yes") : (v.beleuchtung === false ? t("no") : t("unknown")));
+    addFact(t("access"), v.zugang === "frei" ? t("accessFrei") : (v.zugang === "buchung" ? t("accessBuchung") : t("accessVerein")));
+    addFact(t("checked"), v.geprueft ? t("yes") : t("no"));
+    addFact(t("games"), t("noGames"));
+
+    var route = el("sheetRoute");
+    route.textContent = t("route");
+    route.href = "https://www.google.com/maps/search/?api=1&query=" + v.lat + "," + v.lon;
+
+    el("sheetOrganize").textContent = t("organize");
+    el("sheetHint").textContent = t("soonHint");
+    el("sheet").classList.add("open");
+
+    pushToMap();
+    if (!listMode && mapReady){
+      map.easeTo({ center: [v.lon, v.lat], zoom: Math.max(map.getZoom(), 15), offset: [0, -90] });
+    }
+  }
+
+  function closeSheet(){
+    selectedId = null;
+    el("sheet").classList.remove("open");
+    pushToMap();
+  }
+
+  function openModal(render){
+    el("modal").hidden = false;
+    render(el("panel"));
+  }
+  function closeModal(){
+    el("modal").hidden = true;
+    clear(el("panel"));
+  }
+
+  function field(labelText, inputEl){
+    var wrap = make("div","field");
+    var lab = make("label", null, labelText);
+    lab.setAttribute("for", inputEl.id);
+    wrap.appendChild(lab);
+    wrap.appendChild(inputEl);
+    return wrap;
+  }
+  function input(id, type, placeholder){
+    var i = document.createElement("input");
+    i.id = id; i.type = type;
+    if (placeholder) i.placeholder = placeholder;
+    return i;
+  }
+  function select(id, options, value){
+    var s = document.createElement("select");
+    s.id = id;
+    options.forEach(function(o){
+      var opt = document.createElement("option");
+      opt.value = o.value;
+      opt.textContent = o.label;
+      if (o.value === value) opt.selected = true;
+      s.appendChild(opt);
+    });
+    return s;
+  }
+
+  function authPanel(mode){
+    return function(panel){
+      clear(panel);
+      panel.appendChild(make("h2", null, mode === "register" ? t("registerTitle") : t("loginTitle")));
+      panel.appendChild(make("p","lead", mode === "register" ? t("registerLead") : t("loginLead")));
+      var msg = make("div","err");
+      msg.hidden = true;
+      panel.appendChild(msg);
+
+      var mail = input("f-mail","email","name@beispiel.at");
+      mail.autocomplete = "email";
+      var pass = input("f-pass","password", mode === "register" ? t("passwordHint") : "");
+      pass.autocomplete = mode === "register" ? "new-password" : "current-password";
+      panel.appendChild(field(t("email"), mail));
+      panel.appendChild(field(t("password"), pass));
+
+      var go = make("button","btn", mode === "register" ? t("createAccount") : t("doLogin"));
+      go.type = "button";
+      go.addEventListener("click", function(){
+        msg.hidden = true;
+        go.disabled = true;
+        var email = mail.value.trim();
+        var password = pass.value;
+        var call = mode === "register"
+          ? sb.auth.signUp({ email: email, password: password })
+          : sb.auth.signInWithPassword({ email: email, password: password });
+        call.then(function(res){
+          go.disabled = false;
+          if (res.error){ msg.textContent = res.error.message; msg.hidden = false; return; }
+          if (!res.data.session){ msg.textContent = "Bitte E-Mail bestätigen."; msg.hidden = false; return; }
+          if (mode === "register") { profile = null; openModal(profilePanel(true)); }
+          else closeModal();
+        }).catch(function(e){
+          go.disabled = false; msg.textContent = String(e); msg.hidden = false;
+        });
+      });
+      panel.appendChild(go);
+
+      var sw = make("div","switcher");
+      var other = make("button","btn secondary", mode === "register" ? t("haveAccount") : t("noAccount"));
+      other.type = "button";
+      other.addEventListener("click", function(){ openModal(authPanel(mode === "register" ? "login" : "register")); });
+      sw.appendChild(other);
+      panel.appendChild(sw);
+
+      var cancel = make("button","danger-link", t("cancel"));
+      cancel.type = "button";
+      cancel.style.color = "var(--muted)";
+      cancel.addEventListener("click", closeModal);
+      panel.appendChild(cancel);
+    };
+  }
+
+  function profilePanel(isNew){
+    return function(panel){
+      clear(panel);
+      panel.appendChild(make("h2", null, t("profileTitle")));
+      panel.appendChild(make("p","lead", t("profileLead")));
+      var msg = make("div","err"); msg.hidden = true; panel.appendChild(msg);
+
+      var p = profile || {};
+      var avatarBox = make("div","avatar-edit");
+      var avatarView;
+      if (p.bild_url){
+        avatarView = document.createElement("img");
+        avatarView.className = "avatar";
+        avatarView.src = p.bild_url;
+        avatarView.alt = "";
+      } else {
+        avatarView = make("div","avatar-fallback", initials(p.anzeigename || "?"));
+      }
+      avatarBox.appendChild(avatarView);
+      var fileBtn = make("button","btn secondary", t("changePicture"));
+      fileBtn.type = "button";
+      fileBtn.style.width = "auto";
+      fileBtn.style.padding = "9px 14px";
+      var fileInput = document.createElement("input");
+      fileInput.type = "file"; fileInput.accept = "image/*"; fileInput.hidden = true;
+      fileBtn.addEventListener("click", function(){ fileInput.click(); });
+      fileInput.addEventListener("change", function(){
+        var f = fileInput.files && fileInput.files[0];
+        if (!f || !session) return;
+        toast(t("uploading"));
+        var ext = (f.name.split(".").pop() || "jpg").toLowerCase();
+        var path = session.user.id + "/avatar." + ext;
+        sb.storage.from("avatars").upload(path, f, { upsert: true }).then(function(res){
+          if (res.error){ msg.textContent = res.error.message; msg.hidden = false; return; }
+          var pub = sb.storage.from("avatars").getPublicUrl(path);
+          var url = pub.data.publicUrl + "?v=" + Date.now();
+          p.bild_url = url;
+          if (avatarView.tagName === "IMG"){ avatarView.src = url; }
+          else {
+            var img = document.createElement("img");
+            img.className = "avatar"; img.src = url; img.alt = "";
+            img.style.width = "56px"; img.style.height = "56px";
+            avatarBox.replaceChild(img, avatarView);
+            avatarView = img;
+          }
+        });
+      });
+      avatarBox.appendChild(fileBtn);
+      avatarBox.appendChild(fileInput);
+      panel.appendChild(avatarBox);
+
+      var nameIn = input("f-name","text","");
+      nameIn.value = p.anzeigename || "";
+      nameIn.maxLength = 40;
+      panel.appendChild(field(t("displayName"), nameIn));
+
+      var districtOpts = [{value:"", label:t("allDistricts")}];
+      for (var i = 1; i <= 23; i++) districtOpts.push({ value:String(i), label: districtName(i) });
+      var distSel = select("f-dist", districtOpts, p.bezirk ? String(p.bezirk) : "");
+      panel.appendChild(field(t("district"), distSel));
+
+      var posSel = select("f-pos", [
+        {value:"egal",label:t("posEgal")},{value:"tor",label:t("posTor")},
+        {value:"abwehr",label:t("posAbwehr")},{value:"mittelfeld",label:t("posMittelfeld")},
+        {value:"sturm",label:t("posSturm")}
+      ], p.spielposition || "egal");
+      panel.appendChild(field(t("positionLabel"), posSel));
+
+      var lvlSel = select("f-lvl", [
+        {value:"anfaenger",label:t("lvlAnfaenger")},{value:"freizeit",label:t("lvlFreizeit")},
+        {value:"ambitioniert",label:t("lvlAmbitioniert")},{value:"wettkampf",label:t("lvlWettkampf")}
+      ], p.niveau || "freizeit");
+      panel.appendChild(field(t("levelLabel"), lvlSel));
+
+      var save = make("button","btn", t("save"));
+      save.type = "button";
+      save.addEventListener("click", function(){
+        if (nameIn.value.trim().length < 2){ msg.textContent = t("needName"); msg.hidden = false; return; }
+        save.disabled = true;
+        var row = {
+          id: session.user.id,
+          anzeigename: nameIn.value.trim(),
+          bild_url: p.bild_url || null,
+          bezirk: distSel.value ? Number(distSel.value) : null,
+          spielposition: posSel.value,
+          niveau: lvlSel.value,
+          sprache: lang
+        };
+        sb.from("profiles").upsert(row).then(function(res){
+          save.disabled = false;
+          if (res.error){ msg.textContent = res.error.message; msg.hidden = false; return; }
+          profile = row;
+          renderAccount();
+          toast(t("saved"));
+          closeModal();
+        });
+      });
+      panel.appendChild(save);
+
+      if (!isNew){
+        var out = make("button","btn secondary", t("signOut"));
+        out.type = "button";
+        out.style.marginTop = "8px";
+        out.addEventListener("click", function(){
+          sb.auth.signOut().then(function(){ closeModal(); });
+        });
+        panel.appendChild(out);
+
+        var del = make("button","danger-link", t("deleteAccount"));
+        del.type = "button";
+        del.addEventListener("click", function(){
+          if (!window.confirm(t("deleteConfirm"))) return;
+          del.disabled = true;
+          fetch(SUPABASE_URL + "/functions/v1/konto-loeschen", {
+            method: "POST",
+            headers: { "Authorization": "Bearer " + session.access_token, "apikey": SUPABASE_KEY }
+          }).then(function(r){ return r.json().catch(function(){ return {}; }); })
+            .then(function(res){
+              del.disabled = false;
+              if (res && res.error){ msg.textContent = res.error; msg.hidden = false; return; }
+              sb.auth.signOut().then(function(){ closeModal(); toast(t("deleted")); });
+            }).catch(function(e){
+              del.disabled = false; msg.textContent = String(e); msg.hidden = false;
+            });
+        });
+        panel.appendChild(del);
+      } else {
+        var later = make("button","danger-link", t("cancel"));
+        later.type = "button";
+        later.style.color = "var(--muted)";
+        later.addEventListener("click", closeModal);
+        panel.appendChild(later);
+      }
+    };
+  }
+
+  function renderAccount(){
+    var btn = el("accountBtn");
+    clear(btn);
+    if (session && profile){
+      if (profile.bild_url){
+        var img = document.createElement("img");
+        img.className = "avatar";
+        img.src = profile.bild_url;
+        img.alt = profile.anzeigename || "";
+        btn.appendChild(img);
+      } else {
+        btn.appendChild(make("div","avatar-fallback", initials(profile.anzeigename)));
+      }
+    } else if (session){
+      btn.appendChild(make("span","ghost", t("profile")));
+    } else {
+      btn.appendChild(make("span","ghost", t("signIn")));
+    }
+  }
+
+  function loadProfile(){
+    if (!session){ profile = null; renderAccount(); return; }
+    sb.from("profiles").select("*").eq("id", session.user.id).maybeSingle().then(function(res){
+      profile = res.data || null;
+      renderAccount();
+    }).catch(function(){ renderAccount(); });
+  }
+
+  function buildChips(){
+    var box = el("artChips");
+    clear(box);
+    ARTS.forEach(function(art){
+      var b = make("button","chip");
+      b.type = "button";
+      b.setAttribute("aria-pressed","false");
+      var dot = make("span","dot");
+      dot.style.background = ARTCOLORS[art];
+      b.appendChild(dot);
+      b.appendChild(make("span", null, t(art)));
+      b.addEventListener("click", function(){
+        filterArt = (filterArt === art) ? null : art;
+        Array.prototype.forEach.call(box.children, function(c, i){
+          c.setAttribute("aria-pressed", ARTS[i] === filterArt ? "true" : "false");
+        });
+        applyFilters();
+      });
+      box.appendChild(b);
+    });
+  }
+
+  function buildDistrictSelect(){
+    var s = el("district");
+    clear(s);
+    var all = document.createElement("option");
+    all.value = "0"; all.textContent = t("allDistricts");
+    s.appendChild(all);
+    for (var i = 1; i <= 23; i++){
+      var o = document.createElement("option");
+      o.value = String(i); o.textContent = districtName(i);
+      s.appendChild(o);
+    }
+    s.value = String(filterDistrict);
+  }
+
+  function applyLanguageToChrome(){
+    el("search").placeholder = t("search");
+    el("chipLit").textContent = t("lit");
+    el("chipFree").textContent = t("free");
+    el("viewToggle").textContent = listMode ? t("showMap") : t("showList");
+    el("resetBtn").textContent = t("reset");
+    el("langBtn").textContent = lang === "de" ? "EN" : "DE";
+    document.documentElement.lang = lang;
+    buildChips();
+    buildDistrictSelect();
+    if (filterArt){
+      Array.prototype.forEach.call(el("artChips").children, function(c, i){
+        c.setAttribute("aria-pressed", ARTS[i] === filterArt ? "true" : "false");
+      });
+    }
+    renderAccount();
+  }
+
+  function wire(){
+    el("search").addEventListener("input", function(e){
+      query = e.target.value;
+      applyFilters();
+    });
+    el("chipLit").addEventListener("click", function(){
+      filterLit = !filterLit;
+      el("chipLit").setAttribute("aria-pressed", filterLit ? "true" : "false");
+      applyFilters();
+    });
+    el("chipFree").addEventListener("click", function(){
+      filterFree = !filterFree;
+      el("chipFree").setAttribute("aria-pressed", filterFree ? "true" : "false");
+      applyFilters();
+    });
+    el("district").addEventListener("change", function(e){
+      filterDistrict = Number(e.target.value) || 0;
+      applyFilters();
+    });
+    el("viewToggle").addEventListener("click", function(){
+      listMode = !listMode;
+      el("list").hidden = !listMode;
+      el("map").style.visibility = listMode ? "hidden" : "visible";
+      el("viewToggle").textContent = listMode ? t("showMap") : t("showList");
+      if (listMode) renderList(); else if (map) map.resize();
+    });
+    el("resetBtn").addEventListener("click", function(){
+      filterArt = null; filterLit = false; filterFree = false; filterDistrict = 0; query = "";
+      el("search").value = "";
+      el("chipLit").setAttribute("aria-pressed","false");
+      el("chipFree").setAttribute("aria-pressed","false");
+      el("district").value = "0";
+      Array.prototype.forEach.call(el("artChips").children, function(c){ c.setAttribute("aria-pressed","false"); });
+      applyFilters();
+    });
+    el("sheetClose").addEventListener("click", closeSheet);
+    el("langBtn").addEventListener("click", function(){
+      lang = lang === "de" ? "en" : "de";
+      try { localStorage.setItem("jogavia-lang", lang); } catch(e){}
+      applyLanguageToChrome();
+      applyFilters();
+      if (selectedId !== null) openSheet(selectedId);
+    });
+    el("accountBtn").addEventListener("click", function(){
+      if (!session) openModal(authPanel("login"));
+      else openModal(profilePanel(false));
+    });
+    el("modal").addEventListener("click", function(e){
+      if (e.target === el("modal")) closeModal();
+    });
+    document.addEventListener("keydown", function(e){
+      if (e.key === "Escape"){ closeModal(); closeSheet(); }
+    });
+    if (window.matchMedia){
+      try {
+        window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function(){
+          location.reload();
+        });
+      } catch(e){}
+    }
+  }
+
+  function positionMain(){
+    var h = el("controls").offsetHeight + 56;
+    document.querySelector("main").style.top = h + "px";
+  }
+
+  function loadVenues(){
+    sb.from("venues_public").select("id,name,bezirk,art,belag,beleuchtung,zugang,geprueft,lat,lon")
+      .order("name")
+      .limit(2000)
+      .then(function(res){
+        if (res.error){ toast(t("loadError") + res.error.message); return; }
+        venues = res.data || [];
+        applyFilters();
+      }).catch(function(e){ toast(t("loadError") + String(e)); });
+  }
+
+  function boot(){
+    try {
+      applyLanguageToChrome();
+      wire();
+      buildMap();
+      positionMain();
+      window.addEventListener("resize", positionMain);
+      loadVenues();
+      sb.auth.getSession().then(function(res){
+        session = res.data.session;
+        loadProfile();
+      });
+      sb.auth.onAuthStateChange(function(_evt, s){
+        session = s;
+        loadProfile();
+      });
+    } catch (err){
+      var box = make("div","err");
+      box.style.position = "fixed";
+      box.style.top = "60px"; box.style.left = "12px"; box.style.right = "12px"; box.style.zIndex = "99";
+      box.textContent = "Fehler beim Start: " + (err && err.message ? err.message : String(err));
+      document.body.appendChild(box);
+    }
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+  else boot();
+})();
+</script>
+</body>
+</html>
