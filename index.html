@@ -6,6 +6,8 @@
 <meta name="theme-color" content="#FAF6EF">
 <meta name="color-scheme" content="light">
 <title>JogaVia — Fußball in Wien</title>
+<link rel="icon" type="image/svg+xml" href="logo.svg">
+<link rel="apple-touch-icon" href="logo.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Karla:wght@400;500;600;700&display=swap">
@@ -49,7 +51,11 @@
     display:flex;align-items:center;gap:10px;padding:0 14px;
     background:var(--surface);border-bottom:1px solid var(--line);
   }
-  .brand{font-family:var(--display);font-weight:600;font-size:24px;line-height:1;letter-spacing:-.01em;user-select:none}
+  .brand{
+    display:flex;align-items:center;gap:9px;
+    font-family:var(--display);font-weight:600;font-size:24px;line-height:1;letter-spacing:-.01em;user-select:none;
+  }
+  .brand .logo{width:27px;height:27px;display:block;flex:0 0 auto}
   .brand span{color:var(--accent)}
   .grow{flex:1}
   .ghost{
@@ -203,7 +209,18 @@
 <body>
 
 <header>
-  <div class="brand">Joga<span>Via</span></div>
+  <div class="brand">
+    <svg class="logo" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+      <path d="M32 3C19.8 3 10 12.5 10 24.2c0 15.6 19.6 34 20.4 34.8.9.9 2.3.9 3.2 0C34.4 58.2 54 39.8 54 24.2 54 12.5 44.2 3 32 3z" fill="#4B7F5B"/>
+      <circle cx="32" cy="24" r="12.5" fill="#FAF6EF"/>
+      <path d="M32 17.2l5.4 3.9-2.1 6.4h-6.6l-2.1-6.4z" fill="#4B7F5B"/>
+      <g stroke="#4B7F5B" stroke-width="2.3" stroke-linecap="round" fill="none">
+        <path d="M32 11.9v5.3"/><path d="M43.6 20.6l-5.1 1.6"/><path d="M39.3 34.4l-3.2-4.3"/>
+        <path d="M24.7 34.4l3.2-4.3"/><path d="M20.4 20.6l5.1 1.6"/>
+      </g>
+    </svg>
+    Joga<span>Via</span>
+  </div>
   <div class="grow"></div>
   <button id="langBtn" class="ghost" type="button">EN</button>
   <button id="accountBtn" type="button"><span class="ghost">Anmelden</span></button>
@@ -261,6 +278,7 @@
 
   var SUPABASE_URL = "https://ngeymudilvcishweefow.supabase.co";
   var SUPABASE_KEY = "sb_publishable_NnIdoQ9sTsMkbRbuu_mYHw_T2bQ-iSZ";
+  var BESTAETIGT_URL = "https://esio1120.github.io/JogaVia/bestaetigt.html";
 
   var STRINGS = {
     de: {
@@ -293,6 +311,13 @@
       deleteAccount: "Konto löschen", deleteConfirm: "Konto wirklich löschen? Das lässt sich nicht rückgängig machen.",
       deleted: "Konto gelöscht.",
       needName: "Bitte gib einen Anzeigenamen an (mindestens 2 Zeichen).",
+      birthYear: "Geburtsjahr", birthHint: "z. B. 1998",
+      needYear: "Bitte gib dein Geburtsjahr an.",
+      minAge: "Mitspielen kannst du ab 14 Jahren.",
+      almostDone: "Fast geschafft", completeLead: "Noch drei Angaben, dann kannst du loslegen.",
+      mailSentTitle: "Schau in dein Postfach",
+      mailSentLead: "Wir haben dir eine E-Mail geschickt. Klick auf den Link darin, dann bist du dabei.",
+      whyData: "Das sehen die anderen, wenn du einem Spiel beitrittst.",
       loadError: "Plätze konnten nicht geladen werden: ",
       joinBtn: "Ich bin dabei", waitBtn: "Auf die Warteliste", leaveBtn: "Doch nicht dabei",
       youAreIn: "Du bist dabei", youAreWaiting: "Du stehst auf der Warteliste",
@@ -343,6 +368,13 @@
       deleteAccount: "Delete account", deleteConfirm: "Really delete your account? This cannot be undone.",
       deleted: "Account deleted.",
       needName: "Please enter a display name (at least 2 characters).",
+      birthYear: "Year of birth", birthHint: "e.g. 1998",
+      needYear: "Please enter your year of birth.",
+      minAge: "You need to be at least 14 to play.",
+      almostDone: "Almost there", completeLead: "Three more details and you are set.",
+      mailSentTitle: "Check your inbox",
+      mailSentLead: "We sent you an email. Click the link in it and you are in.",
+      whyData: "This is what others see when you join a game.",
       loadError: "Could not load pitches: ",
       joinBtn: "Count me in", waitBtn: "Join waiting list", leaveBtn: "Drop out",
       youAreIn: "You are in", youAreWaiting: "You are on the waiting list",
@@ -515,15 +547,39 @@
         }
       });
 
-      map.on("click", "clusters", function(e){
-        var f = map.queryRenderedFeatures(e.point, { layers:["clusters"] })[0];
-        if (!f) return;
-        map.getSource("venues").getClusterExpansionZoom(f.properties.cluster_id).then(function(z){
-          map.easeTo({ center: f.geometry.coordinates, zoom: z });
-        }).catch(function(){});
-      });
-      map.on("click", "points", function(e){
-        openSheet(Number(e.features[0].properties.id));
+      map.on("click", function(e){
+        var r = 14;
+        var box = [[e.point.x - r, e.point.y - r], [e.point.x + r, e.point.y + r]];
+        var punkte = [];
+        var cluster = [];
+        try { punkte = map.queryRenderedFeatures(box, { layers:["points"] }); } catch(err){}
+        try { cluster = map.queryRenderedFeatures(box, { layers:["clusters"] }); } catch(err){}
+        if (punkte && punkte.length){
+          var best = punkte[0];
+          var minD = Infinity;
+          punkte.forEach(function(f){
+            var p = map.project(f.geometry.coordinates);
+            var d = (p.x - e.point.x) * (p.x - e.point.x) + (p.y - e.point.y) * (p.y - e.point.y);
+            if (d < minD){ minD = d; best = f; }
+          });
+          openSheet(Number(best.properties.id));
+          return;
+        }
+        if (cluster && cluster.length){
+          var c = cluster[0];
+          var quelle = map.getSource("venues");
+          var weiter = function(z){ map.easeTo({ center: c.geometry.coordinates, zoom: z }); };
+          try {
+            var erg = quelle.getClusterExpansionZoom(c.properties.cluster_id);
+            if (erg && typeof erg.then === "function"){
+              erg.then(weiter).catch(function(){ weiter(map.getZoom() + 2); });
+            } else {
+              weiter(map.getZoom() + 2);
+            }
+          } catch(err){
+            weiter(map.getZoom() + 2);
+          }
+        }
       });
       ["clusters","points"].forEach(function(layer){
         map.on("mouseenter", layer, function(){ map.getCanvas().style.cursor = "pointer"; });
@@ -703,14 +759,21 @@
     pushToMap();
   }
 
-  function openModal(render){
+  var modalLocked = false;
+  function openModal(render, locked){
+    modalLocked = !!locked;
     el("modal").hidden = false;
     render(el("panel"));
     el("panel").scrollTop = 0;
   }
   function closeModal(){
+    if (modalLocked) return;
     el("modal").hidden = true;
     clear(el("panel"));
+  }
+  function forceCloseModal(){
+    modalLocked = false;
+    closeModal();
   }
 
   function field(labelText, inputEl){
@@ -747,7 +810,7 @@
   }
   function needAccount(){
     if (!session){ openModal(authPanel("login")); return true; }
-    if (!profile){ openModal(profilePanel(true)); return true; }
+    if (!profile){ openModal(profilePanel(true), true); return true; }
     return false;
   }
 
@@ -758,6 +821,18 @@
       panel.appendChild(make("p","lead", mode === "register" ? t("registerLead") : t("loginLead")));
       var msg = make("div","err"); msg.hidden = true; panel.appendChild(msg);
 
+      var nameIn = null, yearIn = null;
+      if (mode === "register"){
+        nameIn = input("f-name","text","");
+        nameIn.maxLength = 40;
+        nameIn.autocomplete = "nickname";
+        panel.appendChild(field(t("displayName"), nameIn));
+        yearIn = input("f-year","number", t("birthHint"));
+        yearIn.min = "1930";
+        yearIn.max = String(new Date().getFullYear());
+        panel.appendChild(field(t("birthYear"), yearIn));
+      }
+
       var mail = input("f-mail","email","name@beispiel.at");
       mail.autocomplete = "email";
       var pass = input("f-pass","password", mode === "register" ? t("passwordHint") : "");
@@ -765,20 +840,53 @@
       panel.appendChild(field(t("email"), mail));
       panel.appendChild(field(t("password"), pass));
 
+      if (mode === "register") panel.appendChild(make("p","hint", t("whyData")));
+
       var go = make("button","btn", mode === "register" ? t("createAccount") : t("doLogin"));
       go.type = "button";
       go.addEventListener("click", function(){
         msg.hidden = true;
+        var jahr = null;
+        if (mode === "register"){
+          if (nameIn.value.trim().length < 2){ msg.textContent = t("needName"); msg.hidden = false; return; }
+          jahr = parseInt(yearIn.value, 10);
+          if (!jahr || jahr < 1930 || jahr > new Date().getFullYear()){
+            msg.textContent = t("needYear"); msg.hidden = false; return;
+          }
+          if (new Date().getFullYear() - jahr < 14){
+            msg.textContent = t("minAge"); msg.hidden = false; return;
+          }
+        }
         go.disabled = true;
         var call = mode === "register"
-          ? sb.auth.signUp({ email: mail.value.trim(), password: pass.value })
+          ? sb.auth.signUp({
+              email: mail.value.trim(),
+              password: pass.value,
+              options: {
+                emailRedirectTo: BESTAETIGT_URL,
+                data: { anzeigename: nameIn.value.trim(), geburtsjahr: jahr }
+              }
+            })
           : sb.auth.signInWithPassword({ email: mail.value.trim(), password: pass.value });
         call.then(function(res){
           go.disabled = false;
           if (res.error){ msg.textContent = res.error.message; msg.hidden = false; return; }
-          if (!res.data.session){ msg.textContent = "Bitte E-Mail bestätigen."; msg.hidden = false; return; }
-          if (mode === "register"){ profile = null; openModal(profilePanel(true)); }
-          else closeModal();
+          if (!res.data.session){
+            clear(panel);
+            panel.appendChild(make("h2", null, t("mailSentTitle")));
+            panel.appendChild(make("p","lead", t("mailSentLead")));
+            var ok = make("button","btn", t("cancel"));
+            ok.type = "button";
+            ok.addEventListener("click", forceCloseModal);
+            panel.appendChild(ok);
+            return;
+          }
+          if (mode === "register"){
+            profile = null;
+            openModal(profilePanel(true), true);
+          } else {
+            closeModal();
+          }
         }).catch(function(e){
           go.disabled = false; msg.textContent = String(e); msg.hidden = false;
         });
@@ -802,11 +910,12 @@
   function profilePanel(isNew){
     return function(panel){
       clear(panel);
-      panel.appendChild(make("h2", null, t("profileTitle")));
-      panel.appendChild(make("p","lead", t("profileLead")));
+      panel.appendChild(make("h2", null, isNew ? t("almostDone") : t("profileTitle")));
+      panel.appendChild(make("p","lead", isNew ? t("completeLead") : t("profileLead")));
       var msg = make("div","err"); msg.hidden = true; panel.appendChild(msg);
 
-      var p = profile || {};
+      var meta = (session && session.user && session.user.user_metadata) || {};
+      var p = profile || { anzeigename: meta.anzeigename || "", geburtsjahr: meta.geburtsjahr || null };
       var avatarBox = make("div","avatar-edit");
       var avatarView;
       if (p.bild_url){
@@ -854,6 +963,12 @@
       nameIn.maxLength = 40;
       panel.appendChild(field(t("displayName"), nameIn));
 
+      var yearIn = input("f-year","number", t("birthHint"));
+      yearIn.min = "1930";
+      yearIn.max = String(new Date().getFullYear());
+      yearIn.value = p.geburtsjahr ? String(p.geburtsjahr) : "";
+      panel.appendChild(field(t("birthYear"), yearIn));
+
       var districtOpts = [{value:"", label:t("allDistricts")}];
       for (var i = 1; i <= 23; i++) districtOpts.push({ value:String(i), label: districtName(i) });
       var distSel = select("f-dist", districtOpts, p.bezirk ? String(p.bezirk) : "");
@@ -873,10 +988,18 @@
       save.type = "button";
       save.addEventListener("click", function(){
         if (nameIn.value.trim().length < 2){ msg.textContent = t("needName"); msg.hidden = false; return; }
+        var jahr = parseInt(yearIn.value, 10);
+        if (!jahr || jahr < 1930 || jahr > new Date().getFullYear()){
+          msg.textContent = t("needYear"); msg.hidden = false; return;
+        }
+        if (new Date().getFullYear() - jahr < 14){
+          msg.textContent = t("minAge"); msg.hidden = false; return;
+        }
         save.disabled = true;
         var row = {
           id: session.user.id,
           anzeigename: nameIn.value.trim(),
+          geburtsjahr: jahr,
           bild_url: p.bild_url || null,
           bezirk: distSel.value ? Number(distSel.value) : null,
           spielposition: posSel.value,
@@ -889,7 +1012,7 @@
           profile = row;
           renderAccount();
           toast(t("saved"));
-          closeModal();
+          forceCloseModal();
         });
       });
       panel.appendChild(save);
@@ -899,7 +1022,7 @@
         out.type = "button";
         out.style.marginTop = "9px";
         out.addEventListener("click", function(){
-          sb.auth.signOut().then(function(){ closeModal(); });
+          sb.auth.signOut().then(function(){ forceCloseModal(); });
         });
         panel.appendChild(out);
 
@@ -915,17 +1038,17 @@
             .then(function(res){
               del.disabled = false;
               if (res && res.error){ msg.textContent = res.error; msg.hidden = false; return; }
-              sb.auth.signOut().then(function(){ closeModal(); toast(t("deleted")); });
+              sb.auth.signOut().then(function(){ forceCloseModal(); toast(t("deleted")); });
             }).catch(function(e){
               del.disabled = false; msg.textContent = String(e); msg.hidden = false;
             });
         });
         panel.appendChild(del);
-      } else {
-        var later = make("button","quiet-link", t("cancel"));
-        later.type = "button";
-        later.addEventListener("click", closeModal);
-        panel.appendChild(later);
+
+        var close = make("button","quiet-link", t("cancel"));
+        close.type = "button";
+        close.addEventListener("click", closeModal);
+        panel.appendChild(close);
       }
     };
   }
@@ -1182,7 +1305,11 @@
   function loadProfile(){
     if (!session){ profile = null; renderAccount(); return Promise.resolve(); }
     return sb.from("profiles").select("*").eq("id", session.user.id).maybeSingle()
-      .then(function(res){ profile = res.data || null; renderAccount(); })
+      .then(function(res){
+        profile = res.data || null;
+        renderAccount();
+        if (!profile) openModal(profilePanel(true), true);
+      })
       .catch(function(){ renderAccount(); });
   }
 
