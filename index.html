@@ -376,7 +376,7 @@
   var SUPABASE_URL = "https://ngeymudilvcishweefow.supabase.co";
   var SUPABASE_KEY = "sb_publishable_NnIdoQ9sTsMkbRbuu_mYHw_T2bQ-iSZ";
   var BESTAETIGT_URL = "https://esio1120.github.io/JogaVia/bestaetigt.html";
-  var APP_VERSION = "2026-09-01 h";
+  var APP_VERSION = "2026-09-01 i";
   var FEHLER = [];
   function merkeFehler(e){
     var s = "";
@@ -633,6 +633,7 @@
   var MARKER_AB_ZOOM = 15;
   var geoControl = null;
   var ansicht = "feed";
+  var standortSchonGeholt = false;
   var nurFreiePlaetze = false;
 
   function buildMap(){
@@ -668,8 +669,18 @@
     });
     map.addControl(geoControl, "bottom-right");
     try {
-      geoControl.on("geolocate", function(){
+      geoControl.on("geolocate", function(pos){
+        standortSchonGeholt = true;
         try { localStorage.setItem("jogavia-geo", "1"); } catch(e){}
+        try {
+          if (pos && pos.coords){
+            map.flyTo({
+              center: [pos.coords.longitude, pos.coords.latitude],
+              zoom: Math.max(map.getZoom(), 16.5),
+              essential: true
+            });
+          }
+        } catch(e){ merkeFehler(e); }
       });
       geoControl.on("error", function(e){ merkeFehler(e); });
     } catch(e){}
@@ -773,7 +784,7 @@
 
       mapReady = true;
       pushToMap();
-      standortAutomatisch();
+      if (ansicht === "karte") standortAutomatisch();
     });
   }
 
@@ -1034,6 +1045,7 @@
     positionMain();
     if (istKarte){
       if (map) setTimeout(function(){ try { map.resize(); } catch(e){} }, 60);
+      if (mapReady && !standortSchonGeholt) standortAutomatisch();
     } else {
       renderFeed();
     }
