@@ -202,6 +202,7 @@
   .msg .bubble{background:var(--sand);border-radius:12px;padding:8px 12px;font-size:14.5px;line-height:1.4;word-break:break-word}
   .msg.own{align-self:flex-end;align-items:flex-end}
   .msg.own .bubble{background:var(--accent-soft)}
+  .msg.wartet .bubble{opacity:.55}
   .chatform{display:flex;gap:8px;margin-bottom:14px}
   .chatform input{
     flex:1;padding:11px 13px;border:1px solid var(--line-strong);border-radius:11px;
@@ -432,7 +433,7 @@
   var SUPABASE_URL = "https://ngeymudilvcishweefow.supabase.co";
   var SUPABASE_KEY = "sb_publishable_NnIdoQ9sTsMkbRbuu_mYHw_T2bQ-iSZ";
   var BESTAETIGT_URL = "https://esio1120.github.io/JogaVia/bestaetigt.html";
-  var APP_VERSION = "2026-09-01 k";
+  var APP_VERSION = "2026-09-01 l";
   var FEHLER = [];
   function merkeFehler(e){
     var s = "";
@@ -1351,12 +1352,40 @@
       panel.appendChild(box);
       var gesehen = {};
       var leer = null;
+      var wartend = [];
+      var letzteZeit = null;
+
+      function eigeneSofort(text){
+        if (leer){ box.removeChild(leer); leer = null; }
+        var wrap = make("div","msg own wartet");
+        var wann = "";
+        try {
+          wann = new Intl.DateTimeFormat(lang === "de" ? "de-AT" : "en-GB",
+            { hour:"2-digit", minute:"2-digit", timeZone:"Europe/Vienna" }).format(new Date());
+        } catch(e){}
+        wrap.appendChild(make("div","meta", t("profile") + " · " + wann));
+        wrap.appendChild(make("div","bubble", text));
+        box.appendChild(wrap);
+        box.scrollTop = box.scrollHeight;
+        wartend.push({ text: text, el: wrap });
+        return wrap;
+      }
 
       function zeile(m){
         if (!m || gesehen[m.id]) return;
         gesehen[m.id] = true;
-        if (leer){ box.removeChild(leer); leer = null; }
+        if (!letzteZeit || m.gesendet_am > letzteZeit) letzteZeit = m.gesendet_am;
         var eigen = m.von_id === session.user.id;
+        if (eigen){
+          for (var w = 0; w < wartend.length; w++){
+            if (wartend[w].text === m.text){
+              wartend[w].el.className = "msg own";
+              wartend.splice(w, 1);
+              return;
+            }
+          }
+        }
+        if (leer){ box.removeChild(leer); leer = null; }
         var wrap = make("div", eigen ? "msg own" : "msg");
         var wann = "";
         try {
@@ -1370,10 +1399,11 @@
       }
 
       function nachladen(erstesMal){
-        return sb.from("direct_messages").select("id,von_id,an_id,text,gesendet_am")
+        var q = sb.from("direct_messages").select("id,von_id,an_id,text,gesendet_am")
           .or("and(von_id.eq." + session.user.id + ",an_id.eq." + freund.partner_id + ")," +
-              "and(von_id.eq." + freund.partner_id + ",an_id.eq." + session.user.id + ")")
-          .order("gesendet_am").limit(100)
+              "and(von_id.eq." + freund.partner_id + ",an_id.eq." + session.user.id + ")");
+        if (!erstesMal && letzteZeit) q = q.gte("gesendet_am", letzteZeit);
+        return q.order("gesendet_am").limit(100)
           .then(function(res){
             var rows = res.data || [];
             if (erstesMal && !rows.length){ leer = make("p","muted-line", t("dmLeer")); box.appendChild(leer); return; }
@@ -1391,9 +1421,16 @@
         var text = feld.value.trim();
         if (!text) return;
         feld.value = "";
+        var vorschau = eigeneSofort(text);
         sb.from("direct_messages").insert({ von_id: session.user.id, an_id: freund.partner_id, text: text })
           .then(function(res){
-            if (res.error){ toast(res.error.message); return; }
+            if (res.error){
+              toast(res.error.message);
+              if (vorschau && vorschau.parentNode) vorschau.parentNode.removeChild(vorschau);
+              wartend = wartend.filter(function(x){ return x.el !== vorschau; });
+              feld.value = text;
+              return;
+            }
             nachladen(false);
           });
       }
@@ -1434,7 +1471,7 @@
         if (el("modal").hidden){ stopDm(); return; }
         if (document.hidden) return;
         nachladen(false);
-      }, 4000);
+      }, 1800);
     };
   }
 
@@ -2120,13 +2157,41 @@
     panel.appendChild(box);
     var gesehen = {};
     var leerHinweis = null;
+    var wartend = [];
+    var letzteZeit = null;
+
+    function eigeneSofort(text){
+      if (leerHinweis){ box.removeChild(leerHinweis); leerHinweis = null; }
+      var wrap = make("div","msg own wartet");
+      var wann = "";
+      try {
+        wann = new Intl.DateTimeFormat(lang === "de" ? "de-AT" : "en-GB",
+          { hour:"2-digit", minute:"2-digit", timeZone:"Europe/Vienna" }).format(new Date());
+      } catch(e){}
+      wrap.appendChild(make("div","meta", ((profile && profile.anzeigename) || "—") + " · " + wann));
+      wrap.appendChild(make("div","bubble", text));
+      box.appendChild(wrap);
+      box.scrollTop = box.scrollHeight;
+      wartend.push({ text: text, el: wrap });
+      return wrap;
+    }
 
     function zeile(m){
       if (!m || gesehen[m.id]) return;
       if (blockedSet[m.user_id]) return;
       gesehen[m.id] = true;
-      if (leerHinweis){ box.removeChild(leerHinweis); leerHinweis = null; }
+      if (!letzteZeit || m.gesendet_am > letzteZeit) letzteZeit = m.gesendet_am;
       var eigen = session && m.user_id === session.user.id;
+      if (eigen){
+        for (var w = 0; w < wartend.length; w++){
+          if (wartend[w].text === m.text){
+            wartend[w].el.className = "msg own";
+            wartend.splice(w, 1);
+            return;
+          }
+        }
+      }
+      if (leerHinweis){ box.removeChild(leerHinweis); leerHinweis = null; }
       var wrap = make("div", eigen ? "msg own" : "msg");
       var wann = "";
       try {
@@ -2149,8 +2214,10 @@
     }
 
     function nachladen(erstesMal){
-      return sb.from("chat_public").select("id,user_id,text,gesendet_am,anzeigename")
-        .eq("match_id", id).order("gesendet_am").limit(100)
+      var q = sb.from("chat_public").select("id,user_id,text,gesendet_am,anzeigename")
+        .eq("match_id", id);
+      if (!erstesMal && letzteZeit) q = q.gte("gesendet_am", letzteZeit);
+      return q.order("gesendet_am").limit(100)
         .then(function(res){
           var rows = res.data || [];
           if (erstesMal && !rows.length){
@@ -2172,8 +2239,15 @@
       var text = feld.value.trim();
       if (!text) return;
       feld.value = "";
+      var vorschau = eigeneSofort(text);
       sb.from("messages").insert({ match_id: id, user_id: session.user.id, text: text }).then(function(res){
-        if (res.error){ toast(res.error.message); return; }
+        if (res.error){
+          toast(res.error.message);
+          if (vorschau && vorschau.parentNode) vorschau.parentNode.removeChild(vorschau);
+          wartend = wartend.filter(function(x){ return x.el !== vorschau; });
+          feld.value = text;
+          return;
+        }
         nachladen(false);
       });
     }
@@ -2203,7 +2277,7 @@
       if (el("modal").hidden){ stopChat(); return; }
       if (document.hidden) return;
       nachladen(false);
-    }, 4000);
+    }, 1800);
   }
 
   function gamePanel(id){
