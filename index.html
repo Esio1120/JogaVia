@@ -299,6 +299,19 @@
   var SUPABASE_URL = "https://ngeymudilvcishweefow.supabase.co";
   var SUPABASE_KEY = "sb_publishable_NnIdoQ9sTsMkbRbuu_mYHw_T2bQ-iSZ";
   var BESTAETIGT_URL = "https://esio1120.github.io/JogaVia/bestaetigt.html";
+  var APP_VERSION = "2026-09-01 c";
+  var FEHLER = [];
+  function merkeFehler(e){
+    var s = "";
+    if (!e) s = "unbekannt";
+    else if (typeof e === "string") s = e;
+    else if (e.message) s = e.message;
+    else if (e.error && e.error.message) s = e.error.message;
+    else s = String(e);
+    FEHLER.push(s);
+    if (FEHLER.length > 6) FEHLER.shift();
+  }
+  window.addEventListener("error", function(ev){ merkeFehler(ev.message || ev.error); });
 
   var STRINGS = {
     de: {
@@ -545,6 +558,7 @@
       maxZoom: 19,
       attributionControl: true
     });
+    map.on("error", function(e){ merkeFehler(e && e.error ? e.error : e); });
     map.addControl(new maplibregl.NavigationControl({ showCompass:false }), "bottom-right");
     map.addControl(new maplibregl.GeolocateControl({
       positionOptions:{ enableHighAccuracy:true }, trackUserLocation:false
@@ -554,7 +568,7 @@
       map.addSource("venues", {
         type: "geojson", data: toGeoJSON([]),
         cluster: true, clusterRadius: 46, clusterMaxZoom: 14,
-        maxzoom: 20, buffer: 128, tolerance: 0
+        maxzoom: 20
       });
       map.addLayer({
         id: "clusters", type: "circle", source: "venues", filter: ["has","point_count"],
@@ -606,6 +620,20 @@
             if (d < minD){ minD = d; best = f; }
           });
           openSheet(Number(best.properties.id));
+          return;
+        }
+        var besterPlatz = null;
+        var minPixel = Infinity;
+        filtered.forEach(function(v){
+          try {
+            var p = map.project([v.lon, v.lat]);
+            var dx = p.x - e.point.x, dy = p.y - e.point.y;
+            var d = dx * dx + dy * dy;
+            if (d < minPixel){ minPixel = d; besterPlatz = v; }
+          } catch(err){}
+        });
+        if (besterPlatz && minPixel <= 34 * 34 && map.getZoom() >= 13.5){
+          openSheet(besterPlatz.id);
           return;
         }
         if (cluster && cluster.length){
@@ -1706,6 +1734,37 @@
     document.querySelector("main").style.top = (el("controls").offsetHeight + 58) + "px";
   }
 
+  function debugAnzeigen(){
+    var vorhandene = [];
+    try {
+      ["points","clusters","selected"].forEach(function(l){
+        if (map && map.getLayer && map.getLayer(l)) vorhandene.push(l);
+      });
+    } catch(e){}
+    var kasten = make("div");
+    kasten.style.cssText = "position:fixed;left:10px;right:10px;bottom:10px;z-index:200;background:#2E2A24;" +
+      "color:#FAF6EF;padding:14px 16px;border-radius:14px;font-size:12.5px;line-height:1.6;" +
+      "white-space:pre-wrap;max-height:50vh;overflow:auto;box-shadow:0 10px 30px rgba(0,0,0,.4)";
+    kasten.textContent =
+      "JogaVia Diagnose\n" +
+      "Version: " + APP_VERSION + "\n" +
+      "Plätze geladen: " + venues.length + " (sichtbar " + filtered.length + ")\n" +
+      "Spiele geladen: " + games.length + "\n" +
+      "Karten-Ebenen: " + (vorhandene.join(", ") || "KEINE") + "\n" +
+      "Karte bereit: " + mapReady + " · Zoom: " + (map && map.getZoom ? Math.round(map.getZoom() * 10) / 10 : "-") + "\n" +
+      "Angemeldet: " + (session ? "ja" : "nein") + " · Profil: " + (profile ? "ja" : "nein") + "\n" +
+      "Fehler: " + (FEHLER.length ? FEHLER.join(" || ") : "keine");
+    var zu = make("button", null, "Schließen");
+    zu.type = "button";
+    zu.style.cssText = "display:block;margin-top:10px;background:#4B7F5B;color:#FFFFFF;border:0;" +
+      "border-radius:9px;padding:8px 14px;font-weight:700;font-size:13px";
+    zu.addEventListener("click", function(){
+      if (kasten.parentNode) kasten.parentNode.removeChild(kasten);
+    });
+    kasten.appendChild(zu);
+    document.body.appendChild(kasten);
+  }
+
   function boot(){
     try {
       applyLanguageToChrome();
@@ -1713,6 +1772,15 @@
       buildMap();
       positionMain();
       window.addEventListener("resize", positionMain);
+      if (location.search.indexOf("debug") !== -1) setTimeout(debugAnzeigen, 2000);
+      var tipps = 0, tippZeit = 0;
+      var marke = document.querySelector(".brand");
+      if (marke) marke.addEventListener("click", function(){
+        var jetzt = Date.now();
+        tipps = (jetzt - tippZeit < 900) ? tipps + 1 : 1;
+        tippZeit = jetzt;
+        if (tipps >= 3){ tipps = 0; debugAnzeigen(); }
+      });
       loadVenues().then(loadGames);
       sb.auth.getSession().then(function(res){
         session = res.data.session;
