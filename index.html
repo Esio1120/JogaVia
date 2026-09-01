@@ -153,6 +153,24 @@
   .btn[disabled]{opacity:.55;cursor:not-allowed}
   .hint{font-size:12.5px;color:var(--muted);margin:10px 0 0;text-align:center}
 
+  #pinbanner{
+    position:fixed;left:50%;transform:translateX(-50%);
+    bottom:calc(74px + env(safe-area-inset-bottom));z-index:46;
+    background:var(--ink);color:var(--paper);border-radius:13px;
+    padding:11px 14px;display:flex;align-items:center;gap:12px;
+    box-shadow:0 12px 28px -12px rgba(46,42,36,.65);
+    max-width:min(460px, calc(100vw - 24px));
+  }
+  #pinbanner span{font-size:13.5px;font-weight:600;line-height:1.35}
+  #pinbanner button{
+    flex:0 0 auto;background:none;border:0;color:var(--paper);
+    font-size:13px;font-weight:700;text-decoration:underline;text-underline-offset:3px;padding:0;
+  }
+  .koordzeile{
+    font-size:12.5px;color:var(--muted);background:var(--sand);
+    border-radius:10px;padding:9px 11px;margin:0 0 14px;
+  }
+
   .game{
     width:100%;display:flex;gap:12px;align-items:center;text-align:left;
     background:var(--paper);border:1px solid var(--line);border-radius:12px;
@@ -332,6 +350,7 @@
     <button class="linkish" id="myGamesBtn" type="button" hidden></button>
     <button class="linkish" id="viewToggle" type="button"></button>
     <button class="linkish" id="resetBtn" type="button"></button>
+    <button class="linkish" id="meldenBtn" type="button"></button>
   </div>
 </div>
 
@@ -390,7 +409,13 @@
     <a class="btn secondary" id="sheetRoute" target="_blank" rel="noopener"></a>
   </div>
   <p class="hint" id="sheetHint"></p>
+  <p class="hint"><button class="linkish" id="sheetMelden" type="button"></button></p>
 </aside>
+
+<div id="pinbanner" hidden>
+  <span id="pinbannerText"></span>
+  <button type="button" id="pinbannerAbbrechen"></button>
+</div>
 
 <div id="modal" hidden>
   <div class="panel" id="panel" role="dialog" aria-modal="true"></div>
@@ -407,7 +432,7 @@
   var SUPABASE_URL = "https://ngeymudilvcishweefow.supabase.co";
   var SUPABASE_KEY = "sb_publishable_NnIdoQ9sTsMkbRbuu_mYHw_T2bQ-iSZ";
   var BESTAETIGT_URL = "https://esio1120.github.io/JogaVia/bestaetigt.html";
-  var APP_VERSION = "2026-09-01 j";
+  var APP_VERSION = "2026-09-01 k";
   var FEHLER = [];
   function merkeFehler(e){
     var s = "";
@@ -503,6 +528,22 @@
       einladungen: "Einladungen", einladungVon: "von {n}",
       zusagen: "Zusagen", einladungWeg: "Ausblenden",
       anmeldenFuerFreunde: "Melde dich an, um Freunde hinzuzufügen.",
+      meldenBtn: "Platz fehlt?", meldenTitelFehlt: "Fehlenden Platz melden",
+      meldenTitelFalsch: "Angaben korrigieren",
+      meldenSheet: "Angaben stimmen nicht?",
+      meldenPinHinweis: "Tippe auf die Karte, wo der Platz liegt.",
+      meldenPinAbbrechen: "Abbrechen",
+      meldenLeadFehlt: "Wir schauen uns den Platz an und tragen ihn ein.",
+      meldenLeadFalsch: "Sag uns, was hier nicht stimmt. Wir prüfen es.",
+      meldenName: "Name des Platzes", meldenNamePlatzhalter: "z. B. Käfig Max-Winter-Park",
+      meldenArt: "Art des Platzes", meldenBeleuchtung: "Flutlicht", meldenZugang: "Zugang",
+      meldenNotiz: "Notiz", meldenWasFalsch: "Was stimmt nicht?",
+      meldenNotizPlatzhalter: "Was sollen wir wissen?",
+      meldenOrt: "Ort auf der Karte", meldenSenden: "Meldung schicken",
+      meldenDanke: "Danke, deine Meldung ist da.",
+      meldenNameFehlt: "Bitte gib einen Namen an — mindestens drei Zeichen.",
+      meldenNotizFehlt: "Bitte schreib kurz, was nicht stimmt.",
+      meldenZuViele: "Du hast heute schon zehn Meldungen geschickt. Morgen geht es weiter.",
       chat: "Chat", chatPlaceholder: "Nachricht an die Runde …", send: "Senden",
       noMessages: "Noch keine Nachrichten. Fang an.",
       chatOnlyForSquad: "Der Chat ist für alle, die zugesagt haben.",
@@ -595,6 +636,22 @@
       einladungen: "Invitations", einladungVon: "from {n}",
       zusagen: "Join", einladungWeg: "Hide",
       anmeldenFuerFreunde: "Sign in to add friends.",
+      meldenBtn: "Pitch missing?", meldenTitelFehlt: "Report a missing pitch",
+      meldenTitelFalsch: "Correct the details",
+      meldenSheet: "Something wrong here?",
+      meldenPinHinweis: "Tap the map where the pitch is.",
+      meldenPinAbbrechen: "Cancel",
+      meldenLeadFehlt: "We will check the pitch and add it.",
+      meldenLeadFalsch: "Tell us what is wrong here. We will look into it.",
+      meldenName: "Name of the pitch", meldenNamePlatzhalter: "e.g. Max-Winter-Park cage",
+      meldenArt: "Type of pitch", meldenBeleuchtung: "Floodlights", meldenZugang: "Access",
+      meldenNotiz: "Note", meldenWasFalsch: "What is wrong?",
+      meldenNotizPlatzhalter: "What should we know?",
+      meldenOrt: "Spot on the map", meldenSenden: "Send report",
+      meldenDanke: "Thanks, your report is in.",
+      meldenNameFehlt: "Please enter a name — at least three characters.",
+      meldenNotizFehlt: "Please write briefly what is wrong.",
+      meldenZuViele: "You have sent ten reports today. More tomorrow.",
       chat: "Chat", chatPlaceholder: "Message the group …", send: "Send",
       noMessages: "No messages yet. Go ahead.",
       chatOnlyForSquad: "The chat is for everyone who signed up.",
@@ -702,6 +759,9 @@
   var suchTreffer = [];
   var suchText = "";
   var dmChannel = null;
+  var chatTimer = null;
+  var dmTimer = null;
+  var pinModus = false;
   var nurFreiePlaetze = false;
 
   function buildMap(){
@@ -795,6 +855,11 @@
       });
 
       map.on("click", function(e){
+        if (pinModus){
+          pinModusAus();
+          openModal(meldePanel("fehlt", null, [e.lngLat.lng, e.lngLat.lat]));
+          return;
+        }
         var r = 14;
         var box = [[e.point.x - r, e.point.y - r], [e.point.x + r, e.point.y + r]];
         var punkte = [];
@@ -1272,6 +1337,7 @@
       try { sb.removeChannel(dmChannel); } catch(e){}
       dmChannel = null;
     }
+    if (dmTimer){ clearInterval(dmTimer); dmTimer = null; }
   }
 
   function dmPanel(freund){
@@ -1303,15 +1369,18 @@
         box.scrollTop = box.scrollHeight;
       }
 
-      sb.from("direct_messages").select("id,von_id,an_id,text,gesendet_am")
-        .or("and(von_id.eq." + session.user.id + ",an_id.eq." + freund.partner_id + ")," +
-            "and(von_id.eq." + freund.partner_id + ",an_id.eq." + session.user.id + ")")
-        .order("gesendet_am").limit(100)
-        .then(function(res){
-          var rows = res.data || [];
-          if (!rows.length){ leer = make("p","muted-line", t("dmLeer")); box.appendChild(leer); return; }
-          rows.forEach(zeile);
-        });
+      function nachladen(erstesMal){
+        return sb.from("direct_messages").select("id,von_id,an_id,text,gesendet_am")
+          .or("and(von_id.eq." + session.user.id + ",an_id.eq." + freund.partner_id + ")," +
+              "and(von_id.eq." + freund.partner_id + ",an_id.eq." + session.user.id + ")")
+          .order("gesendet_am").limit(100)
+          .then(function(res){
+            var rows = res.data || [];
+            if (erstesMal && !rows.length){ leer = make("p","muted-line", t("dmLeer")); box.appendChild(leer); return; }
+            rows.forEach(zeile);
+          }).catch(function(){});
+      }
+      nachladen(true);
 
       var form = make("div","chatform");
       var feld = input("dm-input","text", t("dmPlatzhalter"));
@@ -1325,11 +1394,7 @@
         sb.from("direct_messages").insert({ von_id: session.user.id, an_id: freund.partner_id, text: text })
           .then(function(res){
             if (res.error){ toast(res.error.message); return; }
-            sb.from("direct_messages").select("id,von_id,an_id,text,gesendet_am")
-              .or("and(von_id.eq." + session.user.id + ",an_id.eq." + freund.partner_id + ")," +
-                  "and(von_id.eq." + freund.partner_id + ",an_id.eq." + session.user.id + ")")
-              .order("gesendet_am").limit(100)
-              .then(function(r2){ (r2.data || []).forEach(zeile); });
+            nachladen(false);
           });
       }
       senden.addEventListener("click", abschicken);
@@ -1364,6 +1429,12 @@
               })
           .subscribe();
       } catch(e){}
+
+      dmTimer = setInterval(function(){
+        if (el("modal").hidden){ stopDm(); return; }
+        if (document.hidden) return;
+        nachladen(false);
+      }, 4000);
     };
   }
 
@@ -1411,6 +1482,111 @@
     };
   }
 
+  function pinModusAn(){
+    if (needAccount()) return;
+    closeSheet();
+    if (ansicht !== "karte") zeigeAnsicht("karte");
+    if (listMode){
+      listMode = false;
+      el("list").hidden = true;
+      el("map").style.visibility = "visible";
+      el("viewToggle").textContent = t("showList");
+      if (map) map.resize();
+    }
+    pinModus = true;
+    el("pinbanner").hidden = false;
+    if (map){ try { map.getCanvas().style.cursor = "crosshair"; } catch(e){} }
+  }
+
+  function pinModusAus(){
+    pinModus = false;
+    var b = el("pinbanner");
+    if (b) b.hidden = true;
+    if (map){ try { map.getCanvas().style.cursor = ""; } catch(e){} }
+  }
+
+  function meldePanel(art, venue, koord){
+    return function(panel){
+      clear(panel);
+      var fehlt = (art === "fehlt");
+      panel.appendChild(make("h2", null, t(fehlt ? "meldenTitelFehlt" : "meldenTitelFalsch")));
+      panel.appendChild(make("p","lead", t(fehlt ? "meldenLeadFehlt" : "meldenLeadFalsch")));
+      var msg = make("div","err"); msg.hidden = true; panel.appendChild(msg);
+
+      if (fehlt && koord){
+        panel.appendChild(make("p","koordzeile",
+          t("meldenOrt") + ": " + koord[1].toFixed(5) + ", " + koord[0].toFixed(5)));
+      }
+      var name = input("m-name","text", t("meldenNamePlatzhalter"));
+      name.maxLength = 120;
+      name.value = venue ? (venue.name || "") : "";
+      panel.appendChild(field(t("meldenName"), name));
+
+      var artSel = select("m-art", ARTS.map(function(a){ return { value:a, label:t(a) }; }),
+        venue ? venue.art : "kaefig");
+      panel.appendChild(field(t("meldenArt"), artSel));
+
+      var lichtWert = venue ? (venue.beleuchtung === true ? "ja" : (venue.beleuchtung === false ? "nein" : "")) : "";
+      var lichtSel = select("m-licht", [
+        { value:"", label:t("unknown") }, { value:"ja", label:t("yes") }, { value:"nein", label:t("no") }
+      ], lichtWert);
+      panel.appendChild(field(t("meldenBeleuchtung"), lichtSel));
+
+      var zugangSel = select("m-zugang", [
+        { value:"unbekannt", label:t("accessUnbekannt") },
+        { value:"frei", label:t("accessFrei") },
+        { value:"verein", label:t("accessVerein") },
+        { value:"buchung", label:t("accessBuchung") }
+      ], venue ? (venue.zugang || "unbekannt") : "unbekannt");
+      panel.appendChild(field(t("meldenZugang"), zugangSel));
+
+      var notiz = input("m-notiz","text", t("meldenNotizPlatzhalter"));
+      notiz.maxLength = 500;
+      panel.appendChild(field(t(fehlt ? "meldenNotiz" : "meldenWasFalsch"), notiz));
+
+      var go = make("button","btn", t("meldenSenden"));
+      go.type = "button";
+      go.addEventListener("click", function(){
+        var nameWert = name.value.trim();
+        if (fehlt && nameWert.length < 3){
+          msg.textContent = t("meldenNameFehlt"); msg.hidden = false; return;
+        }
+        if (!fehlt && notiz.value.trim().length < 3){
+          msg.textContent = t("meldenNotizFehlt"); msg.hidden = false; return;
+        }
+        msg.hidden = true;
+        go.disabled = true;
+        var satz = {
+          art: art,
+          venue_id: venue ? venue.id : null,
+          name: nameWert || null,
+          platzart: artSel.value,
+          beleuchtung: lichtSel.value === "" ? null : (lichtSel.value === "ja"),
+          zugang: zugangSel.value,
+          notiz: notiz.value.trim() || null,
+          lat: fehlt && koord ? koord[1] : null,
+          lon: fehlt && koord ? koord[0] : null
+        };
+        sb.from("platz_meldungen").insert(satz).then(function(res){
+          go.disabled = false;
+          if (res.error){
+            msg.textContent = (res.error.code === "42501") ? t("meldenZuViele") : res.error.message;
+            msg.hidden = false;
+            return;
+          }
+          toast(t("meldenDanke"));
+          closeModal();
+        });
+      });
+      panel.appendChild(go);
+
+      var quit = make("button","quiet-link", t("cancel"));
+      quit.type = "button";
+      quit.addEventListener("click", closeModal);
+      panel.appendChild(quit);
+    };
+  }
+
   function zeigeAnsicht(name){
     if (name === "profil"){
       if (!session) openModal(authPanel("login"));
@@ -1420,6 +1596,7 @@
     ansicht = name;
     var istKarte = (name === "karte");
     stopDm();
+    if (!istKarte) pinModusAus();
     el("controls").hidden = !istKarte;
     el("map").style.visibility = (istKarte && !listMode) ? "visible" : "hidden";
     el("list").hidden = !(istKarte && listMode);
@@ -1556,6 +1733,7 @@
   function closeModal(){
     if (modalLocked) return;
     stopChat();
+    stopDm();
     el("modal").hidden = true;
     clear(el("panel"));
   }
@@ -1564,6 +1742,7 @@
       try { sb.removeChannel(chatChannel); } catch(e){}
       chatChannel = null;
     }
+    if (chatTimer){ clearInterval(chatTimer); chatTimer = null; }
   }
   function forceCloseModal(){
     modalLocked = false;
@@ -1969,17 +2148,20 @@
       box.scrollTop = box.scrollHeight;
     }
 
-    sb.from("chat_public").select("id,user_id,text,gesendet_am,anzeigename")
-      .eq("match_id", id).order("gesendet_am").limit(100)
-      .then(function(res){
-        var rows = res.data || [];
-        if (!rows.length){
-          leerHinweis = make("p","muted-line", t("noMessages"));
-          box.appendChild(leerHinweis);
-          return;
-        }
-        rows.forEach(zeile);
-      });
+    function nachladen(erstesMal){
+      return sb.from("chat_public").select("id,user_id,text,gesendet_am,anzeigename")
+        .eq("match_id", id).order("gesendet_am").limit(100)
+        .then(function(res){
+          var rows = res.data || [];
+          if (erstesMal && !rows.length){
+            leerHinweis = make("p","muted-line", t("noMessages"));
+            box.appendChild(leerHinweis);
+            return;
+          }
+          rows.forEach(zeile);
+        }).catch(function(){});
+    }
+    nachladen(true);
 
     var form = make("div","chatform");
     var feld = input("chat-input","text", t("chatPlaceholder"));
@@ -1992,9 +2174,7 @@
       feld.value = "";
       sb.from("messages").insert({ match_id: id, user_id: session.user.id, text: text }).then(function(res){
         if (res.error){ toast(res.error.message); return; }
-        sb.from("chat_public").select("id,user_id,text,gesendet_am,anzeigename")
-          .eq("match_id", id).order("gesendet_am").limit(100)
-          .then(function(r2){ (r2.data || []).forEach(zeile); });
+        nachladen(false);
       });
     }
     senden.addEventListener("click", abschicken);
@@ -2018,6 +2198,12 @@
             })
         .subscribe();
     } catch(e){}
+
+    chatTimer = setInterval(function(){
+      if (el("modal").hidden){ stopChat(); return; }
+      if (document.hidden) return;
+      nachladen(false);
+    }, 4000);
   }
 
   function gamePanel(id){
@@ -2390,6 +2576,10 @@
     el("chipGames").textContent = t("withGames");
     el("viewToggle").textContent = listMode ? t("showMap") : t("showList");
     el("resetBtn").textContent = t("reset");
+    el("meldenBtn").textContent = t("meldenBtn");
+    el("sheetMelden").textContent = t("meldenSheet");
+    el("pinbannerText").textContent = t("meldenPinHinweis");
+    el("pinbannerAbbrechen").textContent = t("meldenPinAbbrechen");
     el("myGamesBtn").textContent = t("myGames");
     el("tabSpieleText").textContent = t("tabSpiele");
     el("tabKarteText").textContent = t("tabKarte");
@@ -2444,6 +2634,13 @@
       applyFilters();
     });
     el("sheetClose").addEventListener("click", closeSheet);
+    el("meldenBtn").addEventListener("click", pinModusAn);
+    el("pinbannerAbbrechen").addEventListener("click", pinModusAus);
+    el("sheetMelden").addEventListener("click", function(){
+      if (!selectedVenue) return;
+      if (needAccount()) return;
+      openModal(meldePanel("falsch", selectedVenue, null));
+    });
     el("sheetOrganize").addEventListener("click", function(){
       if (!selectedVenue) return;
       if (needAccount()) return;
