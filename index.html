@@ -45,6 +45,7 @@
   button{font-family:inherit;font-size:inherit;cursor:pointer;color:inherit}
   input,select{font-family:inherit;font-size:16px;color:inherit}
   :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .label{font-size:12.5px;font-weight:600;letter-spacing:.04em;color:var(--muted)}
 
   header{
     position:fixed;top:0;left:0;right:0;height:var(--top);z-index:30;
@@ -240,6 +241,29 @@
   .feedcard .details{font-size:13.5px;color:var(--muted);margin:0 0 10px}
   .feedcard .reihe{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 
+  .suchzeile{display:flex;gap:8px;margin:0 0 16px}
+  .suchzeile input{
+    flex:1;padding:11px 13px;border:1px solid var(--line-strong);border-radius:11px;
+    background:var(--surface);color:var(--ink);min-width:0;
+  }
+  .suchzeile button{
+    flex:0 0 auto;background:var(--accent);color:#FFFFFF;border:0;border-radius:11px;
+    padding:11px 16px;font-weight:700;font-size:14.5px;
+  }
+  .person{
+    display:flex;align-items:center;gap:11px;background:var(--surface);
+    border:1px solid var(--line);border-radius:12px;padding:11px 13px;margin-bottom:8px;
+  }
+  .person .wer{flex:1;min-width:0}
+  .person .wer strong{display:block;font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .person .wer span{display:block;font-size:12.5px;color:var(--muted)}
+  .person .tuen{display:flex;gap:6px;flex:0 0 auto}
+  .minibtn{
+    background:var(--accent);color:#FFFFFF;border:0;border-radius:9px;
+    padding:7px 12px;font-weight:700;font-size:12.5px;white-space:nowrap;
+  }
+  .minibtn.leise{background:var(--sand);color:var(--ink);border:1px solid var(--line-strong)}
+
   #modal{position:fixed;inset:0;z-index:50;background:rgba(46,42,36,.42);display:flex;align-items:flex-end;justify-content:center}
   @media (min-width:760px){#modal{align-items:center}}
   .panel{
@@ -331,6 +355,13 @@
     </svg>
     <span id="tabKarteText">Karte</span>
   </button>
+  <button class="tab" type="button" id="tabFreunde">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="9" cy="8.4" r="3.4"/><path d="M2.8 19.6c1-3.2 3.4-4.8 6.2-4.8s5.2 1.6 6.2 4.8"/>
+      <path d="M16.2 5.4a3.4 3.4 0 0 1 0 6.1M17.6 14.9c2.1.4 3.4 1.9 4 4.2"/>
+    </svg>
+    <span id="tabFreundeText">Freunde</span>
+  </button>
   <button class="tab" type="button" id="tabMeine">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <rect x="3.5" y="5" width="17" height="15.5" rx="3.2"/><path d="M8 3v4M16 3v4M3.5 10h17"/>
@@ -376,7 +407,7 @@
   var SUPABASE_URL = "https://ngeymudilvcishweefow.supabase.co";
   var SUPABASE_KEY = "sb_publishable_NnIdoQ9sTsMkbRbuu_mYHw_T2bQ-iSZ";
   var BESTAETIGT_URL = "https://esio1120.github.io/JogaVia/bestaetigt.html";
-  var APP_VERSION = "2026-09-01 i";
+  var APP_VERSION = "2026-09-01 j";
   var FEHLER = [];
   function merkeFehler(e){
     var s = "";
@@ -456,6 +487,22 @@
       meineLeer: "Du bist noch bei keinem Spiel dabei.",
       nurFrei: "Nur mit freien Plätzen", alleSpiele: "Alle",
       spieleAnzahl: "{n} Spiele", spielAnzahl: "1 Spiel", keineSpiele: "keine Spiele",
+      tabFreunde: "Freunde",
+      freundeTitel: "Freunde", freundeSuchen: "Spieler nach Namen suchen",
+      suchen: "Suchen", anfragen: "Anfragen", anfrageGesendet: "Anfrage gesendet",
+      offeneAnfragen: "Offene Anfragen", gesendeteAnfragen: "Von dir gesendet",
+      deineFreunde: "Deine Freunde", nochKeineFreunde: "Noch keine Freunde. Such oben nach einem Namen.",
+      annehmen: "Annehmen", ablehnen: "Ablehnen", wartet: "wartet",
+      schreiben: "Schreiben", einladen: "Einladen", freundEntfernen: "Freund entfernen",
+      freundEntfernenAsk: "Diese Freundschaft beenden?",
+      keinTreffer: "Niemand gefunden.", mindestensZwei: "Bitte mindestens zwei Buchstaben eingeben.",
+      dmPlatzhalter: "Nachricht schreiben …", dmLeer: "Noch keine Nachrichten.",
+      einladungTitel: "Zu welchem Spiel?", keineEigenenSpiele: "Du hast noch kein kommendes Spiel.",
+      einladungGesendet: "Einladung verschickt",
+      einladungText: "Ich habe dich zu einem Spiel eingeladen: ",
+      einladungen: "Einladungen", einladungVon: "von {n}",
+      zusagen: "Zusagen", einladungWeg: "Ausblenden",
+      anmeldenFuerFreunde: "Melde dich an, um Freunde hinzuzufügen.",
       chat: "Chat", chatPlaceholder: "Nachricht an die Runde …", send: "Senden",
       noMessages: "Noch keine Nachrichten. Fang an.",
       chatOnlyForSquad: "Der Chat ist für alle, die zugesagt haben.",
@@ -532,6 +579,22 @@
       meineLeer: "You have not joined a game yet.",
       nurFrei: "Only with free spots", alleSpiele: "All",
       spieleAnzahl: "{n} games", spielAnzahl: "1 game", keineSpiele: "no games",
+      tabFreunde: "Friends",
+      freundeTitel: "Friends", freundeSuchen: "Search players by name",
+      suchen: "Search", anfragen: "Add", anfrageGesendet: "Request sent",
+      offeneAnfragen: "Open requests", gesendeteAnfragen: "Sent by you",
+      deineFreunde: "Your friends", nochKeineFreunde: "No friends yet. Search for a name above.",
+      annehmen: "Accept", ablehnen: "Decline", wartet: "pending",
+      schreiben: "Message", einladen: "Invite", freundEntfernen: "Remove friend",
+      freundEntfernenAsk: "End this friendship?",
+      keinTreffer: "Nobody found.", mindestensZwei: "Please enter at least two letters.",
+      dmPlatzhalter: "Write a message …", dmLeer: "No messages yet.",
+      einladungTitel: "Which game?", keineEigenenSpiele: "You have no upcoming game yet.",
+      einladungGesendet: "Invitation sent",
+      einladungText: "I invited you to a game: ",
+      einladungen: "Invitations", einladungVon: "from {n}",
+      zusagen: "Join", einladungWeg: "Hide",
+      anmeldenFuerFreunde: "Sign in to add friends.",
       chat: "Chat", chatPlaceholder: "Message the group …", send: "Send",
       noMessages: "No messages yet. Go ahead.",
       chatOnlyForSquad: "The chat is for everyone who signed up.",
@@ -634,6 +697,11 @@
   var geoControl = null;
   var ansicht = "feed";
   var standortSchonGeholt = false;
+  var freunde = [];
+  var einladungen = [];
+  var suchTreffer = [];
+  var suchText = "";
+  var dmChannel = null;
   var nurFreiePlaetze = false;
 
   function buildMap(){
@@ -907,7 +975,8 @@
       row.appendChild(dot);
       row.appendChild(text);
       if (venuesWithGames[v.id]){
-        row.appendChild(make("span","pill ok count-badge", venuesWithGames[v.id] + "×"));
+        var p = make("span","pill ok count-badge", venuesWithGames[v.id] + "×");
+        row.appendChild(p);
       }
       row.addEventListener("click", function(){ openSheet(v.id); });
       box.appendChild(row);
@@ -981,6 +1050,42 @@
     });
 
     box.appendChild(make("h2","feedkopf", meineAnsicht ? t("myGames") : t("feedTitel")));
+
+    if (meineAnsicht && einladungen.length){
+      box.appendChild(make("p","tagkopf", t("einladungen")));
+      einladungen.forEach(function(e){
+        var karte = make("div","feedcard");
+        karte.appendChild(make("div","zeit", uhrzeit(e.beginn) + " Uhr · " + tagKopf(e.beginn)));
+        karte.appendChild(make("h3", null, e.platz));
+        karte.appendChild(make("p","details", e.format + " · " + t("einladungVon", e.von_name || "")));
+        var reihe = make("div","reihe");
+        var ja = make("button","minibtn", t("zusagen"));
+        ja.type = "button";
+        ja.addEventListener("click", function(){
+          sb.rpc("spiel_beitreten", { p_match: e.match_id }).then(function(res){
+            if (res.error){ toast(res.error.message); return; }
+            sb.from("einladungen").delete().eq("id", e.id).then(function(){
+              loadMyPart().then(loadEinladungen).then(loadGames).then(function(){
+                toast(res.data === "warteliste" ? t("youAreWaiting") : t("youAreIn"));
+                renderFeed();
+              });
+            });
+          });
+        });
+        var weg = make("button","minibtn leise", t("einladungWeg"));
+        weg.type = "button";
+        weg.addEventListener("click", function(){
+          sb.from("einladungen").delete().eq("id", e.id).then(function(){
+            loadEinladungen().then(renderFeed);
+          });
+        });
+        reihe.appendChild(ja);
+        reihe.appendChild(weg);
+        karte.appendChild(reihe);
+        box.appendChild(karte);
+      });
+      box.appendChild(make("p","tagkopf", t("myGames")));
+    }
     box.appendChild(make("p","feedsub",
       liste.length === 0 ? t("keineSpiele") : (liste.length === 1 ? t("spielAnzahl") : t("spieleAnzahl", liste.length))));
 
@@ -1023,6 +1128,289 @@
     });
   }
 
+  function personZeile(p, aktionen){
+    var zeile = make("div","person");
+    if (p.bild_url){
+      var bild = document.createElement("img");
+      bild.className = "avatar"; bild.src = p.bild_url; bild.alt = "";
+      zeile.appendChild(bild);
+    } else {
+      zeile.appendChild(make("div","avatar-fallback", initials(p.anzeigename || "?")));
+    }
+    var wer = make("span","wer");
+    wer.appendChild(make("strong", null, p.anzeigename || "—"));
+    var unten = [districtName(p.bezirk), p.niveau ? t(LVLKEY[p.niveau] || "lvlFreizeit") : null];
+    wer.appendChild(make("span", null, unten.filter(Boolean).join(" · ")));
+    zeile.appendChild(wer);
+    var tuen = make("span","tuen");
+    (aktionen || []).forEach(function(a){
+      var k = make("button", "minibtn" + (a.leise ? " leise" : ""), a.text);
+      k.type = "button";
+      k.addEventListener("click", a.tun);
+      tuen.appendChild(k);
+    });
+    zeile.appendChild(tuen);
+    return zeile;
+  }
+
+  function anfrageSenden(zielId){
+    sb.from("friendships").insert({ von_id: session.user.id, an_id: zielId }).then(function(res){
+      if (res.error){ toast(res.error.message); return; }
+      toast(t("anfrageGesendet"));
+      loadFreunde().then(renderFreunde);
+    });
+  }
+
+  function anfrageAntwort(id, angenommen){
+    sb.from("friendships")
+      .update({ status: angenommen ? "bestaetigt" : "abgelehnt", beantwortet_am: new Date().toISOString() })
+      .eq("id", id)
+      .then(function(res){
+        if (res.error){ toast(res.error.message); return; }
+        loadFreunde().then(renderFreunde);
+      });
+  }
+
+  function freundEntfernen(id){
+    if (!window.confirm(t("freundEntfernenAsk"))) return;
+    sb.from("friendships").delete().eq("id", id).then(function(){
+      loadFreunde().then(renderFreunde);
+    });
+  }
+
+  function spielerSuchen(){
+    var text = suchText.trim();
+    var box = el("suchergebnis");
+    if (!box) return;
+    clear(box);
+    if (text.length < 2){ box.appendChild(make("p","muted-line", t("mindestensZwei"))); return; }
+    sb.from("profiles").select("id,anzeigename,bild_url,bezirk,niveau")
+      .ilike("anzeigename", "%" + text + "%").limit(20)
+      .then(function(res){
+        clear(box);
+        var treffer = (res.data || []).filter(function(p){
+          if (p.id === session.user.id) return false;
+          if (blockedSet[p.id]) return false;
+          return !freunde.some(function(f){ return f.partner_id === p.id && f.status !== "abgelehnt"; });
+        });
+        if (!treffer.length){ box.appendChild(make("p","muted-line", t("keinTreffer"))); return; }
+        treffer.forEach(function(p){
+          box.appendChild(personZeile(p, [
+            { text: t("anfragen"), tun: function(){ anfrageSenden(p.id); } }
+          ]));
+        });
+      });
+  }
+
+  function renderFreunde(){
+    var box = el("feed");
+    clear(box);
+    box.appendChild(make("h2","feedkopf", t("freundeTitel")));
+
+    if (!session){
+      box.appendChild(make("p","muted-line", t("anmeldenFuerFreunde")));
+      var anmelden = make("button","btn", t("signIn"));
+      anmelden.type = "button";
+      anmelden.addEventListener("click", function(){ openModal(authPanel("login")); });
+      box.appendChild(anmelden);
+      return;
+    }
+
+    var zeile = make("div","suchzeile");
+    var feld = input("f-suche","search", t("freundeSuchen"));
+    feld.value = suchText;
+    feld.addEventListener("input", function(e){ suchText = e.target.value; });
+    feld.addEventListener("keydown", function(e){ if (e.key === "Enter") spielerSuchen(); });
+    var knopf = make("button", null, t("suchen"));
+    knopf.type = "button";
+    knopf.addEventListener("click", spielerSuchen);
+    zeile.appendChild(feld);
+    zeile.appendChild(knopf);
+    box.appendChild(zeile);
+
+    var ergebnis = make("div");
+    ergebnis.id = "suchergebnis";
+    box.appendChild(ergebnis);
+
+    var erhalten = freunde.filter(function(f){ return f.status === "angefragt" && f.richtung === "erhalten"; });
+    if (erhalten.length){
+      box.appendChild(make("p","tagkopf", t("offeneAnfragen")));
+      erhalten.forEach(function(f){
+        box.appendChild(personZeile(f, [
+          { text: t("annehmen"), tun: function(){ anfrageAntwort(f.id, true); } },
+          { text: t("ablehnen"), leise: true, tun: function(){ anfrageAntwort(f.id, false); } }
+        ]));
+      });
+    }
+
+    var gesendet = freunde.filter(function(f){ return f.status === "angefragt" && f.richtung === "gesendet"; });
+    if (gesendet.length){
+      box.appendChild(make("p","tagkopf", t("gesendeteAnfragen")));
+      gesendet.forEach(function(f){
+        box.appendChild(personZeile(f, [
+          { text: t("wartet"), leise: true, tun: function(){ freundEntfernen(f.id); } }
+        ]));
+      });
+    }
+
+    var bestaetigt = freunde.filter(function(f){ return f.status === "bestaetigt"; });
+    box.appendChild(make("p","tagkopf", t("deineFreunde")));
+    if (!bestaetigt.length){
+      box.appendChild(make("p","muted-line", t("nochKeineFreunde")));
+      return;
+    }
+    bestaetigt.forEach(function(f){
+      box.appendChild(personZeile(f, [
+        { text: t("schreiben"), tun: function(){ openModal(dmPanel(f)); } },
+        { text: t("einladen"), leise: true, tun: function(){ openModal(einladenPanel(f)); } }
+      ]));
+    });
+  }
+
+  function stopDm(){
+    if (dmChannel){
+      try { sb.removeChannel(dmChannel); } catch(e){}
+      dmChannel = null;
+    }
+  }
+
+  function dmPanel(freund){
+    return function(panel){
+      clear(panel);
+      panel.appendChild(make("h2", null, freund.anzeigename || "—"));
+      panel.appendChild(make("p","lead", [districtName(freund.bezirk),
+        freund.niveau ? t(LVLKEY[freund.niveau] || "lvlFreizeit") : null].filter(Boolean).join(" · ")));
+
+      var box = make("div","chat");
+      panel.appendChild(box);
+      var gesehen = {};
+      var leer = null;
+
+      function zeile(m){
+        if (!m || gesehen[m.id]) return;
+        gesehen[m.id] = true;
+        if (leer){ box.removeChild(leer); leer = null; }
+        var eigen = m.von_id === session.user.id;
+        var wrap = make("div", eigen ? "msg own" : "msg");
+        var wann = "";
+        try {
+          wann = new Intl.DateTimeFormat(lang === "de" ? "de-AT" : "en-GB",
+            { hour:"2-digit", minute:"2-digit", timeZone:"Europe/Vienna" }).format(new Date(m.gesendet_am));
+        } catch(e){}
+        wrap.appendChild(make("div","meta", (eigen ? t("profile") : (freund.anzeigename || "")) + " · " + wann));
+        wrap.appendChild(make("div","bubble", m.text));
+        box.appendChild(wrap);
+        box.scrollTop = box.scrollHeight;
+      }
+
+      sb.from("direct_messages").select("id,von_id,an_id,text,gesendet_am")
+        .or("and(von_id.eq." + session.user.id + ",an_id.eq." + freund.partner_id + ")," +
+            "and(von_id.eq." + freund.partner_id + ",an_id.eq." + session.user.id + ")")
+        .order("gesendet_am").limit(100)
+        .then(function(res){
+          var rows = res.data || [];
+          if (!rows.length){ leer = make("p","muted-line", t("dmLeer")); box.appendChild(leer); return; }
+          rows.forEach(zeile);
+        });
+
+      var form = make("div","chatform");
+      var feld = input("dm-input","text", t("dmPlatzhalter"));
+      feld.maxLength = 1000;
+      var senden = make("button", null, t("send"));
+      senden.type = "button";
+      function abschicken(){
+        var text = feld.value.trim();
+        if (!text) return;
+        feld.value = "";
+        sb.from("direct_messages").insert({ von_id: session.user.id, an_id: freund.partner_id, text: text })
+          .then(function(res){
+            if (res.error){ toast(res.error.message); return; }
+            sb.from("direct_messages").select("id,von_id,an_id,text,gesendet_am")
+              .or("and(von_id.eq." + session.user.id + ",an_id.eq." + freund.partner_id + ")," +
+                  "and(von_id.eq." + freund.partner_id + ",an_id.eq." + session.user.id + ")")
+              .order("gesendet_am").limit(100)
+              .then(function(r2){ (r2.data || []).forEach(zeile); });
+          });
+      }
+      senden.addEventListener("click", abschicken);
+      feld.addEventListener("keydown", function(e){ if (e.key === "Enter") abschicken(); });
+      form.appendChild(feld);
+      form.appendChild(senden);
+      panel.appendChild(form);
+
+      var einladenKnopf = make("button","btn secondary", t("einladen"));
+      einladenKnopf.type = "button";
+      einladenKnopf.addEventListener("click", function(){ stopDm(); openModal(einladenPanel(freund)); });
+      panel.appendChild(einladenKnopf);
+
+      var raus = make("button","danger-link", t("freundEntfernen"));
+      raus.type = "button";
+      raus.addEventListener("click", function(){ stopDm(); closeModal(); freundEntfernen(freund.id); });
+      panel.appendChild(raus);
+
+      var zu = make("button","quiet-link", t("cancel"));
+      zu.type = "button";
+      zu.addEventListener("click", function(){ stopDm(); closeModal(); });
+      panel.appendChild(zu);
+
+      stopDm();
+      try {
+        dmChannel = sb.channel("dm-" + freund.partner_id)
+          .on("postgres_changes",
+              { event: "INSERT", schema: "public", table: "direct_messages", filter: "an_id=eq." + session.user.id },
+              function(payload){
+                var m = payload && payload.new;
+                if (m && m.von_id === freund.partner_id) zeile(m);
+              })
+          .subscribe();
+      } catch(e){}
+    };
+  }
+
+  function einladenPanel(freund){
+    return function(panel){
+      clear(panel);
+      panel.appendChild(make("h2", null, t("einladungTitel")));
+      panel.appendChild(make("p","lead", freund.anzeigename || ""));
+
+      var meine = games.filter(function(g){
+        var teil = myPart[g.id];
+        return (session && g.organisator_id === session.user.id) || teil === "zugesagt" || teil === "warteliste";
+      });
+      if (!meine.length){
+        panel.appendChild(make("p","muted-line", t("keineEigenenSpiele")));
+      } else {
+        meine.forEach(function(g){
+          var k = make("button","game");
+          k.type = "button";
+          var links = make("span","when");
+          links.appendChild(make("strong", null, fmtWhen(g.beginn)));
+          links.appendChild(make("span", null, g.platz + " · " + g.format));
+          k.appendChild(links);
+          k.addEventListener("click", function(){
+            sb.from("einladungen").insert({ match_id: g.id, von_id: session.user.id, an_id: freund.partner_id })
+              .then(function(res){
+                if (res.error && res.error.code !== "23505"){ toast(res.error.message); return; }
+                sb.from("direct_messages").insert({
+                  von_id: session.user.id, an_id: freund.partner_id,
+                  text: t("einladungText") + g.platz + ", " + fmtWhen(g.beginn)
+                }).then(function(){
+                  toast(t("einladungGesendet"));
+                  closeModal();
+                });
+              });
+          });
+          panel.appendChild(k);
+        });
+      }
+
+      var zu = make("button","quiet-link", t("cancel"));
+      zu.type = "button";
+      zu.addEventListener("click", closeModal);
+      panel.appendChild(zu);
+    };
+  }
+
   function zeigeAnsicht(name){
     if (name === "profil"){
       if (!session) openModal(authPanel("login"));
@@ -1031,13 +1419,14 @@
     }
     ansicht = name;
     var istKarte = (name === "karte");
+    stopDm();
     el("controls").hidden = !istKarte;
     el("map").style.visibility = (istKarte && !listMode) ? "visible" : "hidden";
     el("list").hidden = !(istKarte && listMode);
     el("feed").hidden = istKarte;
     if (!istKarte) closeSheet();
 
-    [["tabSpiele","feed"],["tabKarte","karte"],["tabMeine","meine"],["tabProfil","profil"]].forEach(function(paar){
+    [["tabSpiele","feed"],["tabKarte","karte"],["tabFreunde","freunde"],["tabMeine","meine"],["tabProfil","profil"]].forEach(function(paar){
       var knopf = el(paar[0]);
       if (knopf) knopf.setAttribute("aria-current", paar[1] === name ? "true" : "false");
     });
@@ -1046,6 +1435,8 @@
     if (istKarte){
       if (map) setTimeout(function(){ try { map.resize(); } catch(e){} }, 60);
       if (mapReady && !standortSchonGeholt) standortAutomatisch();
+    } else if (name === "freunde"){
+      renderFreunde();
     } else {
       renderFeed();
     }
@@ -1913,6 +2304,22 @@
       }).catch(function(){});
   }
 
+  function loadFreunde(){
+    freunde = [];
+    if (!session) return Promise.resolve();
+    return sb.from("freunde_public").select("*").order("erstellt_am", { ascending: false })
+      .then(function(res){ freunde = res.data || []; })
+      .catch(function(){});
+  }
+
+  function loadEinladungen(){
+    einladungen = [];
+    if (!session) return Promise.resolve();
+    return sb.from("einladungen_public").select("*").eq("an_id", session.user.id).order("beginn")
+      .then(function(res){ einladungen = res.data || []; })
+      .catch(function(){});
+  }
+
   function loadGames(){
     var seit = new Date(Date.now() - 2 * 3600 * 1000).toISOString();
     return sb.from("matches_public").select("*")
@@ -1986,6 +2393,7 @@
     el("myGamesBtn").textContent = t("myGames");
     el("tabSpieleText").textContent = t("tabSpiele");
     el("tabKarteText").textContent = t("tabKarte");
+    el("tabFreundeText").textContent = t("tabFreunde");
     el("tabMeineText").textContent = t("tabMeine");
     el("tabProfilText").textContent = t("tabProfil");
     if (ansicht !== "karte") renderFeed();
@@ -2044,6 +2452,7 @@
     el("myGamesBtn").addEventListener("click", function(){ zeigeAnsicht("meine"); });
     el("tabSpiele").addEventListener("click", function(){ zeigeAnsicht("feed"); });
     el("tabKarte").addEventListener("click", function(){ zeigeAnsicht("karte"); });
+    el("tabFreunde").addEventListener("click", function(){ zeigeAnsicht("freunde"); });
     el("tabMeine").addEventListener("click", function(){ zeigeAnsicht("meine"); });
     el("tabProfil").addEventListener("click", function(){ zeigeAnsicht("profil"); });
     el("langBtn").addEventListener("click", function(){
@@ -2122,11 +2531,11 @@
       loadVenues().then(loadGames);
       sb.auth.getSession().then(function(res){
         session = res.data.session;
-        loadProfile().then(loadMyPart).then(loadBlocked).then(loadGames);
+        loadProfile().then(loadMyPart).then(loadBlocked).then(loadFreunde).then(loadEinladungen).then(loadGames);
       });
       sb.auth.onAuthStateChange(function(_evt, s){
         session = s;
-        loadProfile().then(loadMyPart).then(loadBlocked).then(loadGames);
+        loadProfile().then(loadMyPart).then(loadBlocked).then(loadFreunde).then(loadEinladungen).then(loadGames);
       });
     } catch (err){
       var box = make("div","err");
