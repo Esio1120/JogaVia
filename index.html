@@ -172,6 +172,26 @@
   .player .who{flex:1;font-weight:600}
   .slotbar{height:8px;border-radius:999px;background:var(--sand-deep);overflow:hidden;margin:2px 0 14px}
   .slotbar span{display:block;height:100%;background:var(--accent)}
+  .tinylink{background:none;border:0;color:var(--muted);font-size:12px;font-weight:600;padding:2px 4px;text-decoration:underline;text-underline-offset:2px}
+  .tinylink:hover{color:var(--clay)}
+  .chat{
+    max-height:230px;overflow-y:auto;display:flex;flex-direction:column;gap:9px;
+    margin:0 0 11px;padding:11px;background:var(--paper);border:1px solid var(--line);border-radius:12px;
+  }
+  .msg{display:flex;flex-direction:column;max-width:85%}
+  .msg .meta{font-size:11.5px;color:var(--muted);margin-bottom:3px}
+  .msg .bubble{background:var(--sand);border-radius:12px;padding:8px 12px;font-size:14.5px;line-height:1.4;word-break:break-word}
+  .msg.own{align-self:flex-end;align-items:flex-end}
+  .msg.own .bubble{background:var(--accent-soft)}
+  .chatform{display:flex;gap:8px;margin-bottom:14px}
+  .chatform input{
+    flex:1;padding:11px 13px;border:1px solid var(--line-strong);border-radius:11px;
+    background:var(--paper);color:var(--ink);min-width:0;
+  }
+  .chatform button{
+    flex:0 0 auto;background:var(--accent);color:#FFFFFF;border:0;border-radius:11px;
+    padding:11px 16px;font-weight:700;font-size:14.5px;
+  }
 
   #modal{position:fixed;inset:0;z-index:50;background:rgba(46,42,36,.42);display:flex;align-items:flex-end;justify-content:center}
   @media (min-width:760px){#modal{align-items:center}}
@@ -324,7 +344,7 @@
       spotsFree: "noch {n} frei", full: "voll", needMore: "noch {n} nötig",
       newGameTitle: "Spiel organisieren", newGameLead: "Andere sehen es sofort auf der Karte.",
       dateL: "Datum", timeL: "Uhrzeit", durationL: "Dauer", formatL: "Format",
-      slotsL: "Plätze gesamt", levelL: "Niveau", costL: "Kosten pro Kopf in Euro",
+      slotsL: "Plätze gesamt", levelL: "Niveau", costL: "Kosten pro Kopf in Euro", costShort: "Kosten pro Kopf",
       noteL: "Notiz", notePlaceholder: "Treffpunkt, Leibchen, Ball …",
       createBtn: "Spiel anlegen", createdOk: "Spiel angelegt",
       myGames: "Meine Spiele", noMyGames: "Noch keine Spiele. Such dir auf der Karte einen Platz.",
@@ -336,7 +356,17 @@
       timeInPast: "Der Beginn muss in der Zukunft liegen.",
       tooFar: "Höchstens 60 Tage im Voraus.",
       minutes: "Min", noCost: "gratis", organizedByYou: "du organisierst",
-      cancelled: "abgesagt"
+      cancelled: "abgesagt",
+      chat: "Chat", chatPlaceholder: "Nachricht an die Runde …", send: "Senden",
+      noMessages: "Noch keine Nachrichten. Fang an.",
+      chatOnlyForSquad: "Der Chat ist für alle, die zugesagt haben.",
+      blockUser: "blockieren", blockAsk: "Diese Person blockieren? Ihr seht euch dann gegenseitig nicht mehr.",
+      blockedOk: "Blockiert", unblock: "Blockierung aufheben", blockedList: "Blockierte Personen",
+      noBlocked: "Niemand blockiert.",
+      reportBtn: "melden", reportTitle: "Melden", reportLead: "Was stimmt hier nicht?",
+      reportReason: "Grund", reportPlaceholder: "kurz beschreiben",
+      reportSend: "Meldung abschicken", reportSent: "Danke, wir schauen uns das an.",
+      blockedHere: "Von dir blockiert"
     },
     en: {
       search: "Search pitch or district",
@@ -381,7 +411,7 @@
       spotsFree: "{n} spots left", full: "full", needMore: "{n} more needed",
       newGameTitle: "Organise a game", newGameLead: "Others see it on the map straight away.",
       dateL: "Date", timeL: "Time", durationL: "Duration", formatL: "Format",
-      slotsL: "Total spots", levelL: "Level", costL: "Cost per player in euro",
+      slotsL: "Total spots", levelL: "Level", costL: "Cost per player in euro", costShort: "Cost per player",
       noteL: "Note", notePlaceholder: "Meeting point, bibs, ball …",
       createBtn: "Create game", createdOk: "Game created",
       myGames: "My games", noMyGames: "No games yet. Pick a pitch on the map.",
@@ -393,7 +423,17 @@
       timeInPast: "The start time must be in the future.",
       tooFar: "At most 60 days ahead.",
       minutes: "min", noCost: "free", organizedByYou: "you organise",
-      cancelled: "cancelled"
+      cancelled: "cancelled",
+      chat: "Chat", chatPlaceholder: "Message the group …", send: "Send",
+      noMessages: "No messages yet. Go ahead.",
+      chatOnlyForSquad: "The chat is for everyone who signed up.",
+      blockUser: "block", blockAsk: "Block this person? You will not see each other any more.",
+      blockedOk: "Blocked", unblock: "Unblock", blockedList: "Blocked people",
+      noBlocked: "Nobody blocked.",
+      reportBtn: "report", reportTitle: "Report", reportLead: "What is wrong here?",
+      reportReason: "Reason", reportPlaceholder: "describe briefly",
+      reportSend: "Send report", reportSent: "Thanks, we will look into it.",
+      blockedHere: "Blocked by you"
     }
   };
 
@@ -479,6 +519,8 @@
   var selectedVenue = null;
   var session = null;
   var profile = null;
+  var blockedSet = {};
+  var chatChannel = null;
 
   function buildMap(){
     map = new maplibregl.Map({
@@ -500,7 +542,7 @@
       center: [16.3738, 48.2082],
       zoom: 10.4,
       minZoom: 9,
-      maxZoom: 18,
+      maxZoom: 19,
       attributionControl: true
     });
     map.addControl(new maplibregl.NavigationControl({ showCompass:false }), "bottom-right");
@@ -511,7 +553,8 @@
     map.on("load", function(){
       map.addSource("venues", {
         type: "geojson", data: toGeoJSON([]),
-        cluster: true, clusterRadius: 46, clusterMaxZoom: 13
+        cluster: true, clusterRadius: 46, clusterMaxZoom: 14,
+        maxzoom: 20, buffer: 128, tolerance: 0
       });
       map.addLayer({
         id: "clusters", type: "circle", source: "venues", filter: ["has","point_count"],
@@ -768,8 +811,15 @@
   }
   function closeModal(){
     if (modalLocked) return;
+    stopChat();
     el("modal").hidden = true;
     clear(el("panel"));
+  }
+  function stopChat(){
+    if (chatChannel){
+      try { sb.removeChannel(chatChannel); } catch(e){}
+      chatChannel = null;
+    }
   }
   function forceCloseModal(){
     modalLocked = false;
@@ -1045,12 +1095,185 @@
         });
         panel.appendChild(del);
 
+        var blockKeys = Object.keys(blockedSet);
+        if (blockKeys.length){
+          panel.appendChild(make("p","section-label", t("blockedList")));
+          var liste = make("div","squad");
+          panel.appendChild(liste);
+          sb.from("profiles").select("id,anzeigename,bild_url").in("id", blockKeys)
+            .then(function(res){
+              clear(liste);
+              (res.data || []).forEach(function(r){
+                var item = make("div","player");
+                item.appendChild(make("div","avatar-fallback", initials(r.anzeigename || "?")));
+                item.appendChild(make("span","who", r.anzeigename || "—"));
+                var auf = make("button","tinylink", t("unblock"));
+                auf.type = "button";
+                auf.addEventListener("click", function(){
+                  unblockUser(r.id, function(){ openModal(profilePanel(false)); });
+                });
+                item.appendChild(auf);
+                liste.appendChild(item);
+              });
+            });
+        }
+
         var close = make("button","quiet-link", t("cancel"));
         close.type = "button";
         close.addEventListener("click", closeModal);
         panel.appendChild(close);
       }
     };
+  }
+
+  function loadBlocked(){
+    blockedSet = {};
+    if (!session) return Promise.resolve();
+    return sb.rpc("blockierte").then(function(res){
+      (res.data || []).forEach(function(row){
+        var id = (typeof row === "string") ? row : (row && (row.blockierte || row.blockiert_id));
+        if (id) blockedSet[id] = true;
+      });
+    }).catch(function(){});
+  }
+
+  function blockUser(userId, danach){
+    if (!session || userId === session.user.id) return;
+    if (!window.confirm(t("blockAsk"))) return;
+    sb.from("blocks").insert({ user_id: session.user.id, blockiert_id: userId }).then(function(res){
+      if (res.error){ toast(res.error.message); return; }
+      loadBlocked().then(function(){
+        toast(t("blockedOk"));
+        if (danach) danach();
+      });
+    });
+  }
+
+  function unblockUser(userId, danach){
+    if (!session) return;
+    sb.from("blocks").delete().eq("user_id", session.user.id).eq("blockiert_id", userId)
+      .then(function(){ loadBlocked().then(function(){ if (danach) danach(); }); });
+  }
+
+  function reportPanel(typ, ziel, zurueck){
+    return function(panel){
+      clear(panel);
+      panel.appendChild(make("h2", null, t("reportTitle")));
+      panel.appendChild(make("p","lead", t("reportLead")));
+      var msg = make("div","err"); msg.hidden = true; panel.appendChild(msg);
+
+      var grund = input("r-grund","text", t("reportPlaceholder"));
+      grund.maxLength = 300;
+      panel.appendChild(field(t("reportReason"), grund));
+
+      var go = make("button","btn", t("reportSend"));
+      go.type = "button";
+      go.addEventListener("click", function(){
+        if (grund.value.trim().length < 3){ msg.textContent = t("reportPlaceholder"); msg.hidden = false; return; }
+        go.disabled = true;
+        sb.rpc("melden", { p_typ: typ, p_ziel: String(ziel), p_grund: grund.value.trim() }).then(function(res){
+          go.disabled = false;
+          if (res.error){ msg.textContent = res.error.message; msg.hidden = false; return; }
+          toast(t("reportSent"));
+          if (zurueck) openModal(zurueck); else closeModal();
+        });
+      });
+      panel.appendChild(go);
+
+      var quit = make("button","quiet-link", t("cancel"));
+      quit.type = "button";
+      quit.addEventListener("click", function(){ if (zurueck) openModal(zurueck); else closeModal(); });
+      panel.appendChild(quit);
+    };
+  }
+
+  function chatBlock(panel, id, darfSchreiben){
+    panel.appendChild(make("p","section-label", t("chat")));
+    if (!darfSchreiben){
+      panel.appendChild(make("p","muted-line", t("chatOnlyForSquad")));
+      return;
+    }
+    var box = make("div","chat");
+    panel.appendChild(box);
+    var gesehen = {};
+    var leerHinweis = null;
+
+    function zeile(m){
+      if (!m || gesehen[m.id]) return;
+      if (blockedSet[m.user_id]) return;
+      gesehen[m.id] = true;
+      if (leerHinweis){ box.removeChild(leerHinweis); leerHinweis = null; }
+      var eigen = session && m.user_id === session.user.id;
+      var wrap = make("div", eigen ? "msg own" : "msg");
+      var wann = "";
+      try {
+        wann = new Intl.DateTimeFormat(lang === "de" ? "de-AT" : "en-GB",
+          { hour:"2-digit", minute:"2-digit", timeZone:"Europe/Vienna" }).format(new Date(m.gesendet_am));
+      } catch(e){}
+      wrap.appendChild(make("div","meta", (m.anzeigename || "—") + " · " + wann));
+      wrap.appendChild(make("div","bubble", m.text));
+      if (!eigen && session){
+        var mel = make("button","tinylink", t("reportBtn"));
+        mel.type = "button";
+        mel.addEventListener("click", function(){
+          stopChat();
+          openModal(reportPanel("nachricht", m.id, gamePanel(id)));
+        });
+        wrap.appendChild(mel);
+      }
+      box.appendChild(wrap);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    sb.from("chat_public").select("id,user_id,text,gesendet_am,anzeigename")
+      .eq("match_id", id).order("gesendet_am").limit(100)
+      .then(function(res){
+        var rows = res.data || [];
+        if (!rows.length){
+          leerHinweis = make("p","muted-line", t("noMessages"));
+          box.appendChild(leerHinweis);
+          return;
+        }
+        rows.forEach(zeile);
+      });
+
+    var form = make("div","chatform");
+    var feld = input("chat-input","text", t("chatPlaceholder"));
+    feld.maxLength = 1000;
+    var senden = make("button", null, t("send"));
+    senden.type = "button";
+    function abschicken(){
+      var text = feld.value.trim();
+      if (!text) return;
+      feld.value = "";
+      sb.from("messages").insert({ match_id: id, user_id: session.user.id, text: text }).then(function(res){
+        if (res.error){ toast(res.error.message); return; }
+        sb.from("chat_public").select("id,user_id,text,gesendet_am,anzeigename")
+          .eq("match_id", id).order("gesendet_am").limit(100)
+          .then(function(r2){ (r2.data || []).forEach(zeile); });
+      });
+    }
+    senden.addEventListener("click", abschicken);
+    feld.addEventListener("keydown", function(e){ if (e.key === "Enter") abschicken(); });
+    form.appendChild(feld);
+    form.appendChild(senden);
+    panel.appendChild(form);
+
+    stopChat();
+    try {
+      chatChannel = sb.channel("chat-" + id)
+        .on("postgres_changes",
+            { event: "INSERT", schema: "public", table: "messages", filter: "match_id=eq." + id },
+            function(payload){
+              var m = payload && payload.new;
+              if (!m) return;
+              if (session && m.user_id === session.user.id) return;
+              sb.from("chat_public").select("id,user_id,text,gesendet_am,anzeigename")
+                .eq("id", m.id).maybeSingle()
+                .then(function(r){ if (r.data) zeile(r.data); });
+            })
+        .subscribe();
+    } catch(e){}
   }
 
   function gamePanel(id){
@@ -1084,7 +1307,7 @@
       }
       fact(t("organizerLabel"), g.organisator || "—");
       fact(t("levelL"), t(LVLKEY[g.niveau] || "lvlFreizeit"));
-      fact(t("costL"), money(g.kosten_cent));
+      fact(t("costShort"), money(g.kosten_cent));
       fact(t("district"), districtName(g.bezirk));
       if (g.notiz) fact(t("noteL"), g.notiz);
       panel.appendChild(facts);
@@ -1109,9 +1332,21 @@
             }
             item.appendChild(make("span","who", r.anzeigename || "—"));
             if (r.status === "warteliste") item.appendChild(make("span","pill", t("waitlistLabel")));
+            if (session && r.user_id !== session.user.id){
+              var sperr = make("button","tinylink", t("blockUser"));
+              sperr.type = "button";
+              sperr.addEventListener("click", function(){
+                blockUser(r.user_id, function(){ stopChat(); openModal(gamePanel(id)); });
+              });
+              item.appendChild(sperr);
+            }
             squad.appendChild(item);
           });
         });
+
+      var darfChat = !!(session && (myPart[id] === "zugesagt" || myPart[id] === "warteliste" ||
+                        g.organisator_id === session.user.id));
+      chatBlock(panel, id, darfChat);
 
       var mine = myPart[id];
       var act = make("button","btn");
@@ -1131,6 +1366,7 @@
           act.disabled = false;
           if (res.error){ msg.textContent = res.error.message; msg.hidden = false; return; }
           loadMyPart().then(loadGames).then(function(){
+            stopChat();
             openModal(gamePanel(id));
             if (leaving) toast(t("leftOk"));
             else toast(res.data === "warteliste" ? t("youAreWaiting") : t("youAreIn"));
@@ -1480,11 +1716,11 @@
       loadVenues().then(loadGames);
       sb.auth.getSession().then(function(res){
         session = res.data.session;
-        loadProfile().then(loadMyPart).then(loadGames);
+        loadProfile().then(loadMyPart).then(loadBlocked).then(loadGames);
       });
       sb.auth.onAuthStateChange(function(_evt, s){
         session = s;
-        loadProfile().then(loadMyPart).then(loadGames);
+        loadProfile().then(loadMyPart).then(loadBlocked).then(loadGames);
       });
     } catch (err){
       var box = make("div","err");
