@@ -308,7 +308,7 @@
   var SUPABASE_URL = "https://ngeymudilvcishweefow.supabase.co";
   var SUPABASE_KEY = "sb_publishable_NnIdoQ9sTsMkbRbuu_mYHw_T2bQ-iSZ";
   var BESTAETIGT_URL = "https://esio1120.github.io/JogaVia/bestaetigt.html";
-  var APP_VERSION = "2026-09-01 f";
+  var APP_VERSION = "2026-09-01 g";
   var FEHLER = [];
   function merkeFehler(e){
     var s = "";
@@ -334,7 +334,9 @@
       halle: "Halle", beach: "Beach", sonstige: "Sonstige",
       surface: "Belag", lighting: "Beleuchtung", access: "Zugang", checked: "Geprüft",
       yes: "ja", no: "nein", unknown: "unbekannt",
-      accessFrei: "frei zugänglich", accessBuchung: "Buchung nötig", accessVerein: "Verein",
+      accessFrei: "frei zugänglich", accessBuchung: "Buchung nötig", accessVerein: "Vereinsanlage",
+      accessUnbekannt: "Zugang unklar",
+      accessHint: "Vereinsanlagen sind meist nicht frei zugänglich, lassen sich aber oft mieten.",
       route: "In Karten öffnen", organize: "Hier Spiel organisieren",
       unverifiedHint: "Die Angaben stammen aus OpenStreetMap und sind noch ungeprüft.",
       gamesAtVenue: "Spiele hier", noGames: "Noch kein Spiel an diesem Platz.",
@@ -401,7 +403,9 @@
       halle: "Indoor", beach: "Beach", sonstige: "Other",
       surface: "Surface", lighting: "Floodlights", access: "Access", checked: "Verified",
       yes: "yes", no: "no", unknown: "unknown",
-      accessFrei: "open to all", accessBuchung: "booking required", accessVerein: "club only",
+      accessFrei: "open to all", accessBuchung: "booking required", accessVerein: "club ground",
+      accessUnbekannt: "access unclear",
+      accessHint: "Club grounds are usually not open to the public, but can often be rented.",
       route: "Open in Maps", organize: "Organise a game here",
       unverifiedHint: "Details come from OpenStreetMap and are not verified yet.",
       gamesAtVenue: "Games here", noGames: "No game at this pitch yet.",
@@ -860,6 +864,13 @@
     list.forEach(function(g){ box.appendChild(gameRow(g, false)); });
   }
 
+  function zugangText(z){
+    if (z === "frei") return t("accessFrei");
+    if (z === "buchung") return t("accessBuchung");
+    if (z === "verein") return t("accessVerein");
+    return t("accessUnbekannt");
+  }
+
   function openSheet(id){
     var v = venues.filter(function(x){ return x.id === id; })[0];
     if (!v) return;
@@ -879,6 +890,7 @@
     if (v.zugang === "frei") badges.appendChild(make("span","badge on", t("accessFrei")));
     if (v.zugang === "verein") badges.appendChild(make("span","badge warn", t("accessVerein")));
     if (v.zugang === "buchung") badges.appendChild(make("span","badge warn", t("accessBuchung")));
+    if (v.zugang === "unbekannt") badges.appendChild(make("span","badge", t("accessUnbekannt")));
 
     var facts = el("sheetFacts");
     clear(facts);
@@ -890,7 +902,7 @@
     }
     addFact(t("surface"), v.belag || t("unknown"));
     addFact(t("lighting"), v.beleuchtung === true ? t("yes") : (v.beleuchtung === false ? t("no") : t("unknown")));
-    addFact(t("access"), v.zugang === "frei" ? t("accessFrei") : (v.zugang === "buchung" ? t("accessBuchung") : t("accessVerein")));
+    addFact(t("access"), zugangText(v.zugang));
     addFact(t("checked"), v.geprueft ? t("yes") : t("no"));
 
     renderSheetGames(v.id);
@@ -899,7 +911,7 @@
     route.textContent = t("route");
     route.href = "https://www.google.com/maps/search/?api=1&query=" + v.lat + "," + v.lon;
     el("sheetOrganize").textContent = t("organize");
-    el("sheetHint").textContent = t("unverifiedHint");
+    el("sheetHint").textContent = (v.zugang === "verein" ? t("accessHint") + " " : "") + t("unverifiedHint");
     el("sheet").classList.add("open");
 
     pushToMap();
