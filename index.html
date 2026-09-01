@@ -308,7 +308,7 @@
   var SUPABASE_URL = "https://ngeymudilvcishweefow.supabase.co";
   var SUPABASE_KEY = "sb_publishable_NnIdoQ9sTsMkbRbuu_mYHw_T2bQ-iSZ";
   var BESTAETIGT_URL = "https://esio1120.github.io/JogaVia/bestaetigt.html";
-  var APP_VERSION = "2026-09-01 e";
+  var APP_VERSION = "2026-09-01 f";
   var FEHLER = [];
   function merkeFehler(e){
     var s = "";
@@ -545,6 +545,7 @@
   var chatChannel = null;
   var marker = [];
   var MARKER_AB_ZOOM = 15;
+  var geoControl = null;
 
   function buildMap(){
     map = new maplibregl.Map({
@@ -571,9 +572,19 @@
     });
     map.on("error", function(e){ merkeFehler(e && e.error ? e.error : e); });
     map.addControl(new maplibregl.NavigationControl({ showCompass:false }), "bottom-right");
-    map.addControl(new maplibregl.GeolocateControl({
-      positionOptions:{ enableHighAccuracy:true }, trackUserLocation:false
-    }), "bottom-right");
+    geoControl = new maplibregl.GeolocateControl({
+      positionOptions: { enableHighAccuracy: true },
+      trackUserLocation: false,
+      showAccuracyCircle: true,
+      fitBoundsOptions: { maxZoom: 16 }
+    });
+    map.addControl(geoControl, "bottom-right");
+    try {
+      geoControl.on("geolocate", function(){
+        try { localStorage.setItem("jogavia-geo", "1"); } catch(e){}
+      });
+      geoControl.on("error", function(e){ merkeFehler(e); });
+    } catch(e){}
 
     map.on("load", function(){
       map.addSource("venues", {
@@ -674,7 +685,29 @@
 
       mapReady = true;
       pushToMap();
+      standortAutomatisch();
     });
+  }
+
+  function standortAutomatisch(){
+    function ausloesen(){
+      setTimeout(function(){
+        try { if (geoControl) geoControl.trigger(); } catch(e){ merkeFehler(e); }
+      }, 800);
+    }
+    var schonErlaubt = false;
+    try { schonErlaubt = localStorage.getItem("jogavia-geo") === "1"; } catch(e){}
+
+    if (navigator.permissions && navigator.permissions.query){
+      navigator.permissions.query({ name: "geolocation" }).then(function(status){
+        if (status.state === "granted") ausloesen();
+        try {
+          status.onchange = function(){ if (status.state === "granted") ausloesen(); };
+        } catch(e){}
+      }).catch(function(){ if (schonErlaubt) ausloesen(); });
+    } else if (schonErlaubt){
+      ausloesen();
+    }
   }
 
   function updateMarkers(){
