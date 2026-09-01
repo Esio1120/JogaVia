@@ -193,6 +193,15 @@
     padding:11px 16px;font-weight:700;font-size:14.5px;
   }
 
+  .pinmark{display:flex;align-items:center;gap:6px;cursor:pointer}
+  .pinmark img{width:30px;height:30px;display:block;flex:0 0 auto;filter:drop-shadow(0 2px 3px rgba(60,48,32,.4))}
+  .pinname{
+    background:var(--surface);border:1px solid var(--line-strong);border-radius:999px;
+    padding:3px 10px;font-size:12.5px;font-weight:700;color:var(--ink);white-space:nowrap;
+    box-shadow:var(--shadow-s);max-width:180px;overflow:hidden;text-overflow:ellipsis;
+  }
+  .pinmark.mit-spiel .pinname{background:var(--accent);color:#FFFFFF;border-color:var(--accent)}
+
   #modal{position:fixed;inset:0;z-index:50;background:rgba(46,42,36,.42);display:flex;align-items:flex-end;justify-content:center}
   @media (min-width:760px){#modal{align-items:center}}
   .panel{
@@ -299,7 +308,7 @@
   var SUPABASE_URL = "https://ngeymudilvcishweefow.supabase.co";
   var SUPABASE_KEY = "sb_publishable_NnIdoQ9sTsMkbRbuu_mYHw_T2bQ-iSZ";
   var BESTAETIGT_URL = "https://esio1120.github.io/JogaVia/bestaetigt.html";
-  var APP_VERSION = "2026-09-01 d";
+  var APP_VERSION = "2026-09-01 e";
   var FEHLER = [];
   function merkeFehler(e){
     var s = "";
@@ -534,6 +543,8 @@
   var profile = null;
   var blockedSet = {};
   var chatChannel = null;
+  var marker = [];
+  var MARKER_AB_ZOOM = 15;
 
   function buildMap(){
     map = new maplibregl.Map({
@@ -658,8 +669,46 @@
         map.on("mouseleave", layer, function(){ map.getCanvas().style.cursor = ""; });
       });
 
+      map.on("moveend", updateMarkers);
+      map.on("zoomend", updateMarkers);
+
       mapReady = true;
       pushToMap();
+    });
+  }
+
+  function updateMarkers(){
+    if (!mapReady || !map) return;
+    var nah = map.getZoom() >= MARKER_AB_ZOOM;
+    try { map.setLayoutProperty("points", "visibility", nah ? "none" : "visible"); } catch(e){}
+
+    marker.forEach(function(m){ try { m.remove(); } catch(e){} });
+    marker = [];
+    if (!nah) return;
+
+    var b;
+    try { b = map.getBounds(); } catch(e){ return; }
+    var sichtbar = filtered.filter(function(v){
+      return v.lon >= b.getWest() && v.lon <= b.getEast() &&
+             v.lat >= b.getSouth() && v.lat <= b.getNorth();
+    }).slice(0, 60);
+
+    sichtbar.forEach(function(v){
+      var wrap = make("div","pinmark");
+      if (venuesWithGames[v.id]) wrap.classList.add("mit-spiel");
+      var bild = document.createElement("img");
+      bild.src = "logo.svg";
+      bild.alt = "";
+      wrap.appendChild(bild);
+      wrap.appendChild(make("span","pinname", v.name));
+      wrap.addEventListener("click", function(ev){
+        ev.stopPropagation();
+        openSheet(v.id);
+      });
+      try {
+        marker.push(new maplibregl.Marker({ element: wrap, anchor: "bottom-left", offset: [-15, 2] })
+          .setLngLat([v.lon, v.lat]).addTo(map));
+      } catch(e){ merkeFehler(e); }
     });
   }
 
@@ -680,6 +729,7 @@
     if (!mapReady || !map.getSource("venues")) return;
     map.getSource("venues").setData(toGeoJSON(filtered));
     map.setFilter("selected", ["==", ["get","id"], selectedId === null ? -1 : selectedId]);
+    updateMarkers();
   }
 
   function districtName(nr){
