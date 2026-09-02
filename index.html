@@ -463,8 +463,9 @@
 
   var SUPABASE_URL = "https://ngeymudilvcishweefow.supabase.co";
   var SUPABASE_KEY = "sb_publishable_NnIdoQ9sTsMkbRbuu_mYHw_T2bQ-iSZ";
+  var APP_URL = "https://esio1120.github.io/JogaVia/";
   var BESTAETIGT_URL = "https://esio1120.github.io/JogaVia/bestaetigt.html";
-  var APP_VERSION = "2026-09-02 c";
+  var APP_VERSION = "2026-09-02 d";
   var FEHLER = [];
   function merkeFehler(e){
     var s = "";
@@ -584,6 +585,20 @@
       fotoVon: "Foto von {n}", fotoLoeschen: "Foto löschen",
       fotoLoeschenAsk: "Dein Foto von diesem Platz löschen?",
       fotoZuViele: "Du hast heute schon zwanzig Fotos hochgeladen. Morgen geht es weiter.",
+      pwVergessen: "Passwort vergessen?",
+      pwResetTitel: "Passwort zurücksetzen",
+      pwResetLead: "Wir schicken dir einen Link an deine E-Mail-Adresse.",
+      pwResetSenden: "Link schicken",
+      pwResetDa: "Wenn es ein Konto mit dieser Adresse gibt, ist der Link unterwegs. Schau auch im Spam nach.",
+      pwNeuTitel: "Neues Passwort setzen", pwNeuLead: "Wähle ein neues Passwort für dein Konto.",
+      pwNeu: "Neues Passwort", pwZuKurz: "Bitte mindestens acht Zeichen.",
+      pwGeaendert: "Passwort geändert. Du bist angemeldet.",
+      teilenBtn: "Teilen", linkKopiert: "Link kopiert.",
+      spielBearbeiten: "Spiel bearbeiten", spielGespeichert: "Änderungen gespeichert.",
+      spielerEntfernen: "entfernen", spielerEntfernenAsk: "{n} aus dem Kader nehmen?",
+      uebergeben: "Organisation übergeben",
+      uebergebenAsk: "Die Organisation an {n} übergeben? Du bleibst als Spieler dabei.",
+      uebergebenOk: "Übergeben.", nachgerueckt: "{n} von der Warteliste nachgerückt",
       modTitel: "Moderation", modOeffnen: "Moderation",
       modMeldungen: "Gemeldete Inhalte", modPlaetze: "Platzmeldungen",
       modLeer: "Nichts zu tun. Gut so.",
@@ -716,6 +731,20 @@
       fotoVon: "Photo by {n}", fotoLoeschen: "Delete photo",
       fotoLoeschenAsk: "Delete your photo of this pitch?",
       fotoZuViele: "You have uploaded twenty photos today. More tomorrow.",
+      pwVergessen: "Forgot your password?",
+      pwResetTitel: "Reset your password",
+      pwResetLead: "We will send a link to your email address.",
+      pwResetSenden: "Send link",
+      pwResetDa: "If an account exists for that address, the link is on its way. Check your spam folder too.",
+      pwNeuTitel: "Set a new password", pwNeuLead: "Choose a new password for your account.",
+      pwNeu: "New password", pwZuKurz: "Please use at least eight characters.",
+      pwGeaendert: "Password changed. You are signed in.",
+      teilenBtn: "Share", linkKopiert: "Link copied.",
+      spielBearbeiten: "Edit game", spielGespeichert: "Changes saved.",
+      spielerEntfernen: "remove", spielerEntfernenAsk: "Remove {n} from the squad?",
+      uebergeben: "Hand over organising",
+      uebergebenAsk: "Hand organising over to {n}? You stay in as a player.",
+      uebergebenOk: "Handed over.", nachgerueckt: "{n} moved up from the waiting list",
       modTitel: "Moderation", modOeffnen: "Moderation",
       modMeldungen: "Reported content", modPlaetze: "Pitch reports",
       modLeer: "Nothing to do. Good.",
@@ -2183,6 +2212,13 @@
       });
       panel.appendChild(go);
 
+      if (mode !== "register"){
+        var vergessen = make("button","quiet-link", t("pwVergessen"));
+        vergessen.type = "button";
+        vergessen.addEventListener("click", function(){ openModal(pwResetPanel(mail.value.trim())); });
+        panel.appendChild(vergessen);
+      }
+
       var sw = make("div","switcher");
       var other = make("button","btn secondary", mode === "register" ? t("haveAccount") : t("noAccount"));
       other.type = "button";
@@ -2313,6 +2349,73 @@
       }
 
       zeichne();
+    };
+  }
+
+  function pwResetPanel(vorbelegt){
+    return function(panel){
+      clear(panel);
+      panel.appendChild(make("h2", null, t("pwResetTitel")));
+      panel.appendChild(make("p","lead", t("pwResetLead")));
+      var msg = make("div","err"); msg.hidden = true; panel.appendChild(msg);
+
+      var mail = input("r-mail","email","name@beispiel.at");
+      mail.autocomplete = "email";
+      mail.value = vorbelegt || "";
+      panel.appendChild(field(t("email"), mail));
+
+      var go = make("button","btn", t("pwResetSenden"));
+      go.type = "button";
+      go.addEventListener("click", function(){
+        var adresse = mail.value.trim();
+        if (adresse.indexOf("@") < 1){ msg.textContent = t("email"); msg.hidden = false; return; }
+        go.disabled = true;
+        sb.auth.resetPasswordForEmail(adresse, { redirectTo: APP_URL }).then(function(res){
+          go.disabled = false;
+          if (res && res.error){ msg.textContent = res.error.message; msg.hidden = false; return; }
+          clear(panel);
+          panel.appendChild(make("h2", null, t("pwResetTitel")));
+          panel.appendChild(make("p","lead", t("pwResetDa")));
+          var ok = make("button","btn", t("cancel"));
+          ok.type = "button";
+          ok.addEventListener("click", closeModal);
+          panel.appendChild(ok);
+        });
+      });
+      panel.appendChild(go);
+
+      var zurueck = make("button","quiet-link", t("cancel"));
+      zurueck.type = "button";
+      zurueck.addEventListener("click", function(){ openModal(authPanel("login")); });
+      panel.appendChild(zurueck);
+    };
+  }
+
+  function pwNeuPanel(){
+    return function(panel){
+      clear(panel);
+      panel.appendChild(make("h2", null, t("pwNeuTitel")));
+      panel.appendChild(make("p","lead", t("pwNeuLead")));
+      var msg = make("div","err"); msg.hidden = true; panel.appendChild(msg);
+
+      var pass = input("r-pass","password", t("passwordHint"));
+      pass.autocomplete = "new-password";
+      panel.appendChild(field(t("pwNeu"), pass));
+
+      var go = make("button","btn", t("save"));
+      go.type = "button";
+      go.addEventListener("click", function(){
+        if (pass.value.length < 8){ msg.textContent = t("pwZuKurz"); msg.hidden = false; return; }
+        go.disabled = true;
+        sb.auth.updateUser({ password: pass.value }).then(function(res){
+          go.disabled = false;
+          if (res && res.error){ msg.textContent = res.error.message; msg.hidden = false; return; }
+          try { history.replaceState(null, "", APP_URL); } catch(e){}
+          forceCloseModal();
+          toast(t("pwGeaendert"));
+        });
+      });
+      panel.appendChild(go);
     };
   }
 
@@ -2689,6 +2792,109 @@
     }, 1800);
   }
 
+  function spielLink(g){ return APP_URL + "?spiel=" + g.id; }
+
+  function spielTeilen(g){
+    var url = spielLink(g);
+    var text = g.platz + " · " + fmtWhen(g.beginn) + " · " + g.format;
+    if (navigator.share){
+      navigator.share({ title: "JogaVia", text: text, url: url }).catch(function(){});
+      return;
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(url).then(function(){ toast(t("linkKopiert")); })
+        .catch(function(){ window.prompt(t("teilenBtn"), url); });
+      return;
+    }
+    window.prompt(t("teilenBtn"), url);
+  }
+
+  function zweiStellen(n){ return (n < 10 ? "0" : "") + n; }
+
+  function editPanel(id){
+    return function(panel){
+      var g = games.filter(function(x){ return x.id === id; })[0];
+      clear(panel);
+      if (!g){ panel.appendChild(make("p","lead", t("cancelled"))); return; }
+      panel.appendChild(make("h2", null, t("spielBearbeiten")));
+      panel.appendChild(make("p","lead", g.platz));
+      var msg = make("div","err"); msg.hidden = true; panel.appendChild(msg);
+
+      var d = new Date(g.beginn);
+      var dateIn = input("e-date","date","");
+      dateIn.value = d.getFullYear() + "-" + zweiStellen(d.getMonth() + 1) + "-" + zweiStellen(d.getDate());
+      var timeIn = input("e-time","time","");
+      timeIn.value = zweiStellen(d.getHours()) + ":" + zweiStellen(d.getMinutes());
+      var two = make("div","two");
+      two.appendChild(field(t("dateL"), dateIn));
+      two.appendChild(field(t("timeL"), timeIn));
+      panel.appendChild(two);
+
+      var fmtSel = select("e-fmt", [
+        {value:"3v3",label:"3 vs 3"},{value:"4v4",label:"4 vs 4"},{value:"5v5",label:"5 vs 5"},
+        {value:"6v6",label:"6 vs 6"},{value:"7v7",label:"7 vs 7"},{value:"9v9",label:"9 vs 9"},
+        {value:"11v11",label:"11 vs 11"}
+      ], g.format);
+      var slotsIn = input("e-slots","number","");
+      slotsIn.value = String(g.plaetze_gesamt || 10); slotsIn.min = "2"; slotsIn.max = "40";
+      var two2 = make("div","two");
+      two2.appendChild(field(t("formatL"), fmtSel));
+      two2.appendChild(field(t("slotsL"), slotsIn));
+      panel.appendChild(two2);
+
+      var durSel = select("e-dur", [
+        {value:"60",label:"60 " + t("minutes")},{value:"90",label:"90 " + t("minutes")},
+        {value:"120",label:"120 " + t("minutes")}
+      ], String(g.dauer_min || 90));
+      var lvlSel = select("e-lvl", levelOptions(), g.niveau || "freizeit");
+      var two3 = make("div","two");
+      two3.appendChild(field(t("durationL"), durSel));
+      two3.appendChild(field(t("levelL"), lvlSel));
+      panel.appendChild(two3);
+
+      var costIn = input("e-cost","number","0");
+      costIn.value = String((g.kosten_cent || 0) / 100); costIn.min = "0"; costIn.step = "0.5";
+      panel.appendChild(field(t("costL"), costIn));
+
+      var noteIn = input("e-note","text", t("notePlaceholder"));
+      noteIn.maxLength = 200;
+      noteIn.value = g.notiz || "";
+      panel.appendChild(field(t("noteL"), noteIn));
+
+      var go = make("button","btn", t("save"));
+      go.type = "button";
+      go.addEventListener("click", function(){
+        var beginn = new Date(dateIn.value + "T" + timeIn.value + ":00");
+        if (isNaN(beginn.getTime())){ msg.textContent = t("timeInPast"); msg.hidden = false; return; }
+        if (beginn.getTime() > Date.now() + 60 * 86400000){
+          msg.textContent = t("tooFar"); msg.hidden = false; return;
+        }
+        go.disabled = true;
+        sb.rpc("spiel_aendern", {
+          p_match: id,
+          p_beginn: beginn.toISOString(),
+          p_dauer: Number(durSel.value),
+          p_format: fmtSel.value,
+          p_plaetze: Math.max(2, Number(slotsIn.value) || 10),
+          p_niveau: lvlSel.value,
+          p_kosten: Math.round((Number(costIn.value) || 0) * 100),
+          p_notiz: noteIn.value.trim() || null
+        }).then(function(res){
+          go.disabled = false;
+          if (res.error){ msg.textContent = res.error.message; msg.hidden = false; return; }
+          toast(res.data > 0 ? t("nachgerueckt", res.data) : t("spielGespeichert"));
+          loadMyPart().then(loadGames).then(function(){ openModal(gamePanel(id)); });
+        });
+      });
+      panel.appendChild(go);
+
+      var zurueck = make("button","quiet-link", t("cancel"));
+      zurueck.type = "button";
+      zurueck.addEventListener("click", function(){ openModal(gamePanel(id)); });
+      panel.appendChild(zurueck);
+    };
+  }
+
   function gamePanel(id){
     return function(panel){
       var g = games.filter(function(x){ return x.id === id; })[0];
@@ -2752,6 +2958,40 @@
                 blockUser(r.user_id, function(){ stopChat(); openModal(gamePanel(id)); });
               });
               item.appendChild(sperr);
+
+              if (g.organisator_id === session.user.id){
+                var raus = make("button","tinylink", t("spielerEntfernen"));
+                raus.type = "button";
+                raus.addEventListener("click", function(){
+                  if (!window.confirm(t("spielerEntfernenAsk", r.anzeigename || "—"))) return;
+                  sb.rpc("spiel_teilnehmer_entfernen", { p_match: id, p_user: r.user_id })
+                    .then(function(res){
+                      if (res.error){ toast(res.error.message); return; }
+                      if (res.data > 0) toast(t("nachgerueckt", res.data));
+                      loadMyPart().then(loadGames).then(function(){
+                        stopChat(); openModal(gamePanel(id));
+                      });
+                    });
+                });
+                item.appendChild(raus);
+
+                if (r.status === "zugesagt"){
+                  var ueber = make("button","tinylink", t("uebergeben"));
+                  ueber.type = "button";
+                  ueber.addEventListener("click", function(){
+                    if (!window.confirm(t("uebergebenAsk", r.anzeigename || "—"))) return;
+                    sb.rpc("spiel_uebergeben", { p_match: id, p_user: r.user_id })
+                      .then(function(res){
+                        if (res.error){ toast(res.error.message); return; }
+                        toast(t("uebergebenOk"));
+                        loadMyPart().then(loadGames).then(function(){
+                          stopChat(); openModal(gamePanel(id));
+                        });
+                      });
+                  });
+                  item.appendChild(ueber);
+                }
+              }
             }
             squad.appendChild(item);
           });
@@ -2790,7 +3030,19 @@
       });
       panel.appendChild(act);
 
+      var teilen = make("button","btn secondary", t("teilenBtn"));
+      teilen.type = "button";
+      teilen.style.marginTop = "9px";
+      teilen.addEventListener("click", function(){ spielTeilen(g); });
+      panel.appendChild(teilen);
+
       if (session && g.organisator_id === session.user.id){
+        var edit = make("button","btn secondary", t("spielBearbeiten"));
+        edit.type = "button";
+        edit.style.marginTop = "9px";
+        edit.addEventListener("click", function(){ stopChat(); openModal(editPanel(id)); });
+        panel.appendChild(edit);
+
         var kill = make("button","danger-link", t("cancelGame"));
         kill.type = "button";
         kill.addEventListener("click", function(){
@@ -3203,6 +3455,17 @@
     document.body.appendChild(kasten);
   }
 
+  var spielLinkErledigt = false;
+  function spielAusLink(){
+    if (spielLinkErledigt) return;
+    var treffer = /[?&]spiel=(\d+)/.exec(location.search || "");
+    if (!treffer) return;
+    var id = Number(treffer[1]);
+    if (!games.some(function(g){ return g.id === id; })) return;
+    spielLinkErledigt = true;
+    openModal(gamePanel(id));
+  }
+
   function boot(){
     try {
       applyLanguageToChrome();
@@ -3220,13 +3483,20 @@
         tippZeit = jetzt;
         if (tipps >= 3){ tipps = 0; debugAnzeigen(); }
       });
-      loadVenues().then(loadGames);
+      var wiederherstellung = (location.hash || "").indexOf("type=recovery") !== -1;
+
+      loadVenues().then(loadGames).then(spielAusLink);
       sb.auth.getSession().then(function(res){
         session = res.data.session;
-        loadProfile().then(loadMyPart).then(loadBlocked).then(loadFreunde).then(loadEinladungen).then(loadGames);
+        loadProfile().then(loadMyPart).then(loadBlocked).then(loadFreunde).then(loadEinladungen)
+          .then(loadGames).then(spielAusLink);
       });
-      sb.auth.onAuthStateChange(function(_evt, s){
+      sb.auth.onAuthStateChange(function(evt, s){
         session = s;
+        if (evt === "PASSWORD_RECOVERY" || wiederherstellung){
+          wiederherstellung = false;
+          openModal(pwNeuPanel(), true);
+        }
         loadProfile().then(loadMyPart).then(loadBlocked).then(loadFreunde).then(loadEinladungen).then(loadGames);
       });
     } catch (err){
