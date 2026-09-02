@@ -166,6 +166,33 @@
     flex:0 0 auto;background:none;border:0;color:var(--paper);
     font-size:13px;font-weight:700;text-decoration:underline;text-underline-offset:3px;padding:0;
   }
+  .sterne{display:flex;gap:2px;flex:0 0 auto}
+  .sterne button{
+    background:none;border:0;padding:1px 2px;font-size:19px;line-height:1;
+    color:var(--line-strong);
+  }
+  .sterne button.an{color:#DFA132}
+  .sterne span{font-size:17px;line-height:1;color:var(--line-strong)}
+  .sterne span.an{color:#DFA132}
+  .sternzeile{display:flex;align-items:center;gap:10px;margin:0 0 9px}
+  .sternzeile .was{flex:1;min-width:0;font-size:14px}
+  .sternzeile .wert{font-size:12.5px;color:var(--muted);min-width:26px;text-align:right}
+  .statgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:2px 0 16px}
+  .statbox{background:var(--sand);border-radius:12px;padding:10px 12px}
+  .statbox b{display:block;font-family:var(--display);font-size:21px;font-weight:600;line-height:1.15}
+  .statbox span{font-size:12px;color:var(--muted)}
+  .profilkopf{display:flex;align-items:center;gap:12px;margin:0 0 14px}
+  .profilkopf img.avatar,.profilkopf .avatar-fallback{width:58px;height:58px;font-size:19px;flex:0 0 auto}
+  .profilkopf .wer{min-width:0}
+  .profilkopf .wer strong{display:block;font-family:var(--display);font-size:21px;font-weight:600}
+  .profilkopf .wer span{display:block;font-size:13px;color:var(--muted)}
+  .namebtn{
+    background:none;border:0;padding:0;text-align:left;font:inherit;color:inherit;
+    flex:1 1 auto;min-width:104px;font-weight:600;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .namebtn:hover{text-decoration:underline;text-underline-offset:3px}
+  .person button.wer{background:none;border:0;padding:0;text-align:left;font:inherit;color:inherit}
   .bilder{
     display:flex;gap:8px;overflow-x:auto;margin:12px 0 6px;padding-bottom:2px;
     -webkit-overflow-scrolling:touch;scrollbar-width:none;
@@ -211,7 +238,7 @@
   .pill.warn{background:var(--clay-soft);color:var(--clay)}
 
   .squad{display:flex;flex-direction:column;gap:8px;margin:4px 0 16px}
-  .player{display:flex;align-items:center;gap:10px;font-size:14.5px}
+  .player{display:flex;align-items:center;gap:10px;font-size:14.5px;flex-wrap:wrap}
   .player .avatar,.player .avatar-fallback{width:30px;height:30px;font-size:12px}
   .player .who{flex:1;font-weight:600}
   .slotbar{height:8px;border-radius:999px;background:var(--sand-deep);overflow:hidden;margin:2px 0 14px}
@@ -465,7 +492,7 @@
   var SUPABASE_KEY = "sb_publishable_NnIdoQ9sTsMkbRbuu_mYHw_T2bQ-iSZ";
   var APP_URL = "https://esio1120.github.io/JogaVia/";
   var BESTAETIGT_URL = "https://esio1120.github.io/JogaVia/bestaetigt.html";
-  var APP_VERSION = "2026-09-02 d";
+  var APP_VERSION = "2026-09-02 e";
   var FEHLER = [];
   function merkeFehler(e){
     var s = "";
@@ -585,6 +612,20 @@
       fotoVon: "Foto von {n}", fotoLoeschen: "Foto löschen",
       fotoLoeschenAsk: "Dein Foto von diesem Platz löschen?",
       fotoZuViele: "Du hast heute schon zwanzig Fotos hochgeladen. Morgen geht es weiter.",
+      profilTitel: "Spielerprofil", profilSeit: "dabei seit {n}",
+      statSpiele: "Spiele", statOrganisiert: "organisiert",
+      statAbsagen: "kurzfristige Absagen", statQuote: "Absagequote",
+      bewTitel: "Bewertung", bewKeine: "Noch keine Bewertung.",
+      bewAnzahl: "{n} Bewertungen", bewEine: "1 Bewertung",
+      bewGesamt: "Gesamt", bewFairness: "Fairness", bewZuverlaessig: "Zuverlässigkeit",
+      bewStaerke: "Spielstärke", bewTeamgeist: "Teamgeist",
+      bewerten: "bewerten", bewertenTitel: "Mitspieler bewerten",
+      bewertenLead: "Wie war {n} bei diesem Spiel?",
+      bewertenSenden: "Bewertung abschicken", bewertenDanke: "Danke für die Bewertung.",
+      bewertenAlle: "Bitte gib in allen vier Punkten Sterne.",
+      vergangene: "Vergangene Spiele", vergangeneLeer: "Noch kein Spiel gespielt.",
+      zuBewerten: "{n} noch zu bewerten", alleBewertet: "alle bewertet",
+      spielerAnsehen: "Profil ansehen",
       pwVergessen: "Passwort vergessen?",
       pwResetTitel: "Passwort zurücksetzen",
       pwResetLead: "Wir schicken dir einen Link an deine E-Mail-Adresse.",
@@ -731,6 +772,20 @@
       fotoVon: "Photo by {n}", fotoLoeschen: "Delete photo",
       fotoLoeschenAsk: "Delete your photo of this pitch?",
       fotoZuViele: "You have uploaded twenty photos today. More tomorrow.",
+      profilTitel: "Player profile", profilSeit: "member since {n}",
+      statSpiele: "games", statOrganisiert: "organised",
+      statAbsagen: "late cancellations", statQuote: "cancellation rate",
+      bewTitel: "Rating", bewKeine: "No ratings yet.",
+      bewAnzahl: "{n} ratings", bewEine: "1 rating",
+      bewGesamt: "Overall", bewFairness: "Fair play", bewZuverlaessig: "Reliability",
+      bewStaerke: "Skill", bewTeamgeist: "Team spirit",
+      bewerten: "rate", bewertenTitel: "Rate a team-mate",
+      bewertenLead: "How was {n} in this game?",
+      bewertenSenden: "Send rating", bewertenDanke: "Thanks for the rating.",
+      bewertenAlle: "Please give stars in all four categories.",
+      vergangene: "Past games", vergangeneLeer: "No games played yet.",
+      zuBewerten: "{n} still to rate", alleBewertet: "all rated",
+      spielerAnsehen: "View profile",
       pwVergessen: "Forgot your password?",
       pwResetTitel: "Reset your password",
       pwResetLead: "We will send a link to your email address.",
@@ -870,6 +925,7 @@
   var dmChannel = null;
   var fotos = [];
   var parkfotos = [];
+  var vergangene = [];
   var modListe = [];
   var modPlaetze = [];
   var chatTimer = null;
@@ -1304,6 +1360,25 @@
       }
       box.appendChild(feedKarte(g));
     });
+
+    if (meineAnsicht && session){
+      box.appendChild(make("p","tagkopf", t("vergangene")));
+      if (!vergangene.length){
+        box.appendChild(make("p","muted-line", t("vergangeneLeer")));
+      }
+      vergangene.forEach(function(v){
+        var karte = make("button","feedcard");
+        karte.type = "button";
+        karte.style.width = "100%";
+        karte.style.textAlign = "left";
+        karte.appendChild(make("div","zeit", fmtWhen(v.beginn)));
+        karte.appendChild(make("h3", null, v.platz));
+        karte.appendChild(make("p","details", v.format + " · " +
+          (v.offen_zu_bewerten > 0 ? t("zuBewerten", v.offen_zu_bewerten) : t("alleBewertet"))));
+        karte.addEventListener("click", function(){ openModal(vergangenPanel(v)); });
+        box.appendChild(karte);
+      });
+    }
   }
 
   function personZeile(p, aktionen){
@@ -1315,7 +1390,11 @@
     } else {
       zeile.appendChild(make("div","avatar-fallback", initials(p.anzeigename || "?")));
     }
-    var wer = make("span","wer");
+    var wer = make("button","wer");
+    wer.type = "button";
+    wer.addEventListener("click", function(){
+      openModal(spielerPanel(p.partner_id || p.id, null));
+    });
     wer.appendChild(make("strong", null, p.anzeigename || "—"));
     var unten = [districtName(p.bezirk), p.niveau ? t(LVLKEY[p.niveau] || "lvlFreizeit") : null];
     wer.appendChild(make("span", null, unten.filter(Boolean).join(" · ")));
@@ -2792,6 +2871,223 @@
     }, 1800);
   }
 
+  var POSKEY = { egal:"posEgal", tor:"posTor", abwehr:"posAbwehr", mittelfeld:"posMittelfeld", sturm:"posSturm" };
+
+  var BEWKATS = [
+    { feld: "fairness", key: "bewFairness" },
+    { feld: "zuverlaessigkeit", key: "bewZuverlaessig" },
+    { feld: "spielstaerke", key: "bewStaerke" },
+    { feld: "teamgeist", key: "bewTeamgeist" }
+  ];
+
+  function sterneAnzeige(wert){
+    var box = make("span","sterne");
+    for (var i = 1; i <= 5; i++){
+      var st = make("span", (wert && wert >= i - 0.25) ? "an" : null, "★");
+      box.appendChild(st);
+    }
+    return box;
+  }
+
+  function sternzeile(text, wert){
+    var z = make("div","sternzeile");
+    z.appendChild(make("span","was", text));
+    z.appendChild(sterneAnzeige(wert));
+    z.appendChild(make("span","wert", wert == null ? "—" : String(wert)));
+    return z;
+  }
+
+  function sterneEingabe(){
+    var stand = 0;
+    var box = make("div","sterne");
+    var knoepfe = [];
+    function male(){
+      knoepfe.forEach(function(k, i){ k.className = (i < stand) ? "an" : ""; });
+    }
+    for (var i = 1; i <= 5; i++){
+      (function(n){
+        var k = make("button", null, "★");
+        k.type = "button";
+        k.setAttribute("aria-label", String(n));
+        k.addEventListener("click", function(){ stand = n; male(); });
+        knoepfe.push(k);
+        box.appendChild(k);
+      })(i);
+    }
+    male();
+    return { el: box, wert: function(){ return stand; } };
+  }
+
+  function avatarBild(url, name, gross){
+    if (url){
+      var im = document.createElement("img");
+      im.className = "avatar"; im.src = url; im.alt = "";
+      if (gross){ im.style.width = "58px"; im.style.height = "58px"; }
+      return im;
+    }
+    var f = make("div","avatar-fallback", initials(name || "?"));
+    if (gross){ f.style.width = "58px"; f.style.height = "58px"; f.style.fontSize = "19px"; }
+    return f;
+  }
+
+  function spielerPanel(userId, zurueck){
+    return function(panel){
+      clear(panel);
+      panel.appendChild(make("h2", null, t("profilTitel")));
+      var inhalt = make("div");
+      panel.appendChild(inhalt);
+      inhalt.appendChild(make("p","muted-line", "…"));
+
+      var zu = make("button","quiet-link", t("cancel"));
+      zu.type = "button";
+      zu.addEventListener("click", function(){ if (zurueck) openModal(zurueck); else closeModal(); });
+      panel.appendChild(zu);
+
+      sb.rpc("spieler_profil", { p_user: userId }).then(function(res){
+        clear(inhalt);
+        var p = res.data && res.data[0];
+        if (!p){ inhalt.appendChild(make("p","muted-line", t("modKeinInhalt"))); return; }
+
+        var kopf = make("div","profilkopf");
+        kopf.appendChild(avatarBild(p.bild_url, p.anzeigename, true));
+        var wer = make("span","wer");
+        wer.appendChild(make("strong", null, p.anzeigename || "—"));
+        var unten = [districtName(p.bezirk),
+                     p.niveau ? t(LVLKEY[p.niveau] || "lvlFreizeit") : null,
+                     p.spielposition ? t(POSKEY[p.spielposition] || "posEgal") : null].filter(Boolean);
+        wer.appendChild(make("span", null, unten.join(" · ")));
+        kopf.appendChild(wer);
+        inhalt.appendChild(kopf);
+
+        if (p.dabei_seit){
+          inhalt.appendChild(make("p","hint", t("profilSeit", new Intl.DateTimeFormat(
+            lang === "de" ? "de-AT" : "en-GB",
+            { month:"long", year:"numeric", timeZone:"Europe/Vienna" }).format(new Date(p.dabei_seit)))));
+        }
+
+        var gitter = make("div","statgrid");
+        function kasten(zahl, text){
+          var b = make("div","statbox");
+          b.appendChild(make("b", null, String(zahl)));
+          b.appendChild(make("span", null, text));
+          gitter.appendChild(b);
+        }
+        kasten(p.spiele || 0, t("statSpiele"));
+        kasten(p.organisiert || 0, t("statOrganisiert"));
+        kasten(p.absagen || 0, t("statAbsagen"));
+        kasten((p.absagen_quote || 0) + " %", t("statQuote"));
+        inhalt.appendChild(gitter);
+
+        inhalt.appendChild(make("p","section-label", t("bewTitel")));
+        if (!p.anzahl_bewertungen){
+          inhalt.appendChild(make("p","muted-line", t("bewKeine")));
+        } else {
+          inhalt.appendChild(sternzeile(t("bewGesamt"), p.gesamt));
+          BEWKATS.forEach(function(k){ inhalt.appendChild(sternzeile(t(k.key), p[k.feld])); });
+          inhalt.appendChild(make("p","hint",
+            p.anzahl_bewertungen === 1 ? t("bewEine") : t("bewAnzahl", p.anzahl_bewertungen)));
+        }
+      });
+    };
+  }
+
+  function bewertenPanel(matchId, spieler, zurueck){
+    return function(panel){
+      clear(panel);
+      panel.appendChild(make("h2", null, t("bewertenTitel")));
+      panel.appendChild(make("p","lead", t("bewertenLead", spieler.anzeigename || "—")));
+      var msg = make("div","err"); msg.hidden = true; panel.appendChild(msg);
+
+      var eingaben = {};
+      BEWKATS.forEach(function(k){
+        var z = make("div","sternzeile");
+        z.appendChild(make("span","was", t(k.key)));
+        var e = sterneEingabe();
+        eingaben[k.feld] = e;
+        z.appendChild(e.el);
+        panel.appendChild(z);
+      });
+
+      var go = make("button","btn", t("bewertenSenden"));
+      go.type = "button";
+      go.addEventListener("click", function(){
+        var satz = { match_id: matchId, an_id: spieler.user_id || spieler.id };
+        var vollstaendig = true;
+        BEWKATS.forEach(function(k){
+          var w = eingaben[k.feld].wert();
+          if (!w) vollstaendig = false;
+          satz[k.feld] = w;
+        });
+        if (!vollstaendig){ msg.textContent = t("bewertenAlle"); msg.hidden = false; return; }
+        go.disabled = true;
+        sb.from("bewertungen").insert(satz).then(function(res){
+          go.disabled = false;
+          if (res.error){ msg.textContent = res.error.message; msg.hidden = false; return; }
+          toast(t("bewertenDanke"));
+          ladeVergangene().then(function(){
+            if (zurueck) openModal(zurueck); else closeModal();
+          });
+        });
+      });
+      panel.appendChild(go);
+
+      var zu = make("button","quiet-link", t("cancel"));
+      zu.type = "button";
+      zu.addEventListener("click", function(){ if (zurueck) openModal(zurueck); else closeModal(); });
+      panel.appendChild(zu);
+    };
+  }
+
+  function ladeVergangene(){
+    vergangene = [];
+    if (!session) return Promise.resolve();
+    return sb.rpc("meine_vergangenen_spiele")
+      .then(function(res){ vergangene = res.data || []; })
+      .catch(function(){});
+  }
+
+  function vergangenPanel(spiel){
+    var selbst = function(p){ return vergangenPanel(spiel)(p); };
+    return function(panel){
+      clear(panel);
+      panel.appendChild(make("h2", null, spiel.platz));
+      panel.appendChild(make("p","lead", fmtWhen(spiel.beginn) + " · " + spiel.format));
+      var liste = make("div","squad");
+      panel.appendChild(liste);
+      liste.appendChild(make("p","muted-line", "…"));
+
+      var zu = make("button","quiet-link", t("cancel"));
+      zu.type = "button";
+      zu.addEventListener("click", closeModal);
+      panel.appendChild(zu);
+
+      sb.from("spieler_public").select("user_id,status,anzeigename,bild_url")
+        .eq("match_id", spiel.id).then(function(res){
+          clear(liste);
+          var rows = (res.data || []).filter(function(r){
+            return r.status === "zugesagt" && (!session || r.user_id !== session.user.id)
+                   && !blockedSet[r.user_id];
+          });
+          if (!rows.length){ liste.appendChild(make("p","muted-line", "—")); return; }
+          rows.forEach(function(r){
+            var item = make("div","player");
+            item.appendChild(avatarBild(r.bild_url, r.anzeigename));
+            var nam = make("button","namebtn", r.anzeigename || "—");
+            nam.type = "button";
+            nam.addEventListener("click", function(){ openModal(spielerPanel(r.user_id, selbst)); });
+            item.appendChild(nam);
+            var bew = make("button","tinylink", t("bewerten"));
+            bew.type = "button";
+            bew.addEventListener("click", function(){
+              openModal(bewertenPanel(spiel.id, r, selbst));
+            });
+            item.appendChild(bew);
+            liste.appendChild(item);
+          });
+        });
+    };
+  }
+
   function spielLink(g){ return APP_URL + "?spiel=" + g.id; }
 
   function spielTeilen(g){
@@ -2949,7 +3245,13 @@
             } else {
               item.appendChild(make("div","avatar-fallback", initials(r.anzeigename || "?")));
             }
-            item.appendChild(make("span","who", r.anzeigename || "—"));
+            var namKn = make("button","namebtn", r.anzeigename || "—");
+            namKn.type = "button";
+            namKn.addEventListener("click", function(){
+              stopChat();
+              openModal(spielerPanel(r.user_id, gamePanel(id)));
+            });
+            item.appendChild(namKn);
             if (r.status === "warteliste") item.appendChild(make("span","pill", t("waitlistLabel")));
             if (session && r.user_id !== session.user.id){
               var sperr = make("button","tinylink", t("blockUser"));
@@ -3489,7 +3791,7 @@
       sb.auth.getSession().then(function(res){
         session = res.data.session;
         loadProfile().then(loadMyPart).then(loadBlocked).then(loadFreunde).then(loadEinladungen)
-          .then(loadGames).then(spielAusLink);
+          .then(ladeVergangene).then(loadGames).then(spielAusLink);
       });
       sb.auth.onAuthStateChange(function(evt, s){
         session = s;
@@ -3497,7 +3799,8 @@
           wiederherstellung = false;
           openModal(pwNeuPanel(), true);
         }
-        loadProfile().then(loadMyPart).then(loadBlocked).then(loadFreunde).then(loadEinladungen).then(loadGames);
+        loadProfile().then(loadMyPart).then(loadBlocked).then(loadFreunde).then(loadEinladungen)
+          .then(ladeVergangene).then(loadGames);
       });
     } catch (err){
       var box = make("div","err");
