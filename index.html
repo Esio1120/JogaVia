@@ -166,6 +166,31 @@
     flex:0 0 auto;background:none;border:0;color:var(--paper);
     font-size:13px;font-weight:700;text-decoration:underline;text-underline-offset:3px;padding:0;
   }
+  .bilder{
+    display:flex;gap:8px;overflow-x:auto;margin:12px 0 6px;padding-bottom:2px;
+    -webkit-overflow-scrolling:touch;scrollbar-width:none;
+  }
+  .bilder::-webkit-scrollbar{height:0}
+  .bild{
+    position:relative;flex:0 0 auto;width:220px;height:140px;padding:0;
+    border-radius:12px;overflow:hidden;background:var(--sand);border:1px solid var(--line);
+  }
+  .bild img{position:absolute;width:256px;height:256px;max-width:none;display:block}
+  .bild.foto img{inset:0;width:100%;height:100%;object-fit:cover}
+  .bild .marke{
+    position:absolute;left:0;right:0;bottom:0;text-align:left;
+    background:linear-gradient(rgba(46,42,36,0), rgba(46,42,36,.7));
+    color:#FFFFFF;font-size:11px;font-weight:600;padding:16px 9px 6px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .bildzeile{display:flex;align-items:center;gap:10px;margin:0 0 4px}
+  .bildzeile .quelle{font-size:11px;color:var(--muted);flex:1;min-width:0}
+  .grossbild{
+    position:relative;width:100%;height:240px;border-radius:14px;overflow:hidden;
+    background:var(--sand);border:1px solid var(--line);margin:0 0 14px;
+  }
+  .grossbild img{position:absolute;width:256px;height:256px;max-width:none;display:block}
+  .grossbild.foto img{inset:0;width:100%;height:100%;object-fit:contain;background:var(--ink)}
   .koordzeile{
     font-size:12.5px;color:var(--muted);background:var(--sand);
     border-radius:10px;padding:9px 11px;margin:0 0 14px;
@@ -403,6 +428,12 @@
     <button class="closebtn" id="sheetClose" type="button" aria-label="Schliessen">&times;</button>
   </div>
   <div class="badges" id="sheetBadges"></div>
+  <div class="bilder" id="sheetBilder"></div>
+  <div class="bildzeile">
+    <span class="quelle" id="sheetBildQuelle"></span>
+    <button class="linkish" id="sheetFotoBtn" type="button"></button>
+    <input type="file" id="sheetFotoInput" accept="image/*" hidden>
+  </div>
   <table class="facts"><tbody id="sheetFacts"></tbody></table>
   <div id="sheetGames"></div>
   <div class="actions">
@@ -433,7 +464,7 @@
   var SUPABASE_URL = "https://ngeymudilvcishweefow.supabase.co";
   var SUPABASE_KEY = "sb_publishable_NnIdoQ9sTsMkbRbuu_mYHw_T2bQ-iSZ";
   var BESTAETIGT_URL = "https://esio1120.github.io/JogaVia/bestaetigt.html";
-  var APP_VERSION = "2026-09-01 l";
+  var APP_VERSION = "2026-09-02 a";
   var FEHLER = [];
   function merkeFehler(e){
     var s = "";
@@ -545,6 +576,14 @@
       meldenNameFehlt: "Bitte gib einen Namen an — mindestens drei Zeichen.",
       meldenNotizFehlt: "Bitte schreib kurz, was nicht stimmt.",
       meldenZuViele: "Du hast heute schon zehn Meldungen geschickt. Morgen geht es weiter.",
+      luftbild: "Luftbild von oben",
+      fotoQuelle: "Luftbild: Stadt Wien – data.wien.gv.at, basemap.at",
+      fotoQuelleKurz: "Luftbild: Stadt Wien, basemap.at",
+      fotoHinzu: "Foto hinzufügen", fotoHochladen: "Foto wird hochgeladen …",
+      fotoDa: "Danke für das Foto.", fotoZuGross: "Das Bild ist zu groß — höchstens 5 MB.",
+      fotoVon: "Foto von {n}", fotoLoeschen: "Foto löschen",
+      fotoLoeschenAsk: "Dein Foto von diesem Platz löschen?",
+      fotoZuViele: "Du hast heute schon zwanzig Fotos hochgeladen. Morgen geht es weiter.",
       chat: "Chat", chatPlaceholder: "Nachricht an die Runde …", send: "Senden",
       noMessages: "Noch keine Nachrichten. Fang an.",
       chatOnlyForSquad: "Der Chat ist für alle, die zugesagt haben.",
@@ -653,6 +692,14 @@
       meldenNameFehlt: "Please enter a name — at least three characters.",
       meldenNotizFehlt: "Please write briefly what is wrong.",
       meldenZuViele: "You have sent ten reports today. More tomorrow.",
+      luftbild: "Aerial view",
+      fotoQuelle: "Aerial imagery: Stadt Wien – data.wien.gv.at, basemap.at",
+      fotoQuelleKurz: "Aerial imagery: Stadt Wien, basemap.at",
+      fotoHinzu: "Add a photo", fotoHochladen: "Uploading photo …",
+      fotoDa: "Thanks for the photo.", fotoZuGross: "That image is too large — 5 MB max.",
+      fotoVon: "Photo by {n}", fotoLoeschen: "Delete photo",
+      fotoLoeschenAsk: "Delete your photo of this pitch?",
+      fotoZuViele: "You have uploaded twenty photos today. More tomorrow.",
       chat: "Chat", chatPlaceholder: "Message the group …", send: "Send",
       noMessages: "No messages yet. Go ahead.",
       chatOnlyForSquad: "The chat is for everyone who signed up.",
@@ -760,6 +807,7 @@
   var suchTreffer = [];
   var suchText = "";
   var dmChannel = null;
+  var fotos = [];
   var chatTimer = null;
   var dmTimer = null;
   var pinModus = false;
@@ -1705,6 +1753,147 @@
     return t("accessUnbekannt");
   }
 
+  var LUFT_WIEN = "https://maps.wien.gv.at/wmts/lb/farbe/google3857/";
+  var LUFT_AT = "https://mapsneu.wien.gv.at/basemap/bmaporthofoto30cm/normal/google3857/";
+
+  function luftbildKacheln(box, lat, lon, z, w, h){
+    var TS = 256, n = Math.pow(2, z);
+    var wx = (lon + 180) / 360 * n * TS;
+    var s = Math.sin(lat * Math.PI / 180);
+    var wy = (0.5 - Math.log((1 + s) / (1 - s)) / (4 * Math.PI)) * n * TS;
+    var links = wx - w / 2, oben = wy - h / 2;
+    var x0 = Math.floor(links / TS), x1 = Math.floor((links + w - 1) / TS);
+    var y0 = Math.floor(oben / TS), y1 = Math.floor((oben + h - 1) / TS);
+    for (var x = x0; x <= x1; x++){
+      for (var y = y0; y <= y1; y++){
+        var img = document.createElement("img");
+        img.alt = ""; img.loading = "lazy";
+        img.style.left = Math.round(x * TS - links) + "px";
+        img.style.top = Math.round(y * TS - oben) + "px";
+        img.setAttribute("data-zweit", LUFT_AT + z + "/" + y + "/" + x + ".jpeg");
+        img.addEventListener("error", function(){
+          var u = this.getAttribute("data-zweit");
+          if (u){ this.setAttribute("data-zweit", ""); this.src = u; }
+        });
+        img.src = LUFT_WIEN + z + "/" + y + "/" + x + ".jpeg";
+        box.appendChild(img);
+      }
+    }
+  }
+
+  function luftZoom(v){ return (v.art === "rasen" || v.art === "kunstrasen") ? 17 : 18; }
+
+  function fotoUrl(pfad){
+    try { return sb.storage.from("venues").getPublicUrl(pfad).data.publicUrl; } catch(e){ return ""; }
+  }
+
+  function ladeFotos(venueId){
+    fotos = [];
+    return sb.from("venue_fotos_public").select("*").eq("venue_id", venueId)
+      .order("erstellt_am", { ascending: false }).limit(20)
+      .then(function(res){ fotos = res.data || []; }).catch(function(){});
+  }
+
+  function renderBilder(v){
+    var box = el("sheetBilder");
+    if (!box) return;
+    clear(box);
+    var z = luftZoom(v);
+    var luft = make("button","bild");
+    luft.type = "button";
+    luftbildKacheln(luft, v.lat, v.lon, z, 220, 140);
+    luft.appendChild(make("span","marke", t("luftbild")));
+    luft.addEventListener("click", function(){ openModal(luftPanel(v, z + 1)); });
+    box.appendChild(luft);
+
+    fotos.forEach(function(f){
+      var b = make("button","bild foto");
+      b.type = "button";
+      var img = document.createElement("img");
+      img.src = fotoUrl(f.pfad); img.alt = ""; img.loading = "lazy";
+      b.appendChild(img);
+      b.appendChild(make("span","marke", f.anzeigename || ""));
+      b.addEventListener("click", function(){ openModal(fotoPanel(f, v)); });
+      box.appendChild(b);
+    });
+  }
+
+  function luftPanel(v, z){
+    return function(panel){
+      clear(panel);
+      panel.appendChild(make("h2", null, v.name));
+      panel.appendChild(make("p","lead", t("luftbild")));
+      var box = make("div","grossbild");
+      panel.appendChild(box);
+      luftbildKacheln(box, v.lat, v.lon, z, box.clientWidth || 340, 240);
+      panel.appendChild(make("p","hint", t("fotoQuelle")));
+      var zu = make("button","quiet-link", t("cancel"));
+      zu.type = "button";
+      zu.addEventListener("click", closeModal);
+      panel.appendChild(zu);
+    };
+  }
+
+  function fotoPanel(f, v){
+    return function(panel){
+      clear(panel);
+      panel.appendChild(make("h2", null, v.name));
+      panel.appendChild(make("p","lead", t("fotoVon", f.anzeigename || "—")));
+      var box = make("div","grossbild foto");
+      var img = document.createElement("img");
+      img.src = fotoUrl(f.pfad); img.alt = "";
+      box.appendChild(img);
+      panel.appendChild(box);
+
+      if (session && f.user_id === session.user.id){
+        var weg = make("button","danger-link", t("fotoLoeschen"));
+        weg.type = "button";
+        weg.addEventListener("click", function(){
+          if (!window.confirm(t("fotoLoeschenAsk"))) return;
+          sb.from("venue_fotos").delete().eq("id", f.id).then(function(){
+            sb.storage.from("venues").remove([f.pfad]);
+            closeModal();
+            ladeFotos(v.id).then(function(){ if (selectedId === v.id) renderBilder(v); });
+          });
+        });
+        panel.appendChild(weg);
+      } else if (session){
+        var mel = make("button","quiet-link", t("reportBtn"));
+        mel.type = "button";
+        mel.addEventListener("click", function(){ openModal(reportPanel("foto", f.id, fotoPanel(f, v))); });
+        panel.appendChild(mel);
+      }
+
+      var zu = make("button","quiet-link", t("cancel"));
+      zu.type = "button";
+      zu.addEventListener("click", closeModal);
+      panel.appendChild(zu);
+    };
+  }
+
+  function fotoHochladen(datei){
+    var v = selectedVenue;
+    if (!v || !datei || !session) return;
+    if (datei.size > 5 * 1024 * 1024){ toast(t("fotoZuGross")); return; }
+    toast(t("fotoHochladen"));
+    var ext = (datei.name.split(".").pop() || "jpg").toLowerCase();
+    if (["jpg","jpeg","png","webp"].indexOf(ext) === -1) ext = "jpg";
+    var pfad = session.user.id + "/" + v.id + "-" + Date.now() + "." + ext;
+    sb.storage.from("venues").upload(pfad, datei).then(function(res){
+      if (res.error){ toast(res.error.message); return; }
+      sb.from("venue_fotos").insert({ venue_id: v.id, user_id: session.user.id, pfad: pfad })
+        .then(function(r2){
+          if (r2.error){
+            toast(r2.error.code === "42501" ? t("fotoZuViele") : r2.error.message);
+            sb.storage.from("venues").remove([pfad]);
+            return;
+          }
+          toast(t("fotoDa"));
+          ladeFotos(v.id).then(function(){ if (selectedId === v.id) renderBilder(v); });
+        });
+    });
+  }
+
   function openSheet(id){
     var v = venues.filter(function(x){ return x.id === id; })[0];
     if (!v) return;
@@ -1738,6 +1927,10 @@
     addFact(t("lighting"), v.beleuchtung === true ? t("yes") : (v.beleuchtung === false ? t("no") : t("unknown")));
     addFact(t("access"), zugangText(v.zugang));
     addFact(t("checked"), v.geprueft ? t("yes") : t("no"));
+
+    fotos = [];
+    renderBilder(v);
+    ladeFotos(v.id).then(function(){ if (selectedId === v.id) renderBilder(v); });
 
     renderSheetGames(v.id);
 
@@ -2651,6 +2844,8 @@
     el("viewToggle").textContent = listMode ? t("showMap") : t("showList");
     el("resetBtn").textContent = t("reset");
     el("meldenBtn").textContent = t("meldenBtn");
+    el("sheetFotoBtn").textContent = t("fotoHinzu");
+    el("sheetBildQuelle").textContent = t("fotoQuelleKurz");
     el("sheetMelden").textContent = t("meldenSheet");
     el("pinbannerText").textContent = t("meldenPinHinweis");
     el("pinbannerAbbrechen").textContent = t("meldenPinAbbrechen");
@@ -2709,6 +2904,16 @@
     });
     el("sheetClose").addEventListener("click", closeSheet);
     el("meldenBtn").addEventListener("click", pinModusAn);
+    el("sheetFotoBtn").addEventListener("click", function(){
+      if (!selectedVenue) return;
+      if (needAccount()) return;
+      el("sheetFotoInput").click();
+    });
+    el("sheetFotoInput").addEventListener("change", function(){
+      var f = this.files && this.files[0];
+      this.value = "";
+      fotoHochladen(f);
+    });
     el("pinbannerAbbrechen").addEventListener("click", pinModusAus);
     el("sheetMelden").addEventListener("click", function(){
       if (!selectedVenue) return;
