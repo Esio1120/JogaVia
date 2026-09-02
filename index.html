@@ -464,7 +464,7 @@
   var SUPABASE_URL = "https://ngeymudilvcishweefow.supabase.co";
   var SUPABASE_KEY = "sb_publishable_NnIdoQ9sTsMkbRbuu_mYHw_T2bQ-iSZ";
   var BESTAETIGT_URL = "https://esio1120.github.io/JogaVia/bestaetigt.html";
-  var APP_VERSION = "2026-09-02 b";
+  var APP_VERSION = "2026-09-02 c";
   var FEHLER = [];
   function merkeFehler(e){
     var s = "";
@@ -584,6 +584,18 @@
       fotoVon: "Foto von {n}", fotoLoeschen: "Foto löschen",
       fotoLoeschenAsk: "Dein Foto von diesem Platz löschen?",
       fotoZuViele: "Du hast heute schon zwanzig Fotos hochgeladen. Morgen geht es weiter.",
+      modTitel: "Moderation", modOeffnen: "Moderation",
+      modMeldungen: "Gemeldete Inhalte", modPlaetze: "Platzmeldungen",
+      modLeer: "Nichts zu tun. Gut so.",
+      modGemeldetVon: "gemeldet von {n}", modUrheber: "von {n}",
+      modLoeschen: "Inhalt löschen", modErledigt: "Erledigt", modVerwerfen: "Verwerfen",
+      modSperren: "Person sperren", modSperrTage: "Für wie viele Tage sperren? 0 hebt die Sperre auf.",
+      modGesperrtBis: "Gesperrt bis {n}", modEntsperrt: "Sperre aufgehoben",
+      modUebernehmen: "Übernehmen", modAblehnen: "Ablehnen",
+      modNeuerPlatz: "Neuer Platz", modKorrektur: "Korrektur",
+      modFertig: "Erledigt.", modKeinInhalt: "Inhalt nicht mehr vorhanden",
+      typNachricht: "Nachricht", typFoto: "Foto", typProfil: "Profil",
+      typSpiel: "Spiel", typPlatz: "Platz", typTeam: "Team",
       parkfoto: "Aus dem Park",
       parkfotoHinweis: "Aufnahme aus dem Park — nicht sicher vom Platz selbst.",
       parkfotoQuelle: ", Parkfotos: Wikimedia Commons",
@@ -704,6 +716,18 @@
       fotoVon: "Photo by {n}", fotoLoeschen: "Delete photo",
       fotoLoeschenAsk: "Delete your photo of this pitch?",
       fotoZuViele: "You have uploaded twenty photos today. More tomorrow.",
+      modTitel: "Moderation", modOeffnen: "Moderation",
+      modMeldungen: "Reported content", modPlaetze: "Pitch reports",
+      modLeer: "Nothing to do. Good.",
+      modGemeldetVon: "reported by {n}", modUrheber: "by {n}",
+      modLoeschen: "Delete content", modErledigt: "Done", modVerwerfen: "Dismiss",
+      modSperren: "Suspend person", modSperrTage: "Suspend for how many days? 0 lifts the suspension.",
+      modGesperrtBis: "Suspended until {n}", modEntsperrt: "Suspension lifted",
+      modUebernehmen: "Apply", modAblehnen: "Reject",
+      modNeuerPlatz: "New pitch", modKorrektur: "Correction",
+      modFertig: "Done.", modKeinInhalt: "Content no longer there",
+      typNachricht: "Message", typFoto: "Photo", typProfil: "Profile",
+      typSpiel: "Game", typPlatz: "Pitch", typTeam: "Team",
       parkfoto: "From the park",
       parkfotoHinweis: "Taken in the park — not necessarily the pitch itself.",
       parkfotoQuelle: ", park photos: Wikimedia Commons",
@@ -817,6 +841,8 @@
   var dmChannel = null;
   var fotos = [];
   var parkfotos = [];
+  var modListe = [];
+  var modPlaetze = [];
   var chatTimer = null;
   var dmTimer = null;
   var pinModus = false;
@@ -2171,6 +2197,125 @@
     };
   }
 
+  function modKnopf(text, leise, tun){
+    var k = make("button", "minibtn" + (leise ? " leise" : ""), text);
+    k.type = "button";
+    k.addEventListener("click", tun);
+    return k;
+  }
+
+  function modTypName(typ){
+    var schluessel = { nachricht:"typNachricht", foto:"typFoto", profil:"typProfil",
+                       spiel:"typSpiel", platz:"typPlatz", team:"typTeam" }[typ];
+    return schluessel ? t(schluessel) : typ;
+  }
+
+  function ladeModeration(){
+    modListe = []; modPlaetze = [];
+    return sb.rpc("mod_meldungen", { p_status: "offen" })
+      .then(function(r){ modListe = r.data || []; })
+      .then(function(){ return sb.rpc("mod_platzmeldungen", { p_status: "neu" }); })
+      .then(function(r){ modPlaetze = r.data || []; })
+      .catch(function(){});
+  }
+
+  function modPanel(){
+    return function(panel){
+      clear(panel);
+      panel.appendChild(make("h2", null, t("modTitel")));
+      var inhalt = make("div");
+      panel.appendChild(inhalt);
+      var zu = make("button","quiet-link", t("cancel"));
+      zu.type = "button";
+      zu.addEventListener("click", closeModal);
+      panel.appendChild(zu);
+
+      function zeichne(){
+        clear(inhalt);
+
+        inhalt.appendChild(make("p","section-label", t("modMeldungen")));
+        if (!modListe.length) inhalt.appendChild(make("p","muted-line", t("modLeer")));
+        modListe.forEach(function(m){
+          var k = make("div","feedcard");
+          k.appendChild(make("div","zeit", modTypName(m.ziel_typ) + " · " + fmtWhen(m.erstellt_am)));
+          k.appendChild(make("h3", null, m.inhalt || m.platz || t("modKeinInhalt")));
+          if (m.ziel_typ === "foto" && m.pfad){
+            var vor = make("div","bild foto");
+            vor.style.margin = "0 0 10px";
+            var vimg = document.createElement("img");
+            vimg.src = fotoUrl(m.pfad); vimg.alt = "";
+            vor.appendChild(vimg);
+            k.appendChild(vor);
+          }
+          k.appendChild(make("p","details",
+            [t("modGemeldetVon", m.melder || "—"), m.grund,
+             m.urheber ? t("modUrheber", m.urheber) : null].filter(Boolean).join(" · ")));
+          var reihe = make("div","reihe");
+          reihe.appendChild(modKnopf(t("modLoeschen"), false, function(){
+            sb.rpc("mod_inhalt_loeschen", { p_id: m.id }).then(function(r){
+              if (r.error){ toast(r.error.message); return; }
+              toast(r.data || t("modFertig"));
+              ladeModeration().then(zeichne);
+            });
+          }));
+          reihe.appendChild(modKnopf(t("modErledigt"), true, function(){
+            sb.rpc("mod_erledigen", { p_id: m.id, p_status: "erledigt" })
+              .then(function(){ ladeModeration().then(zeichne); });
+          }));
+          reihe.appendChild(modKnopf(t("modVerwerfen"), true, function(){
+            sb.rpc("mod_erledigen", { p_id: m.id, p_status: "verworfen" })
+              .then(function(){ ladeModeration().then(zeichne); });
+          }));
+          if (m.urheber_id){
+            reihe.appendChild(modKnopf(t("modSperren"), true, function(){
+              var tage = window.prompt(t("modSperrTage"), "7");
+              if (tage === null) return;
+              sb.rpc("mod_sperren", { p_user: m.urheber_id, p_tage: parseInt(tage, 10) || 0 })
+                .then(function(r){
+                  if (r.error){ toast(r.error.message); return; }
+                  toast(r.data ? t("modGesperrtBis", fmtWhen(r.data)) : t("modEntsperrt"));
+                });
+            }));
+          }
+          k.appendChild(reihe);
+          inhalt.appendChild(k);
+        });
+
+        inhalt.appendChild(make("p","section-label", t("modPlaetze")));
+        if (!modPlaetze.length) inhalt.appendChild(make("p","muted-line", t("modLeer")));
+        modPlaetze.forEach(function(p){
+          var k = make("div","feedcard");
+          k.appendChild(make("div","zeit",
+            (p.art === "fehlt" ? t("modNeuerPlatz") : t("modKorrektur")) + " · " + fmtWhen(p.erstellt_am)));
+          k.appendChild(make("h3", null, p.name || p.venue_name || "—"));
+          var teile = [p.platzart ? t(p.platzart) : null,
+                       p.zugang ? zugangText(p.zugang) : null,
+                       p.notiz].filter(Boolean);
+          if (p.art === "fehlt" && p.lat != null) teile.push(p.lat.toFixed(5) + ", " + p.lon.toFixed(5));
+          k.appendChild(make("p","details",
+            [t("modGemeldetVon", p.melder || "—")].concat(teile).join(" · ")));
+          var reihe = make("div","reihe");
+          reihe.appendChild(modKnopf(t("modUebernehmen"), false, function(){
+            sb.rpc("mod_platz_uebernehmen", { p_id: p.id }).then(function(r){
+              if (r.error){ toast(r.error.message); return; }
+              toast(r.data || t("modFertig"));
+              loadVenues().then(applyFilters);
+              ladeModeration().then(zeichne);
+            });
+          }));
+          reihe.appendChild(modKnopf(t("modAblehnen"), true, function(){
+            sb.rpc("mod_platz_status", { p_id: p.id, p_status: "abgelehnt" })
+              .then(function(){ ladeModeration().then(zeichne); });
+          }));
+          k.appendChild(reihe);
+          inhalt.appendChild(k);
+        });
+      }
+
+      zeichne();
+    };
+  }
+
   function profilePanel(isNew){
     return function(panel){
       clear(panel);
@@ -2289,6 +2434,16 @@
           sb.auth.signOut().then(function(){ forceCloseModal(); });
         });
         panel.appendChild(out);
+
+        if (p.moderator){
+          var mod = make("button","btn secondary", t("modOeffnen"));
+          mod.type = "button";
+          mod.style.marginTop = "9px";
+          mod.addEventListener("click", function(){
+            ladeModeration().then(function(){ openModal(modPanel()); });
+          });
+          panel.appendChild(mod);
+        }
 
         var del = make("button","danger-link", t("deleteAccount"));
         del.type = "button";
