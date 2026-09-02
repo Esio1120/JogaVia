@@ -464,7 +464,7 @@
   var SUPABASE_URL = "https://ngeymudilvcishweefow.supabase.co";
   var SUPABASE_KEY = "sb_publishable_NnIdoQ9sTsMkbRbuu_mYHw_T2bQ-iSZ";
   var BESTAETIGT_URL = "https://esio1120.github.io/JogaVia/bestaetigt.html";
-  var APP_VERSION = "2026-09-02 a";
+  var APP_VERSION = "2026-09-02 b";
   var FEHLER = [];
   function merkeFehler(e){
     var s = "";
@@ -584,6 +584,10 @@
       fotoVon: "Foto von {n}", fotoLoeschen: "Foto löschen",
       fotoLoeschenAsk: "Dein Foto von diesem Platz löschen?",
       fotoZuViele: "Du hast heute schon zwanzig Fotos hochgeladen. Morgen geht es weiter.",
+      parkfoto: "Aus dem Park",
+      parkfotoHinweis: "Aufnahme aus dem Park — nicht sicher vom Platz selbst.",
+      parkfotoQuelle: ", Parkfotos: Wikimedia Commons",
+      commonsLink: "Bei Wikimedia Commons ansehen",
       chat: "Chat", chatPlaceholder: "Nachricht an die Runde …", send: "Senden",
       noMessages: "Noch keine Nachrichten. Fang an.",
       chatOnlyForSquad: "Der Chat ist für alle, die zugesagt haben.",
@@ -700,6 +704,10 @@
       fotoVon: "Photo by {n}", fotoLoeschen: "Delete photo",
       fotoLoeschenAsk: "Delete your photo of this pitch?",
       fotoZuViele: "You have uploaded twenty photos today. More tomorrow.",
+      parkfoto: "From the park",
+      parkfotoHinweis: "Taken in the park — not necessarily the pitch itself.",
+      parkfotoQuelle: ", park photos: Wikimedia Commons",
+      commonsLink: "View on Wikimedia Commons",
       chat: "Chat", chatPlaceholder: "Message the group …", send: "Send",
       noMessages: "No messages yet. Go ahead.",
       chatOnlyForSquad: "The chat is for everyone who signed up.",
@@ -808,6 +816,7 @@
   var suchText = "";
   var dmChannel = null;
   var fotos = [];
+  var parkfotos = [];
   var chatTimer = null;
   var dmTimer = null;
   var pinModus = false;
@@ -1794,6 +1803,13 @@
       .then(function(res){ fotos = res.data || []; }).catch(function(){});
   }
 
+  function ladeParkfotos(venueId){
+    parkfotos = [];
+    return sb.from("venue_bilder_extern").select("*").eq("venue_id", venueId)
+      .order("sortierung").limit(8)
+      .then(function(res){ parkfotos = res.data || []; }).catch(function(){});
+  }
+
   function renderBilder(v){
     var box = el("sheetBilder");
     if (!box) return;
@@ -1816,6 +1832,48 @@
       b.addEventListener("click", function(){ openModal(fotoPanel(f, v)); });
       box.appendChild(b);
     });
+
+    parkfotos.forEach(function(pf){
+      var b = make("button","bild foto");
+      b.type = "button";
+      var img = document.createElement("img");
+      img.src = pf.vorschau; img.alt = ""; img.loading = "lazy";
+      b.appendChild(img);
+      b.appendChild(make("span","marke", t("parkfoto")));
+      b.addEventListener("click", function(){ openModal(parkfotoPanel(pf, v)); });
+      box.appendChild(b);
+    });
+
+    var q = el("sheetBildQuelle");
+    if (q) q.textContent = t("fotoQuelleKurz") + (parkfotos.length ? t("parkfotoQuelle") : "");
+  }
+
+  function parkfotoPanel(pf, v){
+    return function(panel){
+      clear(panel);
+      panel.appendChild(make("h2", null, v.name));
+      panel.appendChild(make("p","lead", t("parkfotoHinweis")));
+      var box = make("div","grossbild foto");
+      var img = document.createElement("img");
+      img.src = pf.gross || pf.vorschau; img.alt = "";
+      box.appendChild(img);
+      panel.appendChild(box);
+      panel.appendChild(make("p","hint",
+        [pf.urheber ? t("fotoVon", pf.urheber) : null, pf.lizenz].filter(Boolean).join(" · ")));
+      if (pf.seite){
+        var link = document.createElement("a");
+        link.className = "quiet-link"; link.href = pf.seite;
+        link.target = "_blank"; link.rel = "noopener";
+        link.textContent = t("commonsLink");
+        link.style.display = "block";
+        link.style.textAlign = "center";
+        panel.appendChild(link);
+      }
+      var zu = make("button","quiet-link", t("cancel"));
+      zu.type = "button";
+      zu.addEventListener("click", closeModal);
+      panel.appendChild(zu);
+    };
   }
 
   function luftPanel(v, z){
@@ -1929,8 +1987,11 @@
     addFact(t("checked"), v.geprueft ? t("yes") : t("no"));
 
     fotos = [];
+    parkfotos = [];
     renderBilder(v);
-    ladeFotos(v.id).then(function(){ if (selectedId === v.id) renderBilder(v); });
+    ladeFotos(v.id)
+      .then(function(){ return ladeParkfotos(v.id); })
+      .then(function(){ if (selectedId === v.id) renderBilder(v); });
 
     renderSheetGames(v.id);
 
