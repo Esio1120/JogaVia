@@ -198,6 +198,15 @@
     -webkit-overflow-scrolling:touch;scrollbar-width:none;
   }
   .bilder::-webkit-scrollbar{height:0}
+  .bilder{scroll-snap-type:x proximity}
+  .bild{scroll-snap-align:start}
+  .galleiste{display:flex;align-items:center;justify-content:center;gap:14px;margin:-4px 0 14px}
+  .galleiste .pfeil{
+    background:var(--sand);border:1px solid var(--line-strong);border-radius:50%;
+    width:40px;height:40px;font-size:22px;line-height:1;color:var(--ink);
+  }
+  .galleiste .pfeil:disabled{opacity:.32}
+  .galleiste .zaehler{font-size:13px;color:var(--muted);min-width:56px;text-align:center}
   .bild{
     position:relative;flex:0 0 auto;width:220px;height:140px;padding:0;
     border-radius:12px;overflow:hidden;background:var(--sand);border:1px solid var(--line);
@@ -492,7 +501,7 @@
   var SUPABASE_KEY = "sb_publishable_NnIdoQ9sTsMkbRbuu_mYHw_T2bQ-iSZ";
   var APP_URL = "https://esio1120.github.io/JogaVia/";
   var BESTAETIGT_URL = "https://esio1120.github.io/JogaVia/bestaetigt.html";
-  var APP_VERSION = "2026-09-02 e";
+  var APP_VERSION = "2026-09-02 f";
   var FEHLER = [];
   function merkeFehler(e){
     var s = "";
@@ -652,7 +661,28 @@
       modFertig: "Erledigt.", modKeinInhalt: "Inhalt nicht mehr vorhanden",
       typNachricht: "Nachricht", typFoto: "Foto", typProfil: "Profil",
       typSpiel: "Spiel", typPlatz: "Platz", typTeam: "Team",
-      parkfoto: "Aus dem Park",
+      parkfoto: "Aus dem Park", bildZurueck: "Vorheriges Bild", bildWeiter: "Nächstes Bild",
+      teams: "Meine Teams", teamsLeer: "Du bist noch in keinem Team.",
+      teamGruenden: "Team gründen", teamBeitreten: "Einem Team beitreten",
+      teamName: "Teamname", teamNamePlatzhalter: "z. B. FC Donaustadt",
+      teamNameKurz: "Der Teamname braucht mindestens drei Zeichen.",
+      teamAnlegen: "Team anlegen", teamAngelegt: "Team angelegt.",
+      teamCode: "Beitrittscode", teamCodeEingeben: "Code eingeben",
+      teamCodePlatzhalter: "z. B. AB3KX9", teamCodeFalsch: "Diesen Code gibt es nicht.",
+      teamSchonDabei: "Du bist schon in diesem Team.",
+      teamJetztBeitreten: "Beitreten", teamBeigetreten: "Willkommen im Team.",
+      teamMitglieder: "{n} Mitglieder", teamEinMitglied: "1 Mitglied",
+      teamKapitaen: "Kapitän", teamSpieler: "Spieler",
+      teamEinladen: "Mitglieder einladen",
+      teamEinladenText: "Schick diesen Link an deine Leute. Wer ihn öffnet, landet direkt beim Beitritt.",
+      teamLinkKopiert: "Einladungslink kopiert.",
+      teamVerlassen: "Team verlassen", teamVerlassenAsk: "Das Team wirklich verlassen?",
+      teamEntfernen: "entfernen", teamEntfernenAsk: "{n} aus dem Team nehmen?",
+      teamUebergeben: "Kapitän machen",
+      teamUebergebenAsk: "{n} zum Kapitän machen? Du bleibst als Spieler dabei.",
+      teamBearbeiten: "Team bearbeiten", teamAufloesen: "Team auflösen",
+      teamAufloesenAsk: "Das Team endgültig auflösen? Das lässt sich nicht rückgängig machen.",
+      teamAufgeloest: "Team aufgelöst.",
       parkfotoHinweis: "Aufnahme aus dem Park — nicht sicher vom Platz selbst.",
       parkfotoQuelle: ", Parkfotos: Wikimedia Commons",
       commonsLink: "Bei Wikimedia Commons ansehen",
@@ -812,7 +842,28 @@
       modFertig: "Done.", modKeinInhalt: "Content no longer there",
       typNachricht: "Message", typFoto: "Photo", typProfil: "Profile",
       typSpiel: "Game", typPlatz: "Pitch", typTeam: "Team",
-      parkfoto: "From the park",
+      parkfoto: "From the park", bildZurueck: "Previous image", bildWeiter: "Next image",
+      teams: "My teams", teamsLeer: "You are not in a team yet.",
+      teamGruenden: "Start a team", teamBeitreten: "Join a team",
+      teamName: "Team name", teamNamePlatzhalter: "e.g. FC Donaustadt",
+      teamNameKurz: "The team name needs at least three characters.",
+      teamAnlegen: "Create team", teamAngelegt: "Team created.",
+      teamCode: "Join code", teamCodeEingeben: "Enter a code",
+      teamCodePlatzhalter: "e.g. AB3KX9", teamCodeFalsch: "No team with that code.",
+      teamSchonDabei: "You are already in this team.",
+      teamJetztBeitreten: "Join", teamBeigetreten: "Welcome to the team.",
+      teamMitglieder: "{n} members", teamEinMitglied: "1 member",
+      teamKapitaen: "Captain", teamSpieler: "Player",
+      teamEinladen: "Invite members",
+      teamEinladenText: "Send this link to your people. Opening it takes them straight to joining.",
+      teamLinkKopiert: "Invite link copied.",
+      teamVerlassen: "Leave team", teamVerlassenAsk: "Really leave this team?",
+      teamEntfernen: "remove", teamEntfernenAsk: "Remove {n} from the team?",
+      teamUebergeben: "Make captain",
+      teamUebergebenAsk: "Make {n} captain? You stay in as a player.",
+      teamBearbeiten: "Edit team", teamAufloesen: "Disband team",
+      teamAufloesenAsk: "Disband this team for good? This cannot be undone.",
+      teamAufgeloest: "Team disbanded.",
       parkfotoHinweis: "Taken in the park — not necessarily the pitch itself.",
       parkfotoQuelle: ", park photos: Wikimedia Commons",
       commonsLink: "View on Wikimedia Commons",
@@ -926,6 +977,7 @@
   var fotos = [];
   var parkfotos = [];
   var vergangene = [];
+  var meineTeams = [];
   var modListe = [];
   var modPlaetze = [];
   var chatTimer = null;
@@ -1378,6 +1430,43 @@
         karte.addEventListener("click", function(){ openModal(vergangenPanel(v)); });
         box.appendChild(karte);
       });
+
+      box.appendChild(make("p","tagkopf", t("teams")));
+      if (!meineTeams.length){
+        box.appendChild(make("p","muted-line", t("teamsLeer")));
+      }
+      meineTeams.forEach(function(tm){
+        var karte = make("button","feedcard");
+        karte.type = "button";
+        karte.style.width = "100%";
+        karte.style.textAlign = "left";
+        karte.appendChild(make("h3", null, tm.name));
+        karte.appendChild(make("p","details",
+          [districtName(tm.bezirk), tm.niveau ? t(LVLKEY[tm.niveau] || "lvlFreizeit") : null,
+           tm.mitglieder === 1 ? t("teamEinMitglied") : t("teamMitglieder", tm.mitglieder),
+           tm.bin_kapitaen ? t("teamKapitaen") : null].filter(Boolean).join(" · ")));
+        karte.addEventListener("click", function(){ openModal(teamPanel(tm)); });
+        box.appendChild(karte);
+      });
+
+      var reihe = make("div","reihe");
+      reihe.id = "teamAktionen";
+      reihe.style.marginTop = "10px";
+      var neu = make("button","minibtn", t("teamGruenden"));
+      neu.type = "button";
+      neu.addEventListener("click", function(){
+        if (needAccount()) return;
+        openModal(teamGruendenPanel());
+      });
+      var bei = make("button","minibtn leise", t("teamCodeEingeben"));
+      bei.type = "button";
+      bei.addEventListener("click", function(){
+        if (needAccount()) return;
+        openModal(teamBeitretenPanel(""));
+      });
+      reihe.appendChild(neu);
+      reihe.appendChild(bei);
+      box.appendChild(reihe);
     }
   }
 
@@ -1953,28 +2042,30 @@
     luft.type = "button";
     luftbildKacheln(luft, v.lat, v.lon, z, 220, 140);
     luft.appendChild(make("span","marke", t("luftbild")));
-    luft.addEventListener("click", function(){ openModal(luftPanel(v, z + 1)); });
+    luft.addEventListener("click", function(){ openModal(galeriePanel(v, 0)); });
     box.appendChild(luft);
 
-    fotos.forEach(function(f){
+    fotos.forEach(function(f, i){
       var b = make("button","bild foto");
       b.type = "button";
       var img = document.createElement("img");
       img.src = fotoUrl(f.pfad); img.alt = ""; img.loading = "lazy";
       b.appendChild(img);
       b.appendChild(make("span","marke", f.anzeigename || ""));
-      b.addEventListener("click", function(){ openModal(fotoPanel(f, v)); });
+      var stelle = 1 + i;
+      b.addEventListener("click", function(){ openModal(galeriePanel(v, stelle)); });
       box.appendChild(b);
     });
 
-    parkfotos.forEach(function(pf){
+    parkfotos.forEach(function(pf, i){
       var b = make("button","bild foto");
       b.type = "button";
       var img = document.createElement("img");
       img.src = pf.vorschau; img.alt = ""; img.loading = "lazy";
       b.appendChild(img);
       b.appendChild(make("span","marke", t("parkfoto")));
-      b.addEventListener("click", function(){ openModal(parkfotoPanel(pf, v)); });
+      var stelle2 = 1 + fotos.length + i;
+      b.addEventListener("click", function(){ openModal(galeriePanel(v, stelle2)); });
       box.appendChild(b);
     });
 
@@ -1982,84 +2073,419 @@
     if (q) q.textContent = t("fotoQuelleKurz") + (parkfotos.length ? t("parkfotoQuelle") : "");
   }
 
-  function parkfotoPanel(pf, v){
-    return function(panel){
-      clear(panel);
-      panel.appendChild(make("h2", null, v.name));
-      panel.appendChild(make("p","lead", t("parkfotoHinweis")));
-      var box = make("div","grossbild foto");
-      var img = document.createElement("img");
-      img.src = pf.gross || pf.vorschau; img.alt = "";
-      box.appendChild(img);
-      panel.appendChild(box);
-      panel.appendChild(make("p","hint",
-        [pf.urheber ? t("fotoVon", pf.urheber) : null, pf.lizenz].filter(Boolean).join(" · ")));
-      if (pf.seite){
-        var link = document.createElement("a");
-        link.className = "quiet-link"; link.href = pf.seite;
-        link.target = "_blank"; link.rel = "noopener";
-        link.textContent = t("commonsLink");
-        link.style.display = "block";
-        link.style.textAlign = "center";
-        panel.appendChild(link);
-      }
-      var zu = make("button","quiet-link", t("cancel"));
-      zu.type = "button";
-      zu.addEventListener("click", closeModal);
-      panel.appendChild(zu);
-    };
+  function bezirkOptionen(){
+    var liste = [{ value: "", label: t("allDistricts") }];
+    for (var i = 1; i <= 23; i++) liste.push({ value: String(i), label: districtName(i) });
+    return liste;
   }
 
-  function luftPanel(v, z){
-    return function(panel){
-      clear(panel);
-      panel.appendChild(make("h2", null, v.name));
-      panel.appendChild(make("p","lead", t("luftbild")));
-      var box = make("div","grossbild");
-      panel.appendChild(box);
-      luftbildKacheln(box, v.lat, v.lon, z, box.clientWidth || 340, 240);
-      panel.appendChild(make("p","hint", t("fotoQuelle")));
-      var zu = make("button","quiet-link", t("cancel"));
-      zu.type = "button";
-      zu.addEventListener("click", closeModal);
-      panel.appendChild(zu);
-    };
+  function ladeTeams(){
+    meineTeams = [];
+    if (!session) return Promise.resolve();
+    return sb.rpc("meine_teams")
+      .then(function(res){ meineTeams = res.data || []; })
+      .catch(function(){});
   }
 
-  function fotoPanel(f, v){
+  function teamLink(code){ return APP_URL + "?team=" + code; }
+
+  function teamGruendenPanel(){
     return function(panel){
       clear(panel);
-      panel.appendChild(make("h2", null, v.name));
-      panel.appendChild(make("p","lead", t("fotoVon", f.anzeigename || "—")));
-      var box = make("div","grossbild foto");
-      var img = document.createElement("img");
-      img.src = fotoUrl(f.pfad); img.alt = "";
-      box.appendChild(img);
-      panel.appendChild(box);
+      panel.appendChild(make("h2", null, t("teamGruenden")));
+      var msg = make("div","err"); msg.hidden = true; panel.appendChild(msg);
 
-      if (session && f.user_id === session.user.id){
-        var weg = make("button","danger-link", t("fotoLoeschen"));
-        weg.type = "button";
-        weg.addEventListener("click", function(){
-          if (!window.confirm(t("fotoLoeschenAsk"))) return;
-          sb.from("venue_fotos").delete().eq("id", f.id).then(function(){
-            sb.storage.from("venues").remove([f.pfad]);
-            closeModal();
-            ladeFotos(v.id).then(function(){ if (selectedId === v.id) renderBilder(v); });
+      var nameIn = input("tm-name","text", t("teamNamePlatzhalter"));
+      nameIn.maxLength = 40;
+      panel.appendChild(field(t("teamName"), nameIn));
+
+      var bezSel = select("tm-bez", bezirkOptionen(), (profile && profile.bezirk) ? String(profile.bezirk) : "");
+      panel.appendChild(field(t("district"), bezSel));
+
+      var lvlSel = select("tm-lvl", levelOptions(), (profile && profile.niveau) || "freizeit");
+      panel.appendChild(field(t("levelL"), lvlSel));
+
+      var go = make("button","btn", t("teamAnlegen"));
+      go.type = "button";
+      go.addEventListener("click", function(){
+        if (nameIn.value.trim().length < 3){ msg.textContent = t("teamNameKurz"); msg.hidden = false; return; }
+        go.disabled = true;
+        sb.rpc("team_gruenden", {
+          p_name: nameIn.value.trim(),
+          p_bezirk: Number(bezSel.value) || null,
+          p_niveau: lvlSel.value
+        }).then(function(res){
+          go.disabled = false;
+          if (res.error){ msg.textContent = res.error.message; msg.hidden = false; return; }
+          toast(t("teamAngelegt"));
+          ladeTeams().then(function(){
+            renderFeed();
+            var neu = meineTeams.filter(function(x){ return x.id === res.data; })[0];
+            if (neu) openModal(teamPanel(neu)); else closeModal();
           });
         });
-        panel.appendChild(weg);
-      } else if (session){
-        var mel = make("button","quiet-link", t("reportBtn"));
-        mel.type = "button";
-        mel.addEventListener("click", function(){ openModal(reportPanel("foto", f.id, fotoPanel(f, v))); });
-        panel.appendChild(mel);
+      });
+      panel.appendChild(go);
+
+      var zu = make("button","quiet-link", t("cancel"));
+      zu.type = "button";
+      zu.addEventListener("click", closeModal);
+      panel.appendChild(zu);
+    };
+  }
+
+  function teamBeitretenPanel(vorbelegt){
+    return function(panel){
+      clear(panel);
+      panel.appendChild(make("h2", null, t("teamBeitreten")));
+      var msg = make("div","err"); msg.hidden = true; panel.appendChild(msg);
+
+      var codeIn = input("tm-code","text", t("teamCodePlatzhalter"));
+      codeIn.maxLength = 8;
+      codeIn.value = vorbelegt || "";
+      codeIn.style.textTransform = "uppercase";
+      panel.appendChild(field(t("teamCode"), codeIn));
+
+      var vorschau = make("div");
+      panel.appendChild(vorschau);
+
+      var go = make("button","btn", t("teamJetztBeitreten"));
+      go.type = "button";
+      go.addEventListener("click", function(){
+        var code = codeIn.value.trim().toUpperCase();
+        if (code.length < 4){ msg.textContent = t("teamCodeFalsch"); msg.hidden = false; return; }
+        go.disabled = true;
+        sb.rpc("team_beitreten", { p_code: code }).then(function(res){
+          go.disabled = false;
+          if (res.error){ msg.textContent = res.error.message; msg.hidden = false; return; }
+          toast(t("teamBeigetreten"));
+          ladeTeams().then(function(){
+            renderFeed();
+            var neu = meineTeams.filter(function(x){ return x.id === res.data; })[0];
+            if (neu) openModal(teamPanel(neu)); else closeModal();
+          });
+        });
+      });
+      panel.appendChild(go);
+
+      var zu = make("button","quiet-link", t("cancel"));
+      zu.type = "button";
+      zu.addEventListener("click", closeModal);
+      panel.appendChild(zu);
+
+      function schauen(){
+        var code = codeIn.value.trim().toUpperCase();
+        clear(vorschau);
+        if (code.length < 4) return;
+        sb.rpc("team_vorschau", { p_code: code }).then(function(res){
+          clear(vorschau);
+          var v = res.data && res.data[0];
+          if (!v){ vorschau.appendChild(make("p","muted-line", t("teamCodeFalsch"))); return; }
+          var karte = make("div","feedcard");
+          karte.appendChild(make("h3", null, v.name));
+          karte.appendChild(make("p","details",
+            [districtName(v.bezirk), v.niveau ? t(LVLKEY[v.niveau] || "lvlFreizeit") : null,
+             v.mitglieder === 1 ? t("teamEinMitglied") : t("teamMitglieder", v.mitglieder)]
+            .filter(Boolean).join(" · ")));
+          if (v.schon_dabei) karte.appendChild(make("p","hint", t("teamSchonDabei")));
+          vorschau.appendChild(karte);
+        });
+      }
+      codeIn.addEventListener("input", schauen);
+      schauen();
+    };
+  }
+
+  function teamBearbeitenPanel(team){
+    return function(panel){
+      clear(panel);
+      panel.appendChild(make("h2", null, t("teamBearbeiten")));
+      var msg = make("div","err"); msg.hidden = true; panel.appendChild(msg);
+
+      var nameIn = input("tb-name","text", t("teamNamePlatzhalter"));
+      nameIn.maxLength = 40;
+      nameIn.value = team.name || "";
+      panel.appendChild(field(t("teamName"), nameIn));
+      var bezSel = select("tb-bez", bezirkOptionen(), team.bezirk ? String(team.bezirk) : "");
+      panel.appendChild(field(t("district"), bezSel));
+      var lvlSel = select("tb-lvl", levelOptions(), team.niveau || "freizeit");
+      panel.appendChild(field(t("levelL"), lvlSel));
+
+      var go = make("button","btn", t("save"));
+      go.type = "button";
+      go.addEventListener("click", function(){
+        if (nameIn.value.trim().length < 3){ msg.textContent = t("teamNameKurz"); msg.hidden = false; return; }
+        go.disabled = true;
+        sb.rpc("team_umbenennen", {
+          p_team: team.id, p_name: nameIn.value.trim(),
+          p_bezirk: Number(bezSel.value) || null, p_niveau: lvlSel.value
+        }).then(function(res){
+          go.disabled = false;
+          if (res.error){ msg.textContent = res.error.message; msg.hidden = false; return; }
+          toast(t("saved"));
+          ladeTeams().then(function(){
+            renderFeed();
+            var neu = meineTeams.filter(function(x){ return x.id === team.id; })[0];
+            openModal(teamPanel(neu || team));
+          });
+        });
+      });
+      panel.appendChild(go);
+
+      var weg = make("button","danger-link", t("teamAufloesen"));
+      weg.type = "button";
+      weg.addEventListener("click", function(){
+        if (!window.confirm(t("teamAufloesenAsk"))) return;
+        sb.rpc("team_aufloesen", { p_team: team.id }).then(function(res){
+          if (res.error){ msg.textContent = res.error.message; msg.hidden = false; return; }
+          toast(t("teamAufgeloest"));
+          ladeTeams().then(function(){ renderFeed(); closeModal(); });
+        });
+      });
+      panel.appendChild(weg);
+
+      var zu = make("button","quiet-link", t("cancel"));
+      zu.type = "button";
+      zu.addEventListener("click", function(){ openModal(teamPanel(team)); });
+      panel.appendChild(zu);
+    };
+  }
+
+  function teamPanel(team){
+    return function(panel){
+      clear(panel);
+      panel.appendChild(make("h2", null, team.name));
+      panel.appendChild(make("p","lead",
+        [districtName(team.bezirk), team.niveau ? t(LVLKEY[team.niveau] || "lvlFreizeit") : null,
+         team.mitglieder === 1 ? t("teamEinMitglied") : t("teamMitglieder", team.mitglieder)]
+        .filter(Boolean).join(" · ")));
+
+      if (team.bin_kapitaen && team.code){
+        panel.appendChild(make("p","section-label", t("teamEinladen")));
+        panel.appendChild(make("p","koordzeile", t("teamCode") + ": " + team.code));
+        panel.appendChild(make("p","hint", t("teamEinladenText")));
+        var teilen = make("button","btn secondary", t("teamEinladen"));
+        teilen.type = "button";
+        teilen.addEventListener("click", function(){
+          var url = teamLink(team.code);
+          if (navigator.share){
+            navigator.share({ title: team.name, text: team.name, url: url }).catch(function(){});
+          } else if (navigator.clipboard && navigator.clipboard.writeText){
+            navigator.clipboard.writeText(url).then(function(){ toast(t("teamLinkKopiert")); })
+              .catch(function(){ window.prompt(t("teamEinladen"), url); });
+          } else {
+            window.prompt(t("teamEinladen"), url);
+          }
+        });
+        panel.appendChild(teilen);
+      }
+
+      panel.appendChild(make("p","section-label", t("squad")));
+      var liste = make("div","squad");
+      panel.appendChild(liste);
+      liste.appendChild(make("p","muted-line", "…"));
+
+      if (team.bin_kapitaen){
+        var edit = make("button","btn secondary", t("teamBearbeiten"));
+        edit.type = "button";
+        edit.style.marginTop = "9px";
+        edit.addEventListener("click", function(){ openModal(teamBearbeitenPanel(team)); });
+        panel.appendChild(edit);
+      } else {
+        var raus = make("button","danger-link", t("teamVerlassen"));
+        raus.type = "button";
+        raus.addEventListener("click", function(){
+          if (!window.confirm(t("teamVerlassenAsk"))) return;
+          sb.rpc("team_mitglied_entfernen", { p_team: team.id, p_user: session.user.id })
+            .then(function(res){
+              if (res.error){ toast(res.error.message); return; }
+              ladeTeams().then(function(){ renderFeed(); closeModal(); });
+            });
+        });
+        panel.appendChild(raus);
       }
 
       var zu = make("button","quiet-link", t("cancel"));
       zu.type = "button";
       zu.addEventListener("click", closeModal);
       panel.appendChild(zu);
+
+      sb.rpc("team_mitglieder", { p_team: team.id }).then(function(res){
+        clear(liste);
+        var rows = res.data || [];
+        if (!rows.length){ liste.appendChild(make("p","muted-line", "—")); return; }
+        rows.forEach(function(r){
+          var item = make("div","player");
+          item.appendChild(avatarBild(r.bild_url, r.anzeigename));
+          var nam = make("button","namebtn", r.anzeigename || "—");
+          nam.type = "button";
+          nam.addEventListener("click", function(){ openModal(spielerPanel(r.user_id, teamPanel(team))); });
+          item.appendChild(nam);
+          if (r.rolle === "kapitaen") item.appendChild(make("span","pill", t("teamKapitaen")));
+          if (team.bin_kapitaen && session && r.user_id !== session.user.id){
+            var kap = make("button","tinylink", t("teamUebergeben"));
+            kap.type = "button";
+            kap.addEventListener("click", function(){
+              if (!window.confirm(t("teamUebergebenAsk", r.anzeigename || "—"))) return;
+              sb.rpc("team_uebergeben", { p_team: team.id, p_user: r.user_id }).then(function(res2){
+                if (res2.error){ toast(res2.error.message); return; }
+                ladeTeams().then(function(){
+                  renderFeed();
+                  var neu = meineTeams.filter(function(x){ return x.id === team.id; })[0];
+                  openModal(teamPanel(neu || team));
+                });
+              });
+            });
+            item.appendChild(kap);
+            var weg2 = make("button","tinylink", t("teamEntfernen"));
+            weg2.type = "button";
+            weg2.addEventListener("click", function(){
+              if (!window.confirm(t("teamEntfernenAsk", r.anzeigename || "—"))) return;
+              sb.rpc("team_mitglied_entfernen", { p_team: team.id, p_user: r.user_id }).then(function(res2){
+                if (res2.error){ toast(res2.error.message); return; }
+                ladeTeams().then(function(){
+                  renderFeed();
+                  var neu = meineTeams.filter(function(x){ return x.id === team.id; })[0];
+                  openModal(teamPanel(neu || team));
+                });
+              });
+            });
+            item.appendChild(weg2);
+          }
+          liste.appendChild(item);
+        });
+      });
+    };
+  }
+
+  function bilderListe(v){
+    var liste = [{ typ: "luft", zoom: luftZoom(v) + 1 }];
+    fotos.forEach(function(f){ liste.push({ typ: "foto", foto: f }); });
+    parkfotos.forEach(function(pf){ liste.push({ typ: "park", park: pf }); });
+    return liste;
+  }
+
+  function galeriePanel(v, start){
+    return function(panel){
+      var eintraege = bilderListe(v);
+      var pos = Math.max(0, Math.min(start || 0, eintraege.length - 1));
+
+      clear(panel);
+      panel.appendChild(make("h2", null, v.name));
+      var lead = make("p","lead", "");
+      panel.appendChild(lead);
+      var rahmen = make("div","grossbild");
+      panel.appendChild(rahmen);
+
+      var leiste = make("div","galleiste");
+      var zurueckKn = make("button","pfeil", "‹");
+      zurueckKn.type = "button";
+      zurueckKn.setAttribute("aria-label", t("bildZurueck"));
+      var zaehler = make("span","zaehler", "");
+      var vorKn = make("button","pfeil", "›");
+      vorKn.type = "button";
+      vorKn.setAttribute("aria-label", t("bildWeiter"));
+      leiste.appendChild(zurueckKn);
+      leiste.appendChild(zaehler);
+      leiste.appendChild(vorKn);
+      panel.appendChild(leiste);
+
+      var fuss = make("div");
+      panel.appendChild(fuss);
+
+      var zu = make("button","quiet-link", t("cancel"));
+      zu.type = "button";
+      zu.addEventListener("click", closeModal);
+      panel.appendChild(zu);
+
+      function zeichne(){
+        var e = eintraege[pos];
+        clear(rahmen);
+        clear(fuss);
+        rahmen.className = "grossbild" + (e.typ === "luft" ? "" : " foto");
+        zaehler.textContent = (pos + 1) + " / " + eintraege.length;
+        zurueckKn.disabled = (pos === 0);
+        vorKn.disabled = (pos === eintraege.length - 1);
+
+        if (e.typ === "luft"){
+          lead.textContent = t("luftbild");
+          luftbildKacheln(rahmen, v.lat, v.lon, e.zoom, rahmen.clientWidth || 340, 240);
+          fuss.appendChild(make("p","hint", t("fotoQuelle")));
+          return;
+        }
+
+        var img = document.createElement("img");
+        img.alt = "";
+        rahmen.appendChild(img);
+
+        if (e.typ === "foto"){
+          var f = e.foto;
+          img.src = fotoUrl(f.pfad);
+          lead.textContent = t("fotoVon", f.anzeigename || "—");
+          if (session && f.user_id === session.user.id){
+            var weg = make("button","danger-link", t("fotoLoeschen"));
+            weg.type = "button";
+            weg.addEventListener("click", function(){
+              if (!window.confirm(t("fotoLoeschenAsk"))) return;
+              sb.from("venue_fotos").delete().eq("id", f.id).then(function(){
+                sb.storage.from("venues").remove([f.pfad]);
+                closeModal();
+                ladeFotos(v.id).then(function(){ if (selectedId === v.id) renderBilder(v); });
+              });
+            });
+            fuss.appendChild(weg);
+          } else if (session){
+            var mel = make("button","quiet-link", t("reportBtn"));
+            mel.type = "button";
+            mel.addEventListener("click", function(){
+              openModal(reportPanel("foto", f.id, galeriePanel(v, pos)));
+            });
+            fuss.appendChild(mel);
+          }
+          return;
+        }
+
+        var pf = e.park;
+        img.src = pf.gross || pf.vorschau;
+        lead.textContent = t("parkfotoHinweis");
+        fuss.appendChild(make("p","hint",
+          [pf.urheber ? t("fotoVon", pf.urheber) : null, pf.lizenz].filter(Boolean).join(" · ")));
+        if (pf.seite){
+          var link = document.createElement("a");
+          link.className = "quiet-link"; link.href = pf.seite;
+          link.target = "_blank"; link.rel = "noopener";
+          link.textContent = t("commonsLink");
+          link.style.display = "block";
+          link.style.textAlign = "center";
+          fuss.appendChild(link);
+        }
+      }
+
+      function blaettern(schritt){
+        var neu = pos + schritt;
+        if (neu < 0 || neu >= eintraege.length) return;
+        pos = neu;
+        zeichne();
+      }
+      zurueckKn.addEventListener("click", function(){ blaettern(-1); });
+      vorKn.addEventListener("click", function(){ blaettern(1); });
+
+      var startX = null, startY = null;
+      rahmen.addEventListener("touchstart", function(ev){
+        if (!ev.touches || ev.touches.length !== 1) return;
+        startX = ev.touches[0].clientX;
+        startY = ev.touches[0].clientY;
+      }, { passive: true });
+      rahmen.addEventListener("touchend", function(ev){
+        if (startX === null || !ev.changedTouches) return;
+        var dx = ev.changedTouches[0].clientX - startX;
+        var dy = ev.changedTouches[0].clientY - startY;
+        startX = null; startY = null;
+        if (Math.abs(dx) < 45 || Math.abs(dx) < Math.abs(dy)) return;
+        blaettern(dx < 0 ? 1 : -1);
+      }, { passive: true });
+
+      zeichne();
     };
   }
 
@@ -3757,6 +4183,16 @@
     document.body.appendChild(kasten);
   }
 
+  var teamLinkErledigt = false;
+  function teamAusLink(){
+    if (teamLinkErledigt) return;
+    var treffer = /[?&]team=([A-Za-z0-9]{4,8})/.exec(location.search || "");
+    if (!treffer) return;
+    teamLinkErledigt = true;
+    if (!session){ openModal(authPanel("login")); return; }
+    openModal(teamBeitretenPanel(treffer[1].toUpperCase()));
+  }
+
   var spielLinkErledigt = false;
   function spielAusLink(){
     if (spielLinkErledigt) return;
@@ -3791,7 +4227,8 @@
       sb.auth.getSession().then(function(res){
         session = res.data.session;
         loadProfile().then(loadMyPart).then(loadBlocked).then(loadFreunde).then(loadEinladungen)
-          .then(ladeVergangene).then(loadGames).then(spielAusLink);
+          .then(ladeVergangene).then(ladeTeams).then(loadGames)
+          .then(spielAusLink).then(teamAusLink);
       });
       sb.auth.onAuthStateChange(function(evt, s){
         session = s;
@@ -3800,7 +4237,7 @@
           openModal(pwNeuPanel(), true);
         }
         loadProfile().then(loadMyPart).then(loadBlocked).then(loadFreunde).then(loadEinladungen)
-          .then(ladeVergangene).then(loadGames);
+          .then(ladeVergangene).then(ladeTeams).then(loadGames);
       });
     } catch (err){
       var box = make("div","err");
