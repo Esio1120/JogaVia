@@ -80,3 +80,14 @@ an Esio und für die Dokumente im Projekt. Im Code sind englische Bezeichner in 
 
 Die Agentendateien liegen in diesem Repo unter `.claude/agents/`.
 Die Entwicklungswerkzeuge liegen unter `dev/` — siehe `dev/LIESMICH.md`.
+
+## Wenn die Agenten nicht als eigene Typen verfügbar sind
+
+In Claude Code werden die Dateien unter `.claude/agents/` automatisch geladen; die Agenten sind
+dann unter ihrem Namen aufrufbar. In anderen Umgebungen — etwa Cowork auf claude.ai — gibt es
+nur die eingebauten Agententypen, und eigene Definitionen werden nicht erkannt.
+
+Das ändert nichts an der Arbeitsweise. Der Projektleiter beauftragt dann einen allgemeinen
+Agenten und gibt ihm die passende Datei aus `.claude/agents/` als Auftrag mit — Rolle, Regeln
+und Ausgabeformat bleiben dieselben. Die Rollentrennung ist der Zweck, nicht der technische
+Mechanismus.
