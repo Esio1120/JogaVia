@@ -59,6 +59,42 @@ Ein Fehler hier hat Folgen außerhalb des Bildschirms.
 **Nach jeder Änderung**
 - Supabase-Advisors auf Sicherheitswarnungen prüfen und jede Warnung einzeln bewerten
 - Logs auf auffällige Muster ansehen
+- Prüfen, welche Schemata über die Web-Schnittstelle erreichbar sind (siehe unten)
+
+# Der wichtigste wiederholbare Test
+
+Die Funktionen der `http`-Erweiterung sind für `anon` und `authenticated` ausführbar, und das
+lässt sich nicht ändern: Sie gehören der Supabase-Rolle `supabase_admin`, `postgres` kann deren
+Freigabe an PUBLIC nicht zurücknehmen. Die Nutzung des Schemas `extensions` zu entziehen ist
+keine Lösung — dort liegt auch PostGIS, das die Karte braucht.
+
+Was tatsächlich schützt, ist die Liste der über PostgREST erreichbaren Schemata. Prüfe sie bei
+jeder Sicherheitsprüfung mit einem echten Aufruf von außen, nicht mit einer Vermutung:
+
+```sql
+with schluessel as (
+  select (regexp_match(content, '(sb_publishable_[A-Za-z0-9_\-]+)'))[1] as k
+  from public.app_files where name = 'index.html'
+)
+select (a).status, left((a).content, 220) from (
+  select extensions.http((
+    'POST',
+    'https://ngeymudilvcishweefow.supabase.co/rest/v1/rpc/http_get',
+    array[
+      extensions.http_header('apikey', (select k from schluessel)),
+      extensions.http_header('Authorization', 'Bearer ' || (select k from schluessel)),
+      extensions.http_header('Content-Profile', 'extensions'),
+      extensions.http_header('Accept-Profile', 'extensions')
+    ],
+    'application/json', '{"uri":"http://example.com"}'
+  )::extensions.http_request) as a
+) t;
+```
+
+**Erwartet: HTTP 406 mit `PGRST106` und dem Hinweis „Only the following schemas are exposed:
+public, graphql_public".** Am 4. September 2026 so gemessen. Kommt hier etwas anderes zurück —
+besonders ein 200 —, ist das ein **kritischer** Befund: Dann kann jeder Besucher mit dem
+öffentlichen Schlüssel den Datenbankserver beliebige Netzwerkaufrufe machen lassen.
 
 # Ausgabeformat
 
