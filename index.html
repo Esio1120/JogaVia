@@ -97,7 +97,7 @@
 
   main{position:absolute;top:0;bottom:0;left:0;right:0}
   #map{position:absolute;inset:0}
-  #list{position:absolute;inset:0;overflow-y:auto;background:var(--paper);padding:12px 14px calc(96px + env(safe-area-inset-bottom))}
+  #list{position:absolute;inset:0;overflow-y:auto;background:var(--paper);padding:12px 14px calc(150px + env(safe-area-inset-bottom))}
   .row{
     background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
     padding:13px 15px;margin-bottom:9px;display:flex;gap:12px;align-items:flex-start;width:100%;
@@ -168,8 +168,9 @@
   }
   .sterne{display:flex;gap:2px;flex:0 0 auto}
   .sterne button{
-    background:none;border:0;padding:1px 2px;font-size:19px;line-height:1;
+    background:none;border:0;padding:0;font-size:19px;line-height:1;
     color:var(--line-strong);
+    min-width:40px;min-height:40px;display:flex;align-items:center;justify-content:center;
   }
   .sterne button.an{color:#DFA132}
   .sterne span{font-size:17px;line-height:1;color:var(--line-strong)}
@@ -233,14 +234,16 @@
   }
 
   .game{
-    width:100%;display:flex;gap:12px;align-items:center;text-align:left;
+    width:100%;display:flex;gap:12px;align-items:flex-start;text-align:left;
     background:var(--paper);border:1px solid var(--line);border-radius:12px;
     padding:11px 13px;margin-bottom:8px;
   }
   .game:hover{border-color:var(--accent);background:var(--surface)}
-  .game .when{flex:1;min-width:0}
+  .game .when{flex:1 1 auto;min-width:0}
   .game .when strong{display:block;font-size:14.5px;font-weight:700}
-  .game .when span{display:block;font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* Die Angabenzeile darf umbrechen, statt am Rand abgeschnitten zu werden -
+     sonst endet sie bei mehreren Pillen rechts als "90 Min · 3,...". */
+  .game .when span{display:block;font-size:13px;color:var(--muted);overflow-wrap:anywhere}
   .game .right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:0 0 auto}
   .pill{font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--sand);color:var(--muted);white-space:nowrap}
   .pill.ok{background:var(--accent-soft);color:var(--accent-deep)}
@@ -289,16 +292,41 @@
     display:flex;padding:6px 4px calc(6px + env(safe-area-inset-bottom));
   }
   .tab{
-    flex:1;background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:3px;
-    padding:6px 2px;color:var(--muted);font-size:11px;font-weight:600;letter-spacing:.01em;
+    flex:1 1 0;min-width:0;position:relative;
+    background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:3px;
+    padding:6px 1px;color:var(--muted);font-size:11px;font-weight:600;letter-spacing:0;
   }
   .tab svg{width:23px;height:23px;display:block}
+  .tab > span:not(.punkt){
+    display:block;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
   .tab[aria-current="true"]{color:var(--accent-deep)}
   .tab[aria-current="true"] svg{stroke:var(--accent-deep)}
+  .tab .punkt{
+    position:absolute;top:4px;left:50%;margin-left:8px;
+    width:8px;height:8px;border-radius:50%;background:var(--clay);
+  }
+  @media (max-width:340px){
+    .tab{font-size:10.5px}
+    .tab svg{width:21px;height:21px}
+  }
+
+  /* Schwebender Knopf "Spiel anlegen" */
+  #fabNeu{
+    position:fixed;right:14px;z-index:44;
+    bottom:calc(74px + env(safe-area-inset-bottom));
+    height:52px;padding:0 18px;border:0;border-radius:26px;
+    background:var(--accent);color:#FFFFFF;
+    display:flex;align-items:center;gap:8px;
+    font-family:var(--ui);font-size:15px;font-weight:700;white-space:nowrap;
+    box-shadow:0 10px 24px -10px rgba(46,42,36,.55);
+  }
+  #fabNeu:hover{background:var(--accent-deep)}
+  #fabNeu svg{width:20px;height:20px;display:block;flex:0 0 auto}
 
   #feed{
     position:absolute;inset:0;overflow-y:auto;background:var(--paper);
-    padding:14px 14px calc(96px + env(safe-area-inset-bottom));
+    padding:14px 14px calc(150px + env(safe-area-inset-bottom));
   }
   .feedkopf{
     font-family:var(--display);font-size:24px;font-weight:600;letter-spacing:-.015em;
@@ -359,7 +387,7 @@
     width:100%;padding:11px 13px;border:1px solid var(--line-strong);border-radius:11px;
     background:var(--paper);color:var(--ink);
   }
-  .two{display:flex;gap:10px}
+  .two{display:flex;gap:10px;align-items:flex-end}
   .two > *{flex:1}
   .switcher{display:flex;gap:9px;margin-top:11px}
   .switcher button{flex:1}
@@ -375,6 +403,154 @@
   [hidden]{display:none !important}
   .avatar-edit{display:flex;align-items:center;gap:14px;margin-bottom:16px}
   .avatar-edit img,.avatar-edit .avatar-fallback{width:60px;height:60px;font-size:21px}
+
+  /* Team gegen Team */
+  .tafel{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:stretch;margin:0 0 15px}
+  .tafel .seite{
+    display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:7px;
+    min-height:96px;width:100%;padding:11px 8px;text-align:center;
+    background:var(--paper);border:1px solid var(--line);border-radius:12px;
+    font:inherit;color:inherit;
+  }
+  .tafel button.seite:hover{border-color:var(--accent);background:var(--surface)}
+  .tafel .seite h4{
+    margin:0;font-family:var(--display);font-size:16px;font-weight:600;line-height:1.2;
+    overflow-wrap:anywhere;hyphens:auto;
+  }
+  .tafel .seite .zahl{font-size:12.5px;color:var(--muted);line-height:1.3}
+  .tafel .seite.offen{border-style:dashed;border-color:var(--line-strong)}
+  .tafel .vs{
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--display);font-size:15px;color:var(--muted);padding:0 1px;
+  }
+  .tafel.gedaempft{opacity:.5}
+  .zeichen{
+    width:44px;height:44px;border-radius:12px;flex:0 0 auto;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--accent);color:#FFFFFF;
+    font-family:var(--display);font-weight:600;font-size:16px;line-height:1;letter-spacing:.01em;
+  }
+  .zeichen.gast{background:var(--clay)}
+  .zeichen.leer{background:var(--sand);color:var(--muted);border:2px dashed var(--line-strong)}
+  .zeichen.klein{width:30px;height:30px;border-radius:9px;font-size:12px}
+  .zeichen img{width:100%;height:100%;object-fit:cover;border-radius:10px;display:block}
+  .zeichen.wappen{border:2px solid var(--accent);background:var(--surface);padding:0}
+  .zeichen.wappen.gast{border-color:var(--clay)}
+
+  .msg{--seite:var(--accent)}
+  .msg.gastseite{--seite:var(--clay)}
+  .msg.mit{align-self:flex-end;align-items:flex-end}
+  .msg.mit .bubble{background:var(--surface);border:1px solid var(--line)}
+  .msg.andere{align-self:flex-start;align-items:flex-start}
+  .msg.andere .bubble{background:var(--sand)}
+  .msg.tvt.rechts .bubble{border-left:3px solid var(--seite)}
+  .msg.tvt.links .bubble{border-right:3px solid var(--seite)}
+  .msg .meta .kappille{
+    display:inline-block;margin-left:5px;padding:0 6px;border-radius:999px;
+    background:var(--sand-deep);color:var(--muted);font-size:10.5px;font-weight:700;
+  }
+
+  .wahlzeile{
+    display:flex;align-items:center;gap:11px;width:100%;min-height:52px;text-align:left;
+    background:var(--surface);border:1px solid var(--line);border-radius:12px;
+    padding:9px 12px;margin-bottom:8px;font:inherit;color:inherit;
+  }
+  .wahlzeile .wer{flex:1;min-width:0}
+  .wahlzeile .wer strong{display:block;font-size:14.5px;font-weight:700;overflow-wrap:anywhere}
+  .wahlzeile .wer span{display:block;font-size:12.5px;color:var(--muted)}
+  .wahlzeile .haken{
+    width:28px;height:28px;border-radius:9px;flex:0 0 auto;
+    border:2px solid var(--line-strong);background:var(--surface);
+    display:flex;align-items:center;justify-content:center;font-size:15px;line-height:1;color:transparent;
+  }
+  .wahlzeile[aria-pressed="true"]{border-color:var(--accent)}
+  .wahlzeile[aria-pressed="true"] .haken{background:var(--accent);border-color:var(--accent);color:#FFFFFF}
+  .wahlzeile.blass{opacity:.45}
+  .wahlzeile.gesperrt{opacity:.45;cursor:default}
+  .wahlzeile.gesperrt .haken{color:var(--muted)}
+
+  .info{
+    background:var(--sand);color:var(--ink);border:1px solid var(--line-strong);
+    border-radius:11px;padding:10px 13px;font-size:14px;margin-bottom:13px;
+  }
+  .skelett{
+    background:var(--sand);border:1px solid var(--line);border-radius:var(--r);
+    height:92px;margin-bottom:10px;opacity:.65;
+  }
+  .game .when .paar{
+    display:block;font-size:13.5px;font-weight:600;color:var(--ink);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .aufklapp{
+    display:flex;align-items:center;gap:10px;width:100%;min-height:48px;text-align:left;
+    background:var(--paper);border:1px solid var(--line);border-radius:12px;
+    padding:10px 13px;margin:0 0 13px;font:inherit;color:inherit;
+  }
+  .aufklapp:hover{border-color:var(--accent);background:var(--surface)}
+  .aufklapp .pfeil{flex:0 0 auto;color:var(--muted);font-size:12px}
+  .aufklapp .titel{flex:1;min-width:0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .tvtkarte .kopf{display:flex;align-items:center;gap:10px;margin-bottom:3px}
+  .tvtkarte .kopf .nam{flex:1;min-width:0;font-family:var(--display);font-size:17px;font-weight:600;
+    letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .tvtkarte .kopf .note{flex:0 0 auto;font-size:12.5px;color:var(--muted);white-space:nowrap}
+  .tvtkarte .trenner{height:1px;background:var(--line);margin:10px 0}
+  .chips.gruende{flex-wrap:wrap;overflow:visible}
+  .chips.filterzeile{display:flex;gap:8px;margin:0 0 14px;overflow:visible}
+  .chips.filterzeile select{flex:1 1 0;min-width:0}
+
+  /* Platzzeile im Formular "Spiel anlegen" */
+  .platzzeile{
+    display:flex;align-items:center;gap:11px;width:100%;min-height:56px;text-align:left;
+    background:var(--surface);border:1px solid var(--line-strong);border-radius:12px;
+    padding:9px 13px;margin:0 0 14px;font:inherit;color:inherit;
+  }
+  .platzzeile:hover{border-color:var(--accent)}
+  .platzzeile.leer{border-style:dashed;border-color:var(--clay)}
+  .platzzeile .nadel{flex:0 0 auto;color:var(--accent);display:block}
+  .platzzeile .nadel svg{width:22px;height:22px;display:block}
+  .platzzeile.leer .nadel{color:var(--clay)}
+  .platzzeile .wo{flex:1;min-width:0}
+  .platzzeile .wo strong{
+    display:block;font-family:var(--display);font-size:17px;font-weight:600;
+    letter-spacing:-.01em;line-height:1.2;overflow-wrap:anywhere;
+  }
+  .platzzeile .wo span{display:block;font-size:12.5px;color:var(--muted);margin-top:2px}
+  .platzzeile .wechsel{
+    flex:0 0 auto;font-size:13px;font-weight:700;color:var(--accent-deep);
+    text-decoration:underline;text-underline-offset:3px;
+  }
+
+  /* Erklaerkarte "Teams" ohne Team */
+  .erklaer{
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+    padding:16px 17px;margin:0 0 14px;box-shadow:var(--shadow-s);
+  }
+  .erklaer h3{font-family:var(--display);font-size:19px;font-weight:600;margin:0 0 4px;letter-spacing:-.01em}
+  .erklaer > p{margin:0 0 14px;font-size:14px;color:var(--muted)}
+  .schritt{display:flex;align-items:flex-start;gap:11px;margin-bottom:12px}
+  .schritt .nr{
+    flex:0 0 auto;width:26px;height:26px;border-radius:50%;
+    background:var(--accent-soft);color:var(--accent-deep);
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--display);font-weight:600;font-size:14px;line-height:1;
+  }
+  .schritt .was{flex:1;min-width:0}
+  .schritt .was strong{display:block;font-size:15px;font-weight:700}
+  .schritt .was span{display:block;font-size:13px;color:var(--muted)}
+
+  /* Profilkarte im Reiter "Profil" */
+  .profilkarte{
+    display:flex;align-items:center;gap:13px;background:var(--surface);
+    border:1px solid var(--line);border-radius:var(--r);padding:13px 15px;
+    margin:0 0 14px;box-shadow:var(--shadow-s);
+  }
+  .profilkarte .avatar,.profilkarte .avatar-fallback{width:52px;height:52px;font-size:19px}
+  .profilkarte .wer{flex:1;min-width:0}
+  .profilkarte .wer strong{
+    display:block;font-family:var(--display);font-size:19px;font-weight:600;
+    letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+  .profilkarte .wer span{display:block;font-size:13px;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -422,26 +598,34 @@
   <div id="feed"></div>
 </main>
 
+<button id="fabNeu" type="button" hidden>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" aria-hidden="true">
+    <path d="M12 5.5v13M5.5 12h13"/>
+  </svg>
+  <span id="fabNeuText">Spiel anlegen</span>
+</button>
+
 <nav id="tabbar">
-  <button class="tab" type="button" id="tabSpiele" aria-current="true">
+  <button class="tab" type="button" id="tabKarte" aria-current="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M12 21.2s7-6.4 7-11.2a7 7 0 1 0-14 0c0 4.8 7 11.2 7 11.2z"/><circle cx="12" cy="10" r="2.6"/>
+    </svg>
+    <span id="tabKarteText">Karte</span>
+  </button>
+  <button class="tab" type="button" id="tabSpiele">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <circle cx="12" cy="12" r="8.6"/><path d="M12 7.4l3.4 2.5-1.3 4h-4.2l-1.3-4z"/>
       <path d="M12 3.4v4M20.2 9.9l-3.9 1.3M17 19.6l-2.5-3.3M7 19.6l2.5-3.3M3.8 9.9l3.9 1.3"/>
     </svg>
     <span id="tabSpieleText">Spiele</span>
   </button>
-  <button class="tab" type="button" id="tabKarte">
+  <button class="tab" type="button" id="tabTeams">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <path d="M12 21.2s7-6.4 7-11.2a7 7 0 1 0-14 0c0 4.8 7 11.2 7 11.2z"/><circle cx="12" cy="10" r="2.6"/>
+      <path d="M12 3.2l7 2.2v6.1c0 4.2-2.9 7.4-7 9.3-4.1-1.9-7-5.1-7-9.3V5.4z"/>
+      <path d="M9.2 11.9l2 2 3.6-4"/>
     </svg>
-    <span id="tabKarteText">Karte</span>
-  </button>
-  <button class="tab" type="button" id="tabFreunde">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <circle cx="9" cy="8.4" r="3.4"/><path d="M2.8 19.6c1-3.2 3.4-4.8 6.2-4.8s5.2 1.6 6.2 4.8"/>
-      <path d="M16.2 5.4a3.4 3.4 0 0 1 0 6.1M17.6 14.9c2.1.4 3.4 1.9 4 4.2"/>
-    </svg>
-    <span id="tabFreundeText">Freunde</span>
+    <span id="tabTeamsText">Teams</span>
+    <span class="punkt" id="punktTeams" hidden></span>
   </button>
   <button class="tab" type="button" id="tabMeine">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -449,12 +633,14 @@
       <path d="M9.4 14.9l1.9 1.9 3.4-3.6"/>
     </svg>
     <span id="tabMeineText">Meine</span>
+    <span class="punkt" id="punktMeine" hidden></span>
   </button>
   <button class="tab" type="button" id="tabProfil">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <circle cx="12" cy="8.6" r="3.7"/><path d="M4.6 20.2c1.2-3.7 4-5.5 7.4-5.5s6.2 1.8 7.4 5.5"/>
     </svg>
     <span id="tabProfilText">Profil</span>
+    <span class="punkt" id="punktProfil" hidden></span>
   </button>
 </nav>
 
@@ -474,6 +660,7 @@
   <div id="sheetGames"></div>
   <div class="actions">
     <button class="btn" id="sheetOrganize" type="button"></button>
+    <button class="btn secondary" id="sheetTeamSpiel" type="button" hidden></button>
     <a class="btn secondary" id="sheetRoute" target="_blank" rel="noopener"></a>
   </div>
   <p class="hint" id="sheetHint"></p>
@@ -501,7 +688,7 @@
   var SUPABASE_KEY = "sb_publishable_NnIdoQ9sTsMkbRbuu_mYHw_T2bQ-iSZ";
   var APP_URL = "https://esio1120.github.io/JogaVia/";
   var BESTAETIGT_URL = "https://esio1120.github.io/JogaVia/bestaetigt.html";
-  var APP_VERSION = "2026-09-02 f";
+  var APP_VERSION = "2026-09-10 a";
   var FEHLER = [];
   function merkeFehler(e){
     var s = "";
@@ -575,6 +762,38 @@
       minutes: "Min", noCost: "gratis", organizedByYou: "du organisierst",
       cancelled: "abgesagt",
       tabSpiele: "Spiele", tabKarte: "Karte", tabMeine: "Meine", tabProfil: "Profil",
+      tabTeams: "Teams",
+      fabNeuesSpiel: "Spiel anlegen",
+      platzHerkunftZuletzt: "zuletzt hier gespielt",
+      platzHerkunftNaehe: "Platz in deiner Nähe",
+      platzSuchtNaehe: "Platz in deiner Nähe wird gesucht …",
+      platzWaehlen: "Platz wählen",
+      platzOhneStandort: "Ohne Standort geht es auch: wähl den Platz auf der Karte.",
+      platzZuerst: "Wähl zuerst den Platz.",
+      neuesSpielPinHinweis: "Tipp den Platz an, an dem ihr spielt.",
+      teamsTitel: "Teams",
+      teamsLead: "Deine Mannschaften und offene Ausschreibungen.",
+      teamsErklaerTitel: "Spielt Team gegen Team",
+      teamsErklaerLead: "In drei Schritten seid ihr dabei.",
+      teamsSchritt1: "Team gründen",
+      teamsSchritt1Text: "Gib eurer Mannschaft einen Namen.",
+      teamsSchritt2: "Freunde einladen",
+      teamsSchritt2Text: "Teil euren Beitrittscode — sie sind mit einem Tipp dabei.",
+      teamsSchritt3: "Gegner finden",
+      teamsSchritt3Text: "Schreibt ein Spiel aus oder sagt einer Ausschreibung zu.",
+      teamBrauchtTeam: "Dafür brauchst du ein Team",
+      teamWeiteresBeitreten: "Weiterem Team beitreten",
+      teamsKeinNetz: "Keine Verbindung. Angezeigt wird der letzte Stand.",
+      teamsNochmal: "Nochmal versuchen",
+      teamsNochmalText: "Die Teams konnten nicht geladen werden.",
+      teamsAnmelden: "Melde dich an, um ein Team zu gründen.",
+      tvtAufstellungKurz: "Aufstellung",
+      meineTitel: "Meine",
+      meineSpielFinden: "Spiel finden",
+      profilBearbeiten: "Profil bearbeiten",
+      einstellungen: "Einstellungen",
+      spracheLabel: "Sprache",
+      anmeldenFuerProfil: "Melde dich an, um dein Profil zu sehen.",
       feedTitel: "Was heute läuft", feedLeer: "Noch kein Spiel angesetzt.",
       feedLeerHinweis: "Sei der Erste: Such dir auf der Karte einen Platz und leg ein Spiel an.",
       feedZurKarte: "Zur Karte", heute: "Heute", morgen: "Morgen",
@@ -695,7 +914,93 @@
       reportBtn: "melden", reportTitle: "Melden", reportLead: "Was stimmt hier nicht?",
       reportReason: "Grund", reportPlaceholder: "kurz beschreiben",
       reportSend: "Meldung abschicken", reportSent: "Danke, wir schauen uns das an.",
-      blockedHere: "Von dir blockiert"
+      blockedHere: "Von dir blockiert",
+
+      tvtUnsereSpiele: "Unsere Spiele",
+      tvtUnsereSpieleLeer: "Noch keine Begegnung.",
+      tvtGegnerGesucht: "Gegner gesucht",
+      tvtGegnerLead: "Offene Spiele anderer Teams.",
+      tvtAlleZeigen: "Alle ansehen",
+      tvtAlleNiveaus: "Alle Niveaus",
+      tvtKeineNote: "noch keine Note",
+      tvtEureAusschreibung: "Eure Ausschreibung",
+      tvtSpielAusschreiben: "Spiel ausschreiben",
+      tvtLeerKapitaen: "Noch schreibt kein Team ein Spiel aus.",
+      tvtLeerKapitaenText: "Sei das erste Team: Such dir auf der Karte einen Platz und schreib euer Spiel aus. Andere Kapitäne sehen es sofort — hier und auf der Karte.",
+      tvtMitgliederEinladen: "Mitglieder einladen",
+      tvtLeerMitglied: "Nur euer Kapitän kann ein Spiel ausschreiben. Sag ihm Bescheid.",
+      tvtTeamOeffnen: "Team öffnen",
+      tvtFilterLeer: "In ganz Wien: {n} offene Ausschreibungen",
+      tvtFilterZurueck: "Filter zurücksetzen",
+      tvtKeinGegner: "Noch kein Gegner",
+      tvtVonWort: "von",
+      tvtZusagen: "Zusagen",
+      tvtZusagenAsk: "Mit {n} zusagen? Danach steht die Begegnung fest.",
+      tvtWelchesTeam: "Mit welchem Team?",
+      tvtNurKapitaenZusagen: "Nur euer Kapitän kann zusagen.",
+      tvtTeamAnsehen: "Team ansehen",
+      tvtBlockWarnung: "Im gegnerischen Team ist jemand, den du blockiert hast. Du siehst seine Nachrichten nicht.",
+      tvtSchonGegner: "Dieses Spiel hat schon einen Gegner.",
+      tvtZugesagtOk: "Zugesagt. Die Begegnung steht.",
+      tvtAendern: "Ausschreibung ändern",
+      tvtZuruecknehmen: "Ausschreibung zurückziehen",
+      tvtZuruecknehmenAsk: "Die Ausschreibung verschwindet. Andere Teams sehen sie dann nicht mehr.",
+      tvtZurueckgenommen: "Ausschreibung zurückgezogen.",
+      tvtEureAufstellung: "Eure Aufstellung",
+      tvtAufstellungAendern: "Aufstellung ändern",
+      tvtNichtGemeldet: "noch nicht gemeldet",
+      tvtChatStartet: "Der Chat startet, sobald ein Gegner zusagt.",
+      tvtChatSeiten: "Deine Mannschaft rechts, {n} links.",
+      tvtWiederOffen: "Eure Ausschreibung ist wieder offen.",
+      tvtAbgesagt: "Abgesagt",
+      tvtAbsagen: "Spiel absagen",
+      tvtAbsagenLead: "Beide Mannschaften sehen die Absage.",
+      tvtGrundWenige: "Zu wenige Spieler",
+      tvtGrundWetter: "Wetter",
+      tvtGrundPlatz: "Platz ist nicht frei",
+      tvtGrundFrei: "Grund",
+      tvtGrundPlatzhalter: "kurz sagen, warum",
+      tvtAbsageSenden: "Absage abschicken",
+      tvtAbgesagtOk: "Die Begegnung ist abgesagt.",
+      tvtGastZurueckOk: "Ihr seid raus. Die Ausschreibung ist wieder offen.",
+      tvtKannNicht: "Ich kann doch nicht",
+      tvtKannNichtAsk: "Wirklich abmelden? Dein Kapitän sieht das.",
+      tvtAbgemeldet: "Abgemeldet.",
+      tvtBesucherNamen: "Melde dich an, um zu sehen, wer spielt.",
+      tvtTeamSpiel: "Team-Spiel",
+      tvtEuerSpiel: "Euer Spiel",
+      tvtPlatzAendern: "ändern",
+      tvtEuerTeam: "Euer Team",
+      tvtKostenProKopf: "Kosten pro Kopf",
+      tvtAendernHinweis: "Bis ein Gegner zusagt, kannst du alles ändern oder zurückziehen. Danach nicht mehr.",
+      tvtAusschreibenBtn: "Ausschreiben",
+      tvtAusgeschrieben: "Spiel ausgeschrieben. Jetzt sehen es andere Kapitäne.",
+      tvtAngenommen: "{n} hat euer Spiel angenommen.",
+      tvtAnsehen: "Ansehen",
+      tvtDreiOffen: "Ihr habt schon drei offene Ausschreibungen. Zieh eine zurück oder wart, bis jemand zusagt.",
+      tvtWenigeMitglieder: "Ihr seid weniger Leute, als das Format braucht. Ausschreiben geht trotzdem — ladet noch jemanden ein.",
+      tvtPinHinweis: "Wähl auf der Karte den Platz für euer Spiel.",
+      tvtKeinPlatz: "Bitte wähl zuerst einen Platz auf der Karte.",
+      tvtAufTitel: "Aufstellung melden",
+      tvtAufLead: "änderbar bis zum Anpfiff",
+      tvtPlusDrei: "plus drei Auswechselspieler",
+      tvtAufSpeichern: "Aufstellung speichern",
+      tvtAufGespeichert: "Aufstellung gespeichert.",
+      tvtAufGrenze: "Mehr als {n} gehen nicht. Nimm zuerst jemanden heraus.",
+      tvtAufAbgesagt: "hat abgesagt",
+      tvtAufBeimGegner: "spielt beim Gegner",
+      tvtAufVerwerfen: "Änderungen verwerfen?",
+      tvtBewTitel: "Team bewerten",
+      tvtBewLead: "Wie war {n} als Gegner?",
+      tvtBewHinweis: "Andere sehen nur den Durchschnitt, nie einzelne Bewertungen. Angezeigt wird er ab drei.",
+      tvtBewSenden: "Bewertung abschicken",
+      tvtBewDanke: "Danke für die Bewertung.",
+      tvtGegnerBewerten: "Gegner bewerten",
+      tvtMitspielerBewerten: "Mitspieler bewerten",
+      tvtNoteWenige: "Noch zu wenige Bewertungen.",
+      tvtNoteWenigeHint: "Ab drei Bewertungen zeigen wir den Durchschnitt.",
+      tvtBewertung: "Bewertung",
+      tvtWeg: "Diese Begegnung gibt es nicht mehr."
     },
     en: {
       search: "Search pitch or district",
@@ -756,6 +1061,38 @@
       minutes: "min", noCost: "free", organizedByYou: "you organise",
       cancelled: "cancelled",
       tabSpiele: "Games", tabKarte: "Map", tabMeine: "Mine", tabProfil: "Profile",
+      tabTeams: "Teams",
+      fabNeuesSpiel: "New game",
+      platzHerkunftZuletzt: "you played here last",
+      platzHerkunftNaehe: "a pitch near you",
+      platzSuchtNaehe: "Looking for a pitch near you …",
+      platzWaehlen: "Choose a pitch",
+      platzOhneStandort: "It works without your location: pick the pitch on the map.",
+      platzZuerst: "Choose the pitch first.",
+      neuesSpielPinHinweis: "Tap the pitch where you will play.",
+      teamsTitel: "Teams",
+      teamsLead: "Your sides and open postings.",
+      teamsErklaerTitel: "Play team against team",
+      teamsErklaerLead: "Three steps and you are in.",
+      teamsSchritt1: "Start a team",
+      teamsSchritt1Text: "Give your side a name.",
+      teamsSchritt2: "Invite friends",
+      teamsSchritt2Text: "Share your join code — they are in with one tap.",
+      teamsSchritt3: "Find opponents",
+      teamsSchritt3Text: "Post a match or accept another team's posting.",
+      teamBrauchtTeam: "You need a team for that",
+      teamWeiteresBeitreten: "Join another team",
+      teamsKeinNetz: "No connection. Showing the last known state.",
+      teamsNochmal: "Try again",
+      teamsNochmalText: "Your teams could not be loaded.",
+      teamsAnmelden: "Sign in to start a team.",
+      tvtAufstellungKurz: "Line-up",
+      meineTitel: "Mine",
+      meineSpielFinden: "Find a game",
+      profilBearbeiten: "Edit profile",
+      einstellungen: "Settings",
+      spracheLabel: "Language",
+      anmeldenFuerProfil: "Sign in to see your profile.",
       feedTitel: "What is on today", feedLeer: "No game scheduled yet.",
       feedLeerHinweis: "Be the first: pick a pitch on the map and set one up.",
       feedZurKarte: "Go to the map", heute: "Today", morgen: "Tomorrow",
@@ -876,7 +1213,93 @@
       reportBtn: "report", reportTitle: "Report", reportLead: "What is wrong here?",
       reportReason: "Reason", reportPlaceholder: "describe briefly",
       reportSend: "Send report", reportSent: "Thanks, we will look into it.",
-      blockedHere: "Blocked by you"
+      blockedHere: "Blocked by you",
+
+      tvtUnsereSpiele: "Our matches",
+      tvtUnsereSpieleLeer: "No match yet.",
+      tvtGegnerGesucht: "Opponents wanted",
+      tvtGegnerLead: "Open matches from other teams.",
+      tvtAlleZeigen: "See all",
+      tvtAlleNiveaus: "All levels",
+      tvtKeineNote: "no rating yet",
+      tvtEureAusschreibung: "Your posting",
+      tvtSpielAusschreiben: "Post a match",
+      tvtLeerKapitaen: "No team has posted a match yet.",
+      tvtLeerKapitaenText: "Be the first team: pick a pitch on the map and post your match. Other captains will see it right away — here and on the map.",
+      tvtMitgliederEinladen: "Invite members",
+      tvtLeerMitglied: "Only your captain can post a match. Let them know.",
+      tvtTeamOeffnen: "Open team",
+      tvtFilterLeer: "Across Vienna: {n} open postings",
+      tvtFilterZurueck: "Reset filters",
+      tvtKeinGegner: "No opponent yet",
+      tvtVonWort: "of",
+      tvtZusagen: "Accept",
+      tvtZusagenAsk: "Accept with {n}? The match is fixed after that.",
+      tvtWelchesTeam: "Which team?",
+      tvtNurKapitaenZusagen: "Only your captain can accept.",
+      tvtTeamAnsehen: "View team",
+      tvtBlockWarnung: "Someone in the opposing team is blocked by you. You will not see their messages.",
+      tvtSchonGegner: "This match already has an opponent.",
+      tvtZugesagtOk: "Accepted. The match is on.",
+      tvtAendern: "Change posting",
+      tvtZuruecknehmen: "Take posting down",
+      tvtZuruecknehmenAsk: "The posting disappears. Other teams will no longer see it.",
+      tvtZurueckgenommen: "Posting taken down.",
+      tvtEureAufstellung: "Your line-up",
+      tvtAufstellungAendern: "Change line-up",
+      tvtNichtGemeldet: "not reported yet",
+      tvtChatStartet: "The chat starts as soon as an opponent accepts.",
+      tvtChatSeiten: "Your team on the right, {n} on the left.",
+      tvtWiederOffen: "Your posting is open again.",
+      tvtAbgesagt: "Cancelled",
+      tvtAbsagen: "Cancel match",
+      tvtAbsagenLead: "Both teams will see the cancellation.",
+      tvtGrundWenige: "Too few players",
+      tvtGrundWetter: "Weather",
+      tvtGrundPlatz: "Pitch not available",
+      tvtGrundFrei: "Reason",
+      tvtGrundPlatzhalter: "say briefly why",
+      tvtAbsageSenden: "Send cancellation",
+      tvtAbgesagtOk: "The match is cancelled.",
+      tvtGastZurueckOk: "You are out. The posting is open again.",
+      tvtKannNicht: "I can't make it",
+      tvtKannNichtAsk: "Really withdraw? Your captain will see it.",
+      tvtAbgemeldet: "Withdrawn.",
+      tvtBesucherNamen: "Sign in to see who is playing.",
+      tvtTeamSpiel: "Team match",
+      tvtEuerSpiel: "Your match",
+      tvtPlatzAendern: "change",
+      tvtEuerTeam: "Your team",
+      tvtKostenProKopf: "Cost per head",
+      tvtAendernHinweis: "Until an opponent accepts you can change or take down everything. Not afterwards.",
+      tvtAusschreibenBtn: "Post match",
+      tvtAusgeschrieben: "Match posted. Other captains can see it now.",
+      tvtAngenommen: "{n} accepted your match.",
+      tvtAnsehen: "View",
+      tvtDreiOffen: "You already have three open postings. Take one down or wait until someone accepts.",
+      tvtWenigeMitglieder: "You are fewer people than the format needs. You can still post — invite someone else.",
+      tvtPinHinweis: "Pick the pitch for your match on the map.",
+      tvtKeinPlatz: "Please pick a pitch on the map first.",
+      tvtAufTitel: "Report line-up",
+      tvtAufLead: "changeable until kick-off",
+      tvtPlusDrei: "plus three substitutes",
+      tvtAufSpeichern: "Save line-up",
+      tvtAufGespeichert: "Line-up saved.",
+      tvtAufGrenze: "No more than {n}. Take someone out first.",
+      tvtAufAbgesagt: "has withdrawn",
+      tvtAufBeimGegner: "playing for the opponent",
+      tvtAufVerwerfen: "Discard changes?",
+      tvtBewTitel: "Rate team",
+      tvtBewLead: "How was {n} as an opponent?",
+      tvtBewHinweis: "Others only see the average, never single ratings. It is shown from three onwards.",
+      tvtBewSenden: "Send rating",
+      tvtBewDanke: "Thanks for the rating.",
+      tvtGegnerBewerten: "Rate opponent",
+      tvtMitspielerBewerten: "Rate team-mates",
+      tvtNoteWenige: "Not enough ratings yet.",
+      tvtNoteWenigeHint: "From three ratings on we show the average.",
+      tvtBewertung: "Rating",
+      tvtWeg: "This match no longer exists."
     }
   };
 
@@ -967,7 +1390,7 @@
   var marker = [];
   var MARKER_AB_ZOOM = 15;
   var geoControl = null;
-  var ansicht = "feed";
+  var ansicht = "karte";
   var standortSchonGeholt = false;
   var freunde = [];
   var einladungen = [];
@@ -984,6 +1407,15 @@
   var dmTimer = null;
   var pinModus = false;
   var nurFreiePlaetze = false;
+  var teamSpiele = [];
+  var gegnerListe = [];
+  var teamNoten = {};
+  var tvtWiederOffen = {};
+  var pinZweck = "melden";
+  var pinTeam = null;
+  var pinRueckgabe = null;
+  var teamsStand = "leer";
+  var neuesSpielWerte = null;
 
   function buildMap(){
     map = new maplibregl.Map({
@@ -1009,14 +1441,15 @@
       attributionControl: true
     });
     map.on("error", function(e){ merkeFehler(e && e.error ? e.error : e); });
-    map.addControl(new maplibregl.NavigationControl({ showCompass:false }), "bottom-right");
+    // Unten rechts steht jetzt der Knopf "Spiel anlegen".
+    map.addControl(new maplibregl.NavigationControl({ showCompass:false }), "bottom-left");
     geoControl = new maplibregl.GeolocateControl({
       positionOptions: { enableHighAccuracy: true },
       trackUserLocation: false,
       showAccuracyCircle: true,
       fitBoundsOptions: { maxZoom: 16 }
     });
-    map.addControl(geoControl, "bottom-right");
+    map.addControl(geoControl, "bottom-left");
     try {
       geoControl.on("geolocate", function(pos){
         standortSchonGeholt = true;
@@ -1077,6 +1510,26 @@
 
       map.on("click", function(e){
         if (pinModus){
+          if (pinZweck === "neuesspiel"){
+            var platzNeu = naechsterPlatz(e);
+            if (!platzNeu){ toast(t("tvtKeinPlatz")); return; }
+            pinModusAus();
+            openModal(createPanel(platzNeu, "pin"));
+            return;
+          }
+          if (pinZweck === "teamspiel"){
+            var platz = naechsterPlatz(e);
+            if (!platz){ toast(t("tvtKeinPlatz")); return; }
+            var team = pinTeam;
+            var rueck = pinRueckgabe;
+            pinModusAus();
+            openModal(ausschreibenPanel({
+              venue: platz, team: team,
+              match: rueck ? rueck.match : null,
+              werte: rueck ? rueck.werte : null
+            }));
+            return;
+          }
           pinModusAus();
           openModal(meldePanel("fehlt", null, [e.lngLat.lng, e.lngLat.lat]));
           return;
@@ -1287,6 +1740,10 @@
     } catch(e){ return d.toLocaleDateString(); }
   }
 
+  function uhrText(iso){
+    return uhrzeit(iso) + (lang === "de" ? " Uhr" : "");
+  }
+
   function uhrzeit(iso){
     try {
       return new Intl.DateTimeFormat(lang === "de" ? "de-AT" : "en-GB",
@@ -1297,8 +1754,23 @@
   function feedKarte(g){
     var karte = make("button","feedcard");
     karte.type = "button";
-    karte.appendChild(make("div","zeit", uhrzeit(g.beginn) + " Uhr"));
+    karte.appendChild(make("div","zeit", uhrText(g.beginn)));
     karte.appendChild(make("h3", null, g.platz));
+    if (istTeamSpiel(g)){
+      karte.appendChild(make("p","details", g.gast_team
+        ? ((g.heim_team || "—") + " vs " + g.gast_team)
+        : (g.heim_team || "—")));
+      var d2 = [g.format, g.dauer_min + " " + t("minutes"), districtName(g.bezirk)];
+      if (g.kosten_cent) d2.push(money(g.kosten_cent));
+      karte.appendChild(make("p","details", d2.filter(Boolean).join(" · ")));
+      var reihe2 = make("div","reihe");
+      reihe2.appendChild(make("span","pill", t("tvtTeamSpiel")));
+      if (!g.gast_team_id) reihe2.appendChild(make("span","pill ok", t("tvtGegnerGesucht")));
+      if (session && meinTeamSpiel(g)) reihe2.appendChild(make("span","pill", t("tvtEuerSpiel")));
+      karte.appendChild(reihe2);
+      karte.addEventListener("click", function(){ openModal(tvtPanel(g.id)); });
+      return karte;
+    }
     var details = [g.format, g.dauer_min + " " + t("minutes"), districtName(g.bezirk),
                    t(LVLKEY[g.niveau] || "lvlFreizeit")];
     if (g.kosten_cent) details.push(money(g.kosten_cent));
@@ -1320,89 +1792,59 @@
     return karte;
   }
 
+  // renderFeed ist nur noch die Weiche. Jeder Reiter hat seine eigene Funktion.
   function renderFeed(){
+    if (ansicht === "teams"){ renderTeams(); return; }
+    if (ansicht === "profil"){ renderProfil(); return; }
+    if (ansicht === "meine"){ renderMeine(); return; }
+    renderSpiele();
+  }
+
+  // ---------- Reiter "Spiele": was heute laeuft ----------
+
+  function renderSpiele(){
     var box = el("feed");
     clear(box);
 
-    var meineAnsicht = (ansicht === "meine");
     var liste = games.filter(function(g){
-      if (meineAnsicht){
-        var teil = myPart[g.id];
-        var orga = session && g.organisator_id === session.user.id;
-        return orga || teil === "zugesagt" || teil === "warteliste";
-      }
+      // In "Was heute laeuft" erscheinen Team-Spiele nicht.
+      if (istTeamSpiel(g)) return false;
       if (nurFreiePlaetze && (g.plaetze_gesamt || 0) - (g.zugesagt || 0) <= 0) return false;
       return true;
     });
 
-    box.appendChild(make("h2","feedkopf", meineAnsicht ? t("myGames") : t("feedTitel")));
-
-    if (meineAnsicht && einladungen.length){
-      box.appendChild(make("p","tagkopf", t("einladungen")));
-      einladungen.forEach(function(e){
-        var karte = make("div","feedcard");
-        karte.appendChild(make("div","zeit", uhrzeit(e.beginn) + " Uhr · " + tagKopf(e.beginn)));
-        karte.appendChild(make("h3", null, e.platz));
-        karte.appendChild(make("p","details", e.format + " · " + t("einladungVon", e.von_name || "")));
-        var reihe = make("div","reihe");
-        var ja = make("button","minibtn", t("zusagen"));
-        ja.type = "button";
-        ja.addEventListener("click", function(){
-          sb.rpc("spiel_beitreten", { p_match: e.match_id }).then(function(res){
-            if (res.error){ toast(res.error.message); return; }
-            sb.from("einladungen").delete().eq("id", e.id).then(function(){
-              loadMyPart().then(loadEinladungen).then(loadGames).then(function(){
-                toast(res.data === "warteliste" ? t("youAreWaiting") : t("youAreIn"));
-                renderFeed();
-              });
-            });
-          });
-        });
-        var weg = make("button","minibtn leise", t("einladungWeg"));
-        weg.type = "button";
-        weg.addEventListener("click", function(){
-          sb.from("einladungen").delete().eq("id", e.id).then(function(){
-            loadEinladungen().then(renderFeed);
-          });
-        });
-        reihe.appendChild(ja);
-        reihe.appendChild(weg);
-        karte.appendChild(reihe);
-        box.appendChild(karte);
-      });
-      box.appendChild(make("p","tagkopf", t("myGames")));
-    }
+    box.appendChild(make("h2","feedkopf", t("feedTitel")));
     box.appendChild(make("p","feedsub",
       liste.length === 0 ? t("keineSpiele") : (liste.length === 1 ? t("spielAnzahl") : t("spieleAnzahl", liste.length))));
 
-    if (!meineAnsicht){
-      var chips = make("div","chips");
-      chips.style.marginBottom = "6px";
-      var alle = make("button","chip", t("alleSpiele"));
-      alle.type = "button";
-      alle.setAttribute("aria-pressed", nurFreiePlaetze ? "false" : "true");
-      alle.addEventListener("click", function(){ nurFreiePlaetze = false; renderFeed(); });
-      var frei = make("button","chip", t("nurFrei"));
-      frei.type = "button";
-      frei.setAttribute("aria-pressed", nurFreiePlaetze ? "true" : "false");
-      frei.addEventListener("click", function(){ nurFreiePlaetze = true; renderFeed(); });
-      chips.appendChild(alle);
-      chips.appendChild(frei);
-      box.appendChild(chips);
-    }
+    var chips = make("div","chips");
+    chips.style.marginBottom = "6px";
+    var alle = make("button","chip", t("alleSpiele"));
+    alle.type = "button";
+    alle.setAttribute("aria-pressed", nurFreiePlaetze ? "false" : "true");
+    alle.addEventListener("click", function(){ nurFreiePlaetze = false; renderFeed(); });
+    var frei = make("button","chip", t("nurFrei"));
+    frei.type = "button";
+    frei.setAttribute("aria-pressed", nurFreiePlaetze ? "true" : "false");
+    frei.addEventListener("click", function(){ nurFreiePlaetze = true; renderFeed(); });
+    chips.appendChild(alle);
+    chips.appendChild(frei);
+    box.appendChild(chips);
 
     if (!liste.length){
-      box.appendChild(make("p","muted-line", meineAnsicht ? t("meineLeer") : t("feedLeer")));
-      if (!meineAnsicht){
-        box.appendChild(make("p","muted-line", t("feedLeerHinweis")));
-        var hin = make("button","btn", t("feedZurKarte"));
-        hin.type = "button";
-        hin.addEventListener("click", function(){ zeigeAnsicht("karte"); });
-        box.appendChild(hin);
-      }
+      box.appendChild(make("p","muted-line", t("feedLeer")));
+      box.appendChild(make("p","muted-line", t("feedLeerHinweis")));
+      var hin = make("button","btn", t("feedZurKarte"));
+      hin.type = "button";
+      hin.addEventListener("click", function(){ zeigeAnsicht("karte"); });
+      box.appendChild(hin);
       return;
     }
 
+    tagGruppen(box, liste);
+  }
+
+  function tagGruppen(box, liste){
     var letzterTag = null;
     liste.forEach(function(g){
       var kopf = tagKopf(g.beginn);
@@ -1412,63 +1854,384 @@
       }
       box.appendChild(feedKarte(g));
     });
+  }
 
-    if (meineAnsicht && session){
-      box.appendChild(make("p","tagkopf", t("vergangene")));
-      if (!vergangene.length){
-        box.appendChild(make("p","muted-line", t("vergangeneLeer")));
-      }
-      vergangene.forEach(function(v){
-        var karte = make("button","feedcard");
-        karte.type = "button";
-        karte.style.width = "100%";
-        karte.style.textAlign = "left";
-        karte.appendChild(make("div","zeit", fmtWhen(v.beginn)));
-        karte.appendChild(make("h3", null, v.platz));
-        karte.appendChild(make("p","details", v.format + " · " +
-          (v.offen_zu_bewerten > 0 ? t("zuBewerten", v.offen_zu_bewerten) : t("alleBewertet"))));
-        karte.addEventListener("click", function(){ openModal(vergangenPanel(v)); });
-        box.appendChild(karte);
+  // ---------- Reiter "Meine": Einladungen, meine Spiele, Vergangene ----------
+
+  function offeneEinladungen(){ return einladungen.length; }
+
+  function einladungsKarte(e){
+    var karte = make("div","feedcard");
+    karte.appendChild(make("div","zeit", uhrText(e.beginn) + " · " + tagKopf(e.beginn)));
+    karte.appendChild(make("h3", null, e.platz));
+    karte.appendChild(make("p","details", e.format + " · " + t("einladungVon", e.von_name || "")));
+    var reihe = make("div","reihe");
+    var ja = make("button","minibtn", t("zusagen"));
+    ja.type = "button";
+    ja.addEventListener("click", function(){
+      sb.rpc("spiel_beitreten", { p_match: e.match_id }).then(function(res){
+        if (res.error){ toast(res.error.message); return; }
+        sb.from("einladungen").delete().eq("id", e.id).then(function(){
+          loadMyPart().then(loadEinladungen).then(loadGames).then(function(){
+            toast(res.data === "warteliste" ? t("youAreWaiting") : t("youAreIn"));
+            renderFeed();
+          });
+        });
       });
-
-      box.appendChild(make("p","tagkopf", t("teams")));
-      if (!meineTeams.length){
-        box.appendChild(make("p","muted-line", t("teamsLeer")));
-      }
-      meineTeams.forEach(function(tm){
-        var karte = make("button","feedcard");
-        karte.type = "button";
-        karte.style.width = "100%";
-        karte.style.textAlign = "left";
-        karte.appendChild(make("h3", null, tm.name));
-        karte.appendChild(make("p","details",
-          [districtName(tm.bezirk), tm.niveau ? t(LVLKEY[tm.niveau] || "lvlFreizeit") : null,
-           tm.mitglieder === 1 ? t("teamEinMitglied") : t("teamMitglieder", tm.mitglieder),
-           tm.bin_kapitaen ? t("teamKapitaen") : null].filter(Boolean).join(" · ")));
-        karte.addEventListener("click", function(){ openModal(teamPanel(tm)); });
-        box.appendChild(karte);
+    });
+    var weg = make("button","minibtn leise", t("einladungWeg"));
+    weg.type = "button";
+    weg.addEventListener("click", function(){
+      sb.from("einladungen").delete().eq("id", e.id).then(function(){
+        loadEinladungen().then(function(){ renderFeed(); punkteSetzen(); });
       });
+    });
+    reihe.appendChild(ja);
+    reihe.appendChild(weg);
+    karte.appendChild(reihe);
+    return karte;
+  }
 
+  function renderMeine(){
+    var box = el("feed");
+    clear(box);
+
+    var liste = games.filter(function(g){
+      // Team-Spiele stehen unter "Meine Spiele" nur, wenn ich aufgestellt bin.
+      if (istTeamSpiel(g)) return myPart[g.id] === "zugesagt";
+      var teil = myPart[g.id];
+      var orga = session && g.organisator_id === session.user.id;
+      return orga || teil === "zugesagt" || teil === "warteliste";
+    });
+
+    box.appendChild(make("h2","feedkopf", t("myGames")));
+
+    if (einladungen.length){
+      box.appendChild(make("p","tagkopf", t("einladungen")));
+      einladungen.forEach(function(e){ box.appendChild(einladungsKarte(e)); });
+      box.appendChild(make("p","tagkopf", t("myGames")));
+    }
+
+    box.appendChild(make("p","feedsub",
+      liste.length === 0 ? t("keineSpiele") : (liste.length === 1 ? t("spielAnzahl") : t("spieleAnzahl", liste.length))));
+
+    if (!liste.length){
+      box.appendChild(make("p","muted-line", t("meineLeer")));
+      var such = make("button","btn", t("meineSpielFinden"));
+      such.type = "button";
+      such.addEventListener("click", function(){ zeigeAnsicht("feed"); });
+      box.appendChild(such);
+      var leise = make("button","quiet-link", t("fabNeuesSpiel"));
+      leise.type = "button";
+      leise.addEventListener("click", spielAnlegenStarten);
+      box.appendChild(leise);
+    } else {
+      tagGruppen(box, liste);
+    }
+
+    if (!session) return;
+
+    box.appendChild(make("p","tagkopf", t("vergangene")));
+    if (!vergangene.length){
+      box.appendChild(make("p","muted-line", t("vergangeneLeer")));
+    }
+    vergangene.forEach(function(v){
+      var karte = make("button","feedcard");
+      karte.type = "button";
+      karte.style.width = "100%";
+      karte.style.textAlign = "left";
+      karte.appendChild(make("div","zeit", fmtWhen(v.beginn)));
+      karte.appendChild(make("h3", null, v.platz));
+      karte.appendChild(make("p","details", v.format + " · " +
+        (v.offen_zu_bewerten > 0 ? t("zuBewerten", v.offen_zu_bewerten) : t("alleBewertet"))));
+      karte.addEventListener("click", function(){ openModal(vergangenPanel(v)); });
+      box.appendChild(karte);
+    });
+  }
+
+  // ---------- Reiter "Teams" ----------
+
+  function teamKarte(tm){
+    var karte = make("button","feedcard");
+    karte.type = "button";
+    karte.style.width = "100%";
+    karte.style.textAlign = "left";
+    karte.appendChild(make("h3", null, tm.name));
+    karte.appendChild(make("p","details",
+      [districtName(tm.bezirk), tm.niveau ? t(LVLKEY[tm.niveau] || "lvlFreizeit") : null,
+       tm.mitglieder === 1 ? t("teamEinMitglied") : t("teamMitglieder", tm.mitglieder)]
+      .filter(Boolean).join(" · ")));
+    if (tm.bin_kapitaen){
       var reihe = make("div","reihe");
-      reihe.id = "teamAktionen";
-      reihe.style.marginTop = "10px";
-      var neu = make("button","minibtn", t("teamGruenden"));
-      neu.type = "button";
-      neu.addEventListener("click", function(){
-        if (needAccount()) return;
-        openModal(teamGruendenPanel());
+      reihe.appendChild(make("span","pill", t("teamKapitaen")));
+      karte.appendChild(reihe);
+    }
+    karte.addEventListener("click", function(){ openModal(teamPanel(tm)); });
+    return karte;
+  }
+
+  // "Aufstellung 3 von 5" rechts in der Zeile; ab 24 Stunden vor Anpfiff in
+  // Terracotta, wenn noch zu wenige gemeldet sind.
+  function unsereSpielZeile(x){
+    var zeile = gameRow(tvtZeilenSatz(x), true);
+    var eigene = x.wir_sind_heim ? x.heim_aufgestellt : x.gast_aufgestellt;
+    if (eigene === null || eigene === undefined) return zeile;
+    var soll = x.soll_groesse || formatGroesse(x.format);
+    var pille = make("span","pill",
+      t("tvtAufstellungKurz") + " " + vonZahl(eigene, soll));
+    var knapp = (new Date(x.beginn).getTime() - Date.now()) < 24 * 3600 * 1000;
+    if (knapp && eigene < soll) pille.classList.add("warn");
+    var rechts = zeile.querySelector(".right");
+    if (rechts){
+      // Im Reiter "Teams" ist jedes Spiel unseres - die Pille "Euer Spiel"
+      // waere hier nur eine vierte Zeile ohne Aussage.
+      Array.prototype.slice.call(rechts.children).forEach(function(k){
+        if (k.textContent === t("tvtEuerSpiel")) rechts.removeChild(k);
       });
-      var bei = make("button","minibtn leise", t("teamCodeEingeben"));
-      bei.type = "button";
-      bei.addEventListener("click", function(){
-        if (needAccount()) return;
-        openModal(teamBeitretenPanel(""));
-      });
-      reihe.appendChild(neu);
-      reihe.appendChild(bei);
-      box.appendChild(reihe);
+      rechts.appendChild(pille);
+    } else {
+      zeile.appendChild(pille);
+    }
+    return zeile;
+  }
+
+  function gegnerBlock(box){
+    box.appendChild(make("p","tagkopf", t("tvtGegnerGesucht")));
+    if (!gegnerListe.length){
+      gegnerLeerZustand(box);
+      return;
+    }
+    gegnerListe.slice(0, 3).forEach(function(row){ box.appendChild(gegnerKarte(row)); });
+    if (gegnerListe.length > 3){
+      var alleGegner = make("button","btn secondary", t("tvtAlleZeigen"));
+      alleGegner.type = "button";
+      alleGegner.addEventListener("click", function(){ openModal(gegnerGesuchtPanel()); });
+      box.appendChild(alleGegner);
     }
   }
+
+  function teamGruendenKnopf(leise){
+    var neu = make("button", leise ? "minibtn leise" : "minibtn", t("teamGruenden"));
+    neu.type = "button";
+    neu.addEventListener("click", function(){
+      if (needAccount()) return;
+      openModal(teamGruendenPanel());
+    });
+    return neu;
+  }
+
+  function teamCodeKnopf(text){
+    var bei = make("button","minibtn leise", text || t("teamCodeEingeben"));
+    bei.type = "button";
+    bei.addEventListener("click", function(){
+      if (needAccount()) return;
+      openModal(teamBeitretenPanel(""));
+    });
+    return bei;
+  }
+
+  function renderTeams(){
+    var box = el("feed");
+    clear(box);
+    box.appendChild(make("h2","feedkopf", t("teamsTitel")));
+
+    if (!session){
+      box.appendChild(make("p","muted-line", t("teamsAnmelden")));
+      teamsErklaerkarte(box);
+      var anmelden = make("button","btn", t("signIn"));
+      anmelden.type = "button";
+      anmelden.addEventListener("click", function(){ openModal(authPanel("login")); });
+      box.appendChild(anmelden);
+      return;
+    }
+
+    // Kein Bildschirm ist leer, nur weil das Netz fehlt: erst der Hinweis,
+    // darunter immer der zuletzt geladene Stand.
+    if (teamsStand === "laedt" && !meineTeams.length){
+      box.appendChild(make("div","skelett"));
+      box.appendChild(make("div","skelett"));
+      return;
+    }
+    if (teamsStand === "fehler"){
+      var kasten = make("div", netzWeg() ? "info" : "err",
+        netzWeg() ? t("teamsKeinNetz") : t("teamsNochmalText"));
+      box.appendChild(kasten);
+      var wieder = make("button","btn secondary", t("teamsNochmal"));
+      wieder.type = "button";
+      wieder.addEventListener("click", function(){
+        teamsNeuLaden();
+      });
+      box.appendChild(wieder);
+    }
+
+    // Ganz oben: "{Team} hat euer Spiel angenommen."
+    tvtNeueZusagen().forEach(function(x){
+      var karte = make("div","feedcard");
+      karte.appendChild(make("div","zeit", uhrText(x.beginn) + " · " + tagKopf(x.beginn)));
+      karte.appendChild(make("h3", null, t("tvtAngenommen", x.gast_team || "—")));
+      karte.appendChild(make("p","details", x.platz + " · " + x.format));
+      var reiheZ = make("div","reihe");
+      var hin = make("button","minibtn", t("tvtAnsehen"));
+      hin.type = "button";
+      hin.addEventListener("click", function(){
+        tvtMerken(x.match_id);
+        renderFeed();
+        punkteSetzen();
+        openModal(tvtPanel(x.match_id));
+      });
+      var wegZ = make("button","minibtn leise", t("einladungWeg"));
+      wegZ.type = "button";
+      wegZ.addEventListener("click", function(){
+        tvtMerken(x.match_id); renderFeed(); punkteSetzen();
+      });
+      reiheZ.appendChild(hin);
+      reiheZ.appendChild(wegZ);
+      karte.appendChild(reiheZ);
+      box.appendChild(karte);
+    });
+
+    if (!meineTeams.length){
+      // Ohne Team: die Erklaerkarte, dann trotzdem "Gegner gesucht" -
+      // echte Ausschreibungen sind die beste Werbung fuers Teamgruenden.
+      teamsErklaerkarte(box);
+      var reiheOhne = make("div","reihe");
+      reiheOhne.id = "teamAktionen";
+      reiheOhne.appendChild(teamGruendenKnopf(false));
+      reiheOhne.appendChild(teamCodeKnopf(t("teamCodeEingeben")));
+      box.appendChild(reiheOhne);
+      gegnerBlock(box);
+      return;
+    }
+
+    var kap = kapitaenTeams();
+
+    box.appendChild(make("p","tagkopf", t("teams")));
+    meineTeams.forEach(function(tm){ box.appendChild(teamKarte(tm)); });
+
+    // Beim Kapitaen steht "Spiel ausschreiben" direkt unter der Teamkarte.
+    if (kap.length){
+      var ausschreiben = make("button","btn", t("tvtSpielAusschreiben"));
+      ausschreiben.type = "button";
+      ausschreiben.addEventListener("click", function(){ ausschreibenStarten(kap[0]); });
+      box.appendChild(ausschreiben);
+    }
+
+    box.appendChild(make("p","tagkopf", t("tvtUnsereSpiele")));
+    var unsere = teamSpiele.filter(function(x){
+      return x.status === "geplant" &&
+             new Date(x.beginn).getTime() > Date.now() - 2 * 3600 * 1000;
+    });
+    if (!unsere.length){
+      box.appendChild(make("p","muted-line",
+        kap.length ? t("tvtUnsereSpieleLeer") : t("tvtLeerMitglied")));
+    } else {
+      unsere.forEach(function(x){ box.appendChild(unsereSpielZeile(x)); });
+    }
+
+    gegnerBlock(box);
+
+    var reihe = make("div","reihe");
+    reihe.id = "teamAktionen";
+    reihe.style.marginTop = "14px";
+    if (kap.length){
+      var ein = make("button","minibtn leise", t("tvtMitgliederEinladen"));
+      ein.type = "button";
+      ein.addEventListener("click", function(){ openModal(teamPanel(kap[0])); });
+      reihe.appendChild(ein);
+    }
+    reihe.appendChild(teamCodeKnopf(t("teamWeiteresBeitreten")));
+    reihe.appendChild(teamGruendenKnopf(true));
+    box.appendChild(reihe);
+  }
+
+  function teamsErklaerkarte(box){
+    var karte = make("div","erklaer");
+    karte.appendChild(make("h3", null, t("teamsErklaerTitel")));
+    karte.appendChild(make("p", null, t("teamsErklaerLead")));
+    [[1, t("teamsSchritt1"), t("teamsSchritt1Text")],
+     [2, t("teamsSchritt2"), t("teamsSchritt2Text")],
+     [3, t("teamsSchritt3"), t("teamsSchritt3Text")]].forEach(function(s){
+      var zeile = make("div","schritt");
+      zeile.appendChild(make("span","nr", String(s[0])));
+      var was = make("span","was");
+      was.appendChild(make("strong", null, s[1]));
+      was.appendChild(make("span", null, s[2]));
+      zeile.appendChild(was);
+      karte.appendChild(zeile);
+    });
+    box.appendChild(karte);
+  }
+
+  // ---------- Reiter "Profil" ----------
+
+  function renderProfil(){
+    var box = el("feed");
+    clear(box);
+    box.appendChild(make("h2","feedkopf", t("tabProfil")));
+
+    if (!session){
+      box.appendChild(make("p","muted-line", t("anmeldenFuerProfil")));
+      var anmelden = make("button","btn", t("signIn"));
+      anmelden.type = "button";
+      anmelden.addEventListener("click", function(){ openModal(authPanel("login")); });
+      box.appendChild(anmelden);
+      spracheZeile(box);
+      return;
+    }
+
+    // Die Profilkarte bleibt flach, damit "Freunde" ohne Scrollen erreichbar ist.
+    var karte = make("div","profilkarte");
+    karte.appendChild(avatarBild(profile && profile.bild_url, (profile && profile.anzeigename) || "?"));
+    var wer = make("div","wer");
+    wer.appendChild(make("strong", null, (profile && profile.anzeigename) || "—"));
+    wer.appendChild(make("span", null,
+      [profile && districtName(profile.bezirk),
+       profile && profile.niveau ? t(LVLKEY[profile.niveau] || "lvlFreizeit") : null]
+      .filter(Boolean).join(" · ")));
+    karte.appendChild(wer);
+    var edit = make("button","minibtn", t("profilBearbeiten"));
+    edit.type = "button";
+    edit.addEventListener("click", function(){ openModal(profilePanel(false)); });
+    karte.appendChild(edit);
+    box.appendChild(karte);
+
+    freundeBlock(box);
+
+    box.appendChild(make("p","tagkopf", t("einstellungen")));
+    spracheZeile(box);
+
+    var out = make("button","btn secondary", t("signOut"));
+    out.type = "button";
+    out.style.marginTop = "9px";
+    out.addEventListener("click", function(){
+      sb.auth.signOut().then(function(){ forceCloseModal(); });
+    });
+    box.appendChild(out);
+
+    if (profile && profile.moderator){
+      var mod = make("button","btn secondary", t("modOeffnen"));
+      mod.type = "button";
+      mod.style.marginTop = "9px";
+      mod.addEventListener("click", function(){
+        ladeModeration().then(function(){ openModal(modPanel()); });
+      });
+      box.appendChild(mod);
+    }
+
+    var del = make("button","danger-link", t("deleteAccount"));
+    del.type = "button";
+    del.addEventListener("click", function(){ openModal(profilePanel(false)); });
+    box.appendChild(del);
+  }
+
+  function spracheZeile(box){
+    var knopf = make("button","btn secondary",
+      t("spracheLabel") + ": " + (lang === "de" ? "Deutsch" : "English"));
+    knopf.type = "button";
+    knopf.addEventListener("click", function(){ el("langBtn").click(); });
+    box.appendChild(knopf);
+  }
+
 
   function personZeile(p, aktionen){
     var zeile = make("div","person");
@@ -1548,10 +2311,16 @@
       });
   }
 
+  // Frueher ein eigener Reiter, jetzt der oberste Abschnitt im Reiter "Profil".
+  // Wird nach jeder Aenderung an den Freunden gerufen und zeichnet nur neu,
+  // wenn der Reiter "Profil" gerade offen ist.
   function renderFreunde(){
-    var box = el("feed");
-    clear(box);
-    box.appendChild(make("h2","feedkopf", t("freundeTitel")));
+    if (ansicht === "profil") renderProfil();
+    punkteSetzen();
+  }
+
+  function freundeBlock(box){
+    box.appendChild(make("p","tagkopf", t("freundeTitel")));
 
     if (!session){
       box.appendChild(make("p","muted-line", t("anmeldenFuerFreunde")));
@@ -1799,8 +2568,24 @@
     };
   }
 
-  function pinModusAn(){
+  function naechsterPlatz(e){
+    var bester = null, minPixel = Infinity;
+    filtered.forEach(function(v){
+      try {
+        var pt = map.project([v.lon, v.lat]);
+        var dx = pt.x - e.point.x, dy = pt.y - e.point.y;
+        var d = dx * dx + dy * dy;
+        if (d < minPixel){ minPixel = d; bester = v; }
+      } catch(err){}
+    });
+    return (bester && minPixel <= 44 * 44) ? bester : null;
+  }
+
+  function pinModusAn(zweck, team, rueckgabe){
     if (needAccount()) return;
+    pinZweck = (typeof zweck === "string") ? zweck : "melden";
+    pinTeam = team || null;
+    pinRueckgabe = rueckgabe || null;
     closeSheet();
     if (ansicht !== "karte") zeigeAnsicht("karte");
     if (listMode){
@@ -1811,14 +2596,24 @@
       if (map) map.resize();
     }
     pinModus = true;
+    el("pinbannerText").textContent = pinBannerText();
     el("pinbanner").hidden = false;
+    fabZeigen();
     if (map){ try { map.getCanvas().style.cursor = "crosshair"; } catch(e){} }
+  }
+
+  function pinBannerText(){
+    if (pinZweck === "teamspiel") return t("tvtPinHinweis");
+    if (pinZweck === "neuesspiel") return t("neuesSpielPinHinweis");
+    return t("meldenPinHinweis");
   }
 
   function pinModusAus(){
     pinModus = false;
+    pinZweck = "melden";
     var b = el("pinbanner");
     if (b) b.hidden = true;
+    fabZeigen();
     if (map){ try { map.getCanvas().style.cursor = ""; } catch(e){} }
   }
 
@@ -1905,11 +2700,6 @@
   }
 
   function zeigeAnsicht(name){
-    if (name === "profil"){
-      if (!session) openModal(authPanel("login"));
-      else openModal(profilePanel(false));
-      return;
-    }
     ansicht = name;
     var istKarte = (name === "karte");
     stopDm();
@@ -1920,24 +2710,45 @@
     el("feed").hidden = istKarte;
     if (!istKarte) closeSheet();
 
-    [["tabSpiele","feed"],["tabKarte","karte"],["tabFreunde","freunde"],["tabMeine","meine"],["tabProfil","profil"]].forEach(function(paar){
+    [["tabSpiele","feed"],["tabKarte","karte"],["tabTeams","teams"],
+     ["tabMeine","meine"],["tabProfil","profil"]].forEach(function(paar){
       var knopf = el(paar[0]);
       if (knopf) knopf.setAttribute("aria-current", paar[1] === name ? "true" : "false");
     });
 
     positionMain();
+    fabZeigen();
     if (istKarte){
       if (map) setTimeout(function(){ try { map.resize(); } catch(e){} }, 60);
       if (mapReady && !standortSchonGeholt) standortAutomatisch();
-    } else if (name === "freunde"){
-      renderFreunde();
     } else {
       renderFeed();
     }
   }
 
+  // Der schwebende Knopf steht auf Karte, Spiele und Meine - nicht auf Teams
+  // (dort ist "Spiel ausschreiben" die Haupthandlung) und nicht auf Profil.
+  // Er verschwindet, solange ein Blatt, der Pin-Modus oder ein Fenster offen ist.
+  function fabZeigen(){
+    var knopf = el("fabNeu");
+    if (!knopf) return;
+    var erlaubt = (ansicht === "karte" || ansicht === "feed" || ansicht === "meine");
+    var stoert = pinModus ||
+      !el("modal").hidden ||
+      el("sheet").classList.contains("open");
+    knopf.hidden = !(erlaubt && !stoert);
+  }
+
   function gamesAt(venueId){
     return games.filter(function(g){ return g.venue_id === venueId; });
+  }
+
+  function istTeamSpiel(g){ return g && g.modus === "team_vs_team"; }
+
+  function meinTeamSpiel(g){
+    return meineTeams.some(function(x){
+      return x.id === g.heim_team_id || (g.gast_team_id && x.id === g.gast_team_id);
+    });
   }
 
   function gameRow(g, withVenue){
@@ -1950,8 +2761,23 @@
     meta.push(g.format);
     meta.push(g.dauer_min + " " + t("minutes"));
     if (g.kosten_cent) meta.push(money(g.kosten_cent));
-    left.appendChild(make("span", null, meta.join(" · ")));
     var right = make("span","right");
+
+    if (istTeamSpiel(g)){
+      left.appendChild(make("span","paar", g.gast_team
+        ? ((g.heim_team || "—") + " vs " + g.gast_team)
+        : (g.heim_team || "—")));
+      left.appendChild(make("span", null, meta.join(" · ")));
+      right.appendChild(make("span","pill", t("tvtTeamSpiel")));
+      if (!g.gast_team_id) right.appendChild(make("span","pill ok", t("tvtGegnerGesucht")));
+      if (session && meinTeamSpiel(g)) right.appendChild(make("span","pill", t("tvtEuerSpiel")));
+      row.appendChild(left);
+      row.appendChild(right);
+      row.addEventListener("click", function(){ openModal(tvtPanel(g.id)); });
+      return row;
+    }
+
+    left.appendChild(make("span", null, meta.join(" · ")));
     var frei = (g.plaetze_gesamt || 0) - (g.zugesagt || 0);
     var pill = make("span","pill", frei > 0 ? t("spotsFree", frei) : t("full"));
     if (frei > 0) pill.classList.add("ok"); else pill.classList.add("warn");
@@ -2080,11 +2906,15 @@
   }
 
   function ladeTeams(){
-    meineTeams = [];
-    if (!session) return Promise.resolve();
+    if (!session){ meineTeams = []; teamsStand = "leer"; return Promise.resolve(); }
+    teamsStand = "laedt";
     return sb.rpc("meine_teams")
-      .then(function(res){ meineTeams = res.data || []; })
-      .catch(function(){});
+      .then(function(res){
+        if (res && res.error){ teamsStand = "fehler"; return; }
+        meineTeams = (res && res.data) || [];
+        teamsStand = "da";
+      })
+      .catch(function(){ teamsStand = "fehler"; });
   }
 
   function teamLink(code){ return APP_URL + "?team=" + code; }
@@ -2284,6 +3114,28 @@
       var liste = make("div","squad");
       panel.appendChild(liste);
       liste.appendChild(make("p","muted-line", "…"));
+
+      var teamExtra = make("div");
+      panel.appendChild(teamExtra);
+      teamExtra.appendChild(make("p","section-label", t("tvtUnsereSpiele")));
+      var unsereHier = teamSpiele.filter(function(x){
+        return (x.heim_team_id === team.id || x.gast_team_id === team.id) &&
+               x.status === "geplant" &&
+               new Date(x.beginn).getTime() > Date.now() - 2 * 3600 * 1000;
+      });
+      if (!unsereHier.length){
+        teamExtra.appendChild(make("p","muted-line", t("tvtUnsereSpieleLeer")));
+      } else {
+        unsereHier.forEach(function(x){ teamExtra.appendChild(gameRow(tvtZeilenSatz(x), true)); });
+      }
+      if (team.bin_kapitaen){
+        var ausTeam = make("button","btn secondary", t("tvtSpielAusschreiben"));
+        ausTeam.type = "button";
+        ausTeam.style.marginBottom = "14px";
+        ausTeam.addEventListener("click", function(){ ausschreibenStarten(team); });
+        teamExtra.appendChild(ausTeam);
+      }
+      noteBlock(teamExtra, team.id);
 
       if (team.bin_kapitaen){
         var edit = make("button","btn secondary", t("teamBearbeiten"));
@@ -2559,8 +3411,12 @@
     route.textContent = t("route");
     route.href = "https://www.google.com/maps/search/?api=1&query=" + v.lat + "," + v.lon;
     el("sheetOrganize").textContent = t("organize");
+    var tsKnopf = el("sheetTeamSpiel");
+    tsKnopf.textContent = t("tvtSpielAusschreiben");
+    tsKnopf.hidden = !(session && kapitaenTeams().length);
     el("sheetHint").textContent = (v.zugang === "verein" ? t("accessHint") + " " : "") + t("unverifiedHint");
     el("sheet").classList.add("open");
+    fabZeigen();
 
     pushToMap();
     if (!listMode && mapReady){
@@ -2571,6 +3427,7 @@
   function closeSheet(){
     selectedId = null;
     el("sheet").classList.remove("open");
+    fabZeigen();
     pushToMap();
   }
 
@@ -2580,6 +3437,7 @@
     el("modal").hidden = false;
     render(el("panel"));
     el("panel").scrollTop = 0;
+    fabZeigen();
   }
   function closeModal(){
     if (modalLocked) return;
@@ -2587,6 +3445,7 @@
     stopDm();
     el("modal").hidden = true;
     clear(el("panel"));
+    fabZeigen();
   }
   function stopChat(){
     if (chatChannel){
@@ -3164,11 +4023,17 @@
     };
   }
 
-  function chatBlock(panel, id, darfSchreiben){
+  function chatBlock(panel, id, darfSchreiben, opts){
+    var tvt = (opts && opts.meineSeite) ? opts : null;
     panel.appendChild(make("p","section-label", t("chat")));
-    if (!darfSchreiben){
+    if (tvt && tvt.gegner) panel.appendChild(make("p","hint", t("tvtChatSeiten", tvt.gegner)));
+    if (!darfSchreiben && !(opts && opts.nurLesen)){
       panel.appendChild(make("p","muted-line", t("chatOnlyForSquad")));
       return;
+    }
+    function eigenKlasse(){
+      if (!tvt) return "msg own";
+      return "msg tvt rechts own" + (tvt.meineSeite === "gast" ? " gastseite" : "");
     }
     var box = make("div","chat");
     panel.appendChild(box);
@@ -3179,7 +4044,7 @@
 
     function eigeneSofort(text){
       if (leerHinweis){ box.removeChild(leerHinweis); leerHinweis = null; }
-      var wrap = make("div","msg own wartet");
+      var wrap = make("div", eigenKlasse() + " wartet");
       var wann = "";
       try {
         wann = new Intl.DateTimeFormat(lang === "de" ? "de-AT" : "en-GB",
@@ -3202,27 +4067,39 @@
       if (eigen){
         for (var w = 0; w < wartend.length; w++){
           if (wartend[w].text === m.text){
-            wartend[w].el.className = "msg own";
+            wartend[w].el.className = eigenKlasse();
             wartend.splice(w, 1);
             return;
           }
         }
       }
       if (leerHinweis){ box.removeChild(leerHinweis); leerHinweis = null; }
-      var wrap = make("div", eigen ? "msg own" : "msg");
+      var klasse = eigen ? "msg own" : "msg";
+      if (tvt && m.seite){
+        var meins = (m.seite === tvt.meineSeite);
+        klasse = "msg tvt " + (meins ? "rechts " : "links ") +
+                 (eigen ? "own" : (meins ? "mit" : "andere")) +
+                 (m.seite === "gast" ? " gastseite" : "");
+      }
+      var wrap = make("div", klasse);
       var wann = "";
       try {
         wann = new Intl.DateTimeFormat(lang === "de" ? "de-AT" : "en-GB",
           { hour:"2-digit", minute:"2-digit", timeZone:"Europe/Vienna" }).format(new Date(m.gesendet_am));
       } catch(e){}
-      wrap.appendChild(make("div","meta", (m.anzeigename || "—") + " · " + wann));
+      var meta = make("div","meta");
+      var kopfText = (m.anzeigename || "—");
+      if (tvt && m.team_name) kopfText += " · " + m.team_name;
+      meta.appendChild(document.createTextNode(kopfText + " · " + wann));
+      if (tvt && m.ist_kapitaen) meta.appendChild(make("span","kappille", t("teamKapitaen")));
+      wrap.appendChild(meta);
       wrap.appendChild(make("div","bubble", m.text));
       if (!eigen && session){
         var mel = make("button","tinylink", t("reportBtn"));
         mel.type = "button";
         mel.addEventListener("click", function(){
           stopChat();
-          openModal(reportPanel("nachricht", m.id, gamePanel(id)));
+          openModal(reportPanel("nachricht", m.id, (tvt && tvt.zurueck) ? tvt.zurueck : gamePanel(id)));
         });
         wrap.appendChild(mel);
       }
@@ -3231,7 +4108,8 @@
     }
 
     function nachladen(erstesMal){
-      var q = sb.from("chat_public").select("id,user_id,text,gesendet_am,anzeigename")
+      var q = sb.from("chat_public")
+        .select("id,user_id,text,gesendet_am,anzeigename,team_id,team_name,seite,ist_kapitaen")
         .eq("match_id", id);
       if (!erstesMal && letzteZeit) q = q.gte("gesendet_am", letzteZeit);
       return q.order("gesendet_am").limit(100)
@@ -3247,6 +4125,15 @@
     }
     nachladen(true);
 
+    if (!darfSchreiben){
+      stopChat();
+      chatTimer = setInterval(function(){
+        if (el("modal").hidden){ stopChat(); return; }
+        if (document.hidden) return;
+        nachladen(false);
+      }, 4000);
+      return;
+    }
     var form = make("div","chatform");
     var feld = input("chat-input","text", t("chatPlaceholder"));
     feld.maxLength = 1000;
@@ -3283,7 +4170,8 @@
               var m = payload && payload.new;
               if (!m) return;
               if (session && m.user_id === session.user.id) return;
-              sb.from("chat_public").select("id,user_id,text,gesendet_am,anzeigename")
+              sb.from("chat_public")
+                .select("id,user_id,text,gesendet_am,anzeigename,team_id,team_name,seite,ist_kapitaen")
                 .eq("id", m.id).maybeSingle()
                 .then(function(r){ if (r.data) zeile(r.data); });
             })
@@ -3319,7 +4207,7 @@
     var z = make("div","sternzeile");
     z.appendChild(make("span","was", text));
     z.appendChild(sterneAnzeige(wert));
-    z.appendChild(make("span","wert", wert == null ? "—" : String(wert)));
+    z.appendChild(make("span","wert", wert == null ? "—" : zahl1(wert)));
     return z;
   }
 
@@ -3478,6 +4366,28 @@
       clear(panel);
       panel.appendChild(make("h2", null, spiel.platz));
       panel.appendChild(make("p","lead", fmtWhen(spiel.beginn) + " · " + spiel.format));
+
+      if (spiel.modus === "team_vs_team" && spiel.gegner_team_id){
+        panel.appendChild(make("p","section-label", t("tvtGegnerBewerten")));
+        var gegnerZeile = make("div","player");
+        gegnerZeile.appendChild(teamZeichen(spiel.gegner_team,
+          spiel.mein_team_id !== spiel.gegner_team_id, true, null));
+        gegnerZeile.appendChild(make("span","who", spiel.gegner_team || "—"));
+        if (spiel.team_bewertung_offen){
+          var teamBew = make("button","minibtn", t("tvtBewTitel"));
+          teamBew.type = "button";
+          teamBew.addEventListener("click", function(){
+            openModal(teamBewertenPanel(spiel.id, spiel.gegner_team, selbst));
+          });
+          gegnerZeile.appendChild(teamBew);
+        } else {
+          gegnerZeile.appendChild(make("span","pill ok", t("alleBewertet")));
+        }
+        gegnerZeile.style.marginBottom = "16px";
+        panel.appendChild(gegnerZeile);
+        panel.appendChild(make("p","section-label", t("tvtMitspielerBewerten")));
+      }
+
       var liste = make("div","squad");
       panel.appendChild(liste);
       liste.appendChild(make("p","muted-line", "…"));
@@ -3487,12 +4397,13 @@
       zu.addEventListener("click", closeModal);
       panel.appendChild(zu);
 
-      sb.from("spieler_public").select("user_id,status,anzeigename,bild_url")
+      sb.from("spieler_public").select("user_id,status,anzeigename,bild_url,team_id")
         .eq("match_id", spiel.id).then(function(res){
           clear(liste);
           var rows = (res.data || []).filter(function(r){
             return r.status === "zugesagt" && (!session || r.user_id !== session.user.id)
-                   && !blockedSet[r.user_id];
+                   && !blockedSet[r.user_id]
+                   && (spiel.modus !== "team_vs_team" || r.team_id === spiel.mein_team_id);
           });
           if (!rows.length){ liste.appendChild(make("p","muted-line", "—")); return; }
           rows.forEach(function(r){
@@ -3620,6 +4531,9 @@
   function gamePanel(id){
     return function(panel){
       var g = games.filter(function(x){ return x.id === id; })[0];
+      if ((g && g.modus === "team_vs_team") || (!g && tvtDaten(id))){
+        return tvtPanel(id)(panel);
+      }
       clear(panel);
       if (!g){ panel.appendChild(make("p","lead", t("cancelled"))); return; }
 
@@ -3794,12 +4708,176 @@
     };
   }
 
-  function createPanel(venue){
+  /* ---------------- Platz-Kaskade fuer "Spiel anlegen" ---------------- */
+
+  // Bis zu drei zuletzt bespielte Plaetze, neueste zuerst.
+  function letztePlaetze(){
+    try {
+      var l = JSON.parse(localStorage.getItem("jogavia-plaetze") || "[]");
+      return Array.isArray(l) ? l : [];
+    } catch(e){ return []; }
+  }
+
+  function platzMerken(venueId){
+    if (venueId === null || venueId === undefined) return;
+    try {
+      var l = letztePlaetze().filter(function(x){ return x !== venueId; });
+      l.unshift(venueId);
+      localStorage.setItem("jogavia-plaetze", JSON.stringify(l.slice(0, 3)));
+    } catch(e){}
+  }
+
+  function platzAusId(id){
+    return venues.filter(function(v){ return v.id === id; })[0] || null;
+  }
+
+  function letzterPlatz(){
+    var l = letztePlaetze();
+    for (var i = 0; i < l.length; i++){
+      var v = platzAusId(l[i]);
+      if (v) return v;
+    }
+    return null;
+  }
+
+  function meterEntfernung(lat1, lon1, lat2, lon2){
+    var R = 6371000;
+    var dLat = (lat2 - lat1) * Math.PI / 180;
+    var dLon = (lon2 - lon1) * Math.PI / 180;
+    var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) *
+      Math.sin(dLon/2) * Math.sin(dLon/2);
+    return 2 * R * Math.asin(Math.min(1, Math.sqrt(a)));
+  }
+
+  // Lieber gar kein Platz als ein falscher: nur unter 1500 Metern.
+  function platzImUmkreis(lat, lon){
+    var bester = null, min = Infinity;
+    venues.forEach(function(v){
+      var d = meterEntfernung(lat, lon, v.lat, v.lon);
+      if (d < min){ min = d; bester = v; }
+    });
+    return (bester && min < 1500) ? bester : null;
+  }
+
+  // Stufe 2 der Kaskade. Nur wenn die Standorterlaubnis schon einmal erteilt
+  // war, hoechstens 3 Sekunden Zeit.
+  function platzAusUmkreis(){
+    return new Promise(function(fertig){
+      var geo = null;
+      try { geo = navigator.geolocation; } catch(e){}
+      if (!geo){ fertig(null); return; }
+      var frage;
+      try {
+        frage = (navigator.permissions && navigator.permissions.query)
+          ? navigator.permissions.query({ name: "geolocation" })
+              .then(function(s){ return s.state === "granted"; })
+              .catch(function(){ return false; })
+          : Promise.resolve(false);
+      } catch(e){ frage = Promise.resolve(false); }
+      frage.then(function(erlaubt){
+        if (!erlaubt){ fertig(null); return; }
+        var erledigt = false;
+        var uhr = setTimeout(function(){
+          if (erledigt) return;
+          erledigt = true;
+          fertig(null);
+        }, 3000);
+        geo.getCurrentPosition(function(pos){
+          if (erledigt) return;
+          erledigt = true; clearTimeout(uhr);
+          fertig(platzImUmkreis(pos.coords.latitude, pos.coords.longitude));
+        }, function(){
+          if (erledigt) return;
+          erledigt = true; clearTimeout(uhr);
+          fertig(null);
+        }, { enableHighAccuracy: false, timeout: 3000, maximumAge: 300000 });
+      }).catch(function(){ fertig(null); });
+    });
+  }
+
+  // Ein Antippen: zuletzt bespielter Platz -> Umkreis -> Pin-Modus.
+  function spielAnlegenStarten(){
+    if (needAccount()) return;
+    neuesSpielWerte = null;
+    var letzter = letzterPlatz();
+    if (letzter){ openModal(createPanel(letzter, "zuletzt")); return; }
+    openModal(createPanel(null, "sucht"));
+    platzAusUmkreis().then(function(v){
+      var panel = el("panel");
+      if (el("modal").hidden || !panel.__platzSetzen) return;
+      if (v){ panel.__platzSetzen(v, "naehe"); return; }
+      // Kein brauchbarer Platz: ohne Zwischenblatt direkt in den Pin-Modus.
+      neuesSpielWerte = panel.__werte ? panel.__werte() : null;
+      closeModal();
+      pinModusAn("neuesspiel");
+    });
+  }
+
+  function nadelZeichen(){
+    var huelle = make("span","nadel");
+    huelle.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+      'stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      '<path d="M12 21.2s7-6.4 7-11.2a7 7 0 1 0-14 0c0 4.8 7 11.2 7 11.2z"/>' +
+      '<circle cx="12" cy="10" r="2.6"/></svg>';
+    return huelle;
+  }
+
+  function herkunftText(quelle){
+    if (quelle === "zuletzt") return t("platzHerkunftZuletzt");
+    if (quelle === "naehe") return t("platzHerkunftNaehe");
+    return null;
+  }
+
+  function createPanel(venue, herkunft){
     return function(panel){
       clear(panel);
+      var gewaehlt = venue || null;
+      var quelle = herkunft || null;
       panel.appendChild(make("h2", null, t("newGameTitle")));
-      panel.appendChild(make("p","lead", venue.name));
       var msg = make("div","err"); msg.hidden = true; panel.appendChild(msg);
+
+      // Ganze tippbare Zeile, mindestens 56 px - nicht nur das Woertchen "aendern".
+      var platzZeile = make("button","platzzeile");
+      platzZeile.type = "button";
+      platzZeile.id = "g-platz";
+      panel.appendChild(platzZeile);
+      var standortHinweis = make("p","hint", t("platzOhneStandort"));
+      standortHinweis.style.textAlign = "left";
+      standortHinweis.style.margin = "-8px 0 14px";
+      standortHinweis.hidden = true;
+      panel.appendChild(standortHinweis);
+
+      function zeileMalen(){
+        clear(platzZeile);
+        platzZeile.classList.toggle("leer", !gewaehlt);
+        platzZeile.appendChild(nadelZeichen());
+        var wo = make("span","wo");
+        if (gewaehlt){
+          wo.appendChild(make("strong", null, gewaehlt.name));
+          var unter = [districtName(gewaehlt.bezirk), herkunftText(quelle)].filter(Boolean).join(" · ");
+          if (unter) wo.appendChild(make("span", null, unter));
+        } else if (quelle === "sucht"){
+          wo.appendChild(make("strong", null, t("platzSuchtNaehe")));
+        } else {
+          wo.appendChild(make("strong", null, t("platzWaehlen")));
+          wo.appendChild(make("span", null, t("neuesSpielPinHinweis")));
+        }
+        platzZeile.appendChild(wo);
+        platzZeile.appendChild(make("span","wechsel", t("tvtPlatzAendern")));
+        // Ohne Platz immer der Hinweis, dass es auch ohne Standort geht.
+        standortHinweis.hidden = !(!gewaehlt && quelle !== "sucht");
+      }
+      zeileMalen();
+
+      platzZeile.addEventListener("click", function(){
+        // Beim Wechsel in den Pin-Modus geht nichts Eingetipptes verloren.
+        neuesSpielWerte = sammeln();
+        closeModal();
+        pinModusAn("neuesspiel");
+      });
+
+      panel.__platzSetzen = function(v, q){ gewaehlt = v; quelle = q; zeileMalen(); };
 
       var morgen = new Date(Date.now() + 24 * 3600 * 1000);
       var dateIn = input("g-date","date","");
@@ -3845,9 +4923,35 @@
       noteIn.maxLength = 200;
       panel.appendChild(field(t("noteL"), noteIn));
 
+      function sammeln(){
+        return { datum: dateIn.value, zeit: timeIn.value, format: fmtSel.value,
+                 plaetze: slotsIn.value, dauer: durSel.value, niveau: lvlSel.value,
+                 kosten: costIn.value, notiz: noteIn.value };
+      }
+      panel.__werte = sammeln;
+
+      // Nach dem Platzwechsel steht alles wieder da, was schon eingetippt war.
+      if (neuesSpielWerte){
+        var w = neuesSpielWerte;
+        neuesSpielWerte = null;
+        if (w.datum) dateIn.value = w.datum;
+        if (w.zeit) timeIn.value = w.zeit;
+        if (w.format) fmtSel.value = w.format;
+        if (w.plaetze) slotsIn.value = w.plaetze;
+        if (w.dauer) durSel.value = w.dauer;
+        if (w.niveau) lvlSel.value = w.niveau;
+        if (w.kosten !== undefined && w.kosten !== null) costIn.value = w.kosten;
+        if (w.notiz) noteIn.value = w.notiz;
+      }
+
       var go = make("button","btn", t("createBtn"));
       go.type = "button";
       go.addEventListener("click", function(){
+        // Ein toter Knopf sieht kaputt aus: der Knopf bleibt bedienbar und
+        // sagt, was fehlt.
+        if (!gewaehlt){
+          msg.textContent = t("platzZuerst"); msg.hidden = false; return;
+        }
         var beginn = new Date(dateIn.value + "T" + timeIn.value + ":00");
         if (isNaN(beginn.getTime()) || beginn.getTime() <= Date.now()){
           msg.textContent = t("timeInPast"); msg.hidden = false; return;
@@ -3857,7 +4961,7 @@
         }
         go.disabled = true;
         var row = {
-          venue_id: venue.id,
+          venue_id: gewaehlt.id,
           organisator_id: session.user.id,
           beginn: beginn.toISOString(),
           dauer_min: Number(durSel.value),
@@ -3869,6 +4973,7 @@
         };
         sb.from("matches").insert(row).select("id").then(function(res){
           if (res.error){ go.disabled = false; msg.textContent = res.error.message; msg.hidden = false; return; }
+          platzMerken(gewaehlt.id);
           var newId = res.data && res.data[0] && res.data[0].id;
           sb.rpc("spiel_beitreten", { p_match: newId }).then(function(){
             loadMyPart().then(loadGames).then(function(){
@@ -3907,6 +5012,1151 @@
       quit.type = "button";
       quit.addEventListener("click", closeModal);
       panel.appendChild(quit);
+    };
+  }
+
+  /* ---------------- Team gegen Team ---------------- */
+
+  function alsListe(res){ return (res && Array.isArray(res.data)) ? res.data : []; }
+
+  function formatGroesse(f){
+    var m = /^([0-9]{1,2})v[0-9]{1,2}$/.exec(String(f || ""));
+    return m ? Number(m[1]) : 11;
+  }
+
+  function zahl1(w){
+    if (w === null || w === undefined || w === "") return null;
+    var n = Number(w);
+    if (isNaN(n)) return null;
+    try {
+      return new Intl.NumberFormat(lang === "de" ? "de-AT" : "en-GB",
+        { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(n);
+    } catch(e){ return String(Math.round(n * 10) / 10); }
+  }
+
+  function vonZahl(a, b){ return String(a) + " " + t("tvtVonWort") + " " + String(b); }
+
+  function kapitaenTeams(){
+    return meineTeams.filter(function(x){ return x.bin_kapitaen; });
+  }
+
+  function teamZeichen(name, gast, klein, wappen){
+    var cls = "zeichen" + (gast ? " gast" : "") + (klein ? " klein" : "");
+    if (wappen){
+      var k = make("span", cls + " wappen");
+      var im = document.createElement("img");
+      im.src = wappen; im.alt = "";
+      k.appendChild(im);
+      return k;
+    }
+    return make("span", cls, initials(name || "?"));
+  }
+
+  function leerZeichen(klein){
+    return make("span", "zeichen leer" + (klein ? " klein" : ""), "?");
+  }
+
+  function tvtGesehen(){
+    try { return JSON.parse(localStorage.getItem("jogavia-tvt-gesehen") || "[]") || []; }
+    catch(e){ return []; }
+  }
+  function tvtMerken(id){
+    try {
+      var liste = tvtGesehen();
+      if (liste.indexOf(id) === -1) liste.push(id);
+      localStorage.setItem("jogavia-tvt-gesehen", JSON.stringify(liste.slice(-60)));
+    } catch(e){}
+  }
+  function tvtNeueZusagen(){
+    var gesehen = tvtGesehen();
+    return teamSpiele.filter(function(x){
+      return x.wir_sind_heim === true && x.gast_team_id && x.status === "geplant" &&
+             new Date(x.beginn).getTime() > Date.now() &&
+             gesehen.indexOf(x.match_id) === -1;
+    });
+  }
+
+  function tvtZeilenSatz(x){
+    return {
+      id: x.match_id, modus: "team_vs_team", beginn: x.beginn, platz: x.platz,
+      format: x.format, dauer_min: x.dauer_min, kosten_cent: x.kosten_cent,
+      heim_team: x.heim_team, gast_team: x.gast_team,
+      heim_team_id: x.heim_team_id, gast_team_id: x.gast_team_id
+    };
+  }
+
+  function ladeTeamSpiele(){
+    teamSpiele = [];
+    if (!session || !meineTeams.length) return Promise.resolve();
+    return sb.rpc("team_spiele", {}).then(function(res){
+      teamSpiele = alsListe(res);
+    }).catch(function(){});
+  }
+
+  // Auch ohne eigenes Team sichtbar: echte Ausschreibungen sind die beste
+  // Werbung fuers Teamgruenden. Zusagen bleibt Kapitaenen vorbehalten.
+  function ladeGegnerGesucht(){
+    gegnerListe = [];
+    if (!session) return Promise.resolve();
+    return sb.rpc("gegner_gesucht", {}).then(function(res){
+      gegnerListe = alsListe(res);
+    }).catch(function(){});
+  }
+
+  function ladeTeamNoten(){
+    teamNoten = {};
+    if (!session) return Promise.resolve();
+    return sb.rpc("team_noten", {}).then(function(res){
+      alsListe(res).forEach(function(n){ teamNoten[n.team_id] = n; });
+    }).catch(function(){});
+  }
+
+  function ladeTeamKram(){
+    return ladeTeamSpiele().then(ladeGegnerGesucht).then(ladeTeamNoten);
+  }
+
+  function netzWeg(){
+    try { return navigator.onLine === false; } catch(e){ return false; }
+  }
+
+  // Nach einem Fehler von Hand nachladen. Der zuletzt geladene Stand bleibt
+  // dabei stehen, damit der Bildschirm nie leer wird.
+  function teamsNeuLaden(){
+    teamsStand = "laedt";
+    renderFeed();
+    return ladeTeams().then(ladeTeamKram).then(function(){
+      renderFeed();
+      punkteSetzen();
+    });
+  }
+
+  // Hoechstens drei Punkte in der Reiterleiste, ohne Zahlen:
+  // an mich gerichtet -> Meine/Profil, an mein Team gerichtet -> Teams.
+  function punkteSetzen(){
+    var meine = el("punktMeine");
+    var teams = el("punktTeams");
+    var prof = el("punktProfil");
+    if (meine) meine.hidden = !(session && einladungen.length);
+    if (teams) teams.hidden = !(session && tvtNeueZusagen().length);
+    if (prof) prof.hidden = !(session && freunde.some(function(f){
+      return f.status === "angefragt" && f.richtung === "erhalten";
+    }));
+  }
+
+  // Die drei Quellen zu einem Satz zusammenlegen: matches_public, team_spiele, gegner_gesucht.
+  function tvtDaten(id){
+    var g = games.filter(function(x){ return x.id === id && x.modus === "team_vs_team"; })[0];
+    var mein = teamSpiele.filter(function(x){ return x.match_id === id; })[0];
+    var aus = gegnerListe.filter(function(x){ return x.match_id === id; })[0];
+    if (!g && !mein && !aus) return null;
+    var q = mein || g || aus;
+    var r = {
+      id: id,
+      beginn: q.beginn,
+      dauer_min: q.dauer_min,
+      format: q.format,
+      niveau: q.niveau,
+      kosten_cent: q.kosten_cent,
+      notiz: q.notiz,
+      status: (mein && mein.status) || (g && g.status) || "geplant",
+      absage_grund: mein ? mein.absage_grund : null,
+      venue_id: q.venue_id,
+      platz: q.platz,
+      bezirk: q.bezirk,
+      lat: q.lat,
+      lon: q.lon,
+      heim_team_id: q.heim_team_id,
+      heim_team: q.heim_team,
+      heim_wappen: q.heim_wappen || null,
+      gast_team_id: (mein ? mein.gast_team_id : (g ? g.gast_team_id : null)) || null,
+      gast_team: (mein ? mein.gast_team : (g ? g.gast_team : null)) || null,
+      gast_wappen: (mein && mein.gast_wappen) || (g && g.gast_wappen) || null,
+      mein_team_id: mein ? mein.mein_team_id : null,
+      wir_sind_heim: mein ? mein.wir_sind_heim : null,
+      bin_kapitaen: mein ? !!mein.bin_kapitaen : false,
+      mein_status: mein ? mein.mein_status : null,
+      heim_aufgestellt: mein ? mein.heim_aufgestellt : null,
+      gast_aufgestellt: mein ? mein.gast_aufgestellt : null,
+      soll_groesse: (mein && mein.soll_groesse) || formatGroesse(q.format),
+      note: aus ? aus.note : null,
+      bewertungen: aus ? aus.bewertungen : null,
+      heim_bezirk: aus ? aus.heim_bezirk : null,
+      heim_niveau: aus ? aus.heim_niveau : null,
+      eigenes: aus ? !!aus.eigenes : !!mein,
+      blockiert: aus ? !!aus.blockiert : false,
+      heim_kapitaen: aus ? !!aus.bin_kapitaen : false
+    };
+    r.offen = !r.gast_team_id;
+    return r;
+  }
+
+  // ---------- Anzeigetafel ----------
+
+  function tvtSeite(teamId, name, wappen, gast, anzahl, soll, zurueck){
+    var b = make("button","seite");
+    b.type = "button";
+    b.appendChild(teamZeichen(name, gast, false, wappen));
+    b.appendChild(make("h4", null, name || "—"));
+    if (anzahl !== undefined){
+      b.appendChild(make("span","zahl",
+        anzahl === null ? t("tvtNichtGemeldet") : vonZahl(anzahl, soll)));
+    }
+    b.addEventListener("click", function(){
+      stopChat();
+      teamOeffnen(teamId, name, zurueck);
+    });
+    return b;
+  }
+
+  function tvtTafel(r, zurueck){
+    var g = make("div","tafel");
+    if (r.status === "abgesagt") g.classList.add("gedaempft");
+    // Zahlen erst, wenn es eine Begegnung gibt und ich dabei bin.
+    var zeigeZahlen = !!(r.gast_team_id && r.mein_team_id);
+    g.appendChild(tvtSeite(r.heim_team_id, r.heim_team, r.heim_wappen, false,
+      zeigeZahlen ? r.heim_aufgestellt : undefined, r.soll_groesse, zurueck));
+    g.appendChild(make("div","vs","vs"));
+    if (r.gast_team_id){
+      g.appendChild(tvtSeite(r.gast_team_id, r.gast_team, r.gast_wappen, true,
+        zeigeZahlen ? r.gast_aufgestellt : undefined, r.soll_groesse, zurueck));
+    } else {
+      var leer = make("div","seite offen");
+      leer.appendChild(leerZeichen(false));
+      leer.appendChild(make("h4", null, t("tvtKeinGegner")));
+      g.appendChild(leer);
+    }
+    return g;
+  }
+
+  // ---------- Team-Profil ----------
+
+  function teamOeffnen(teamId, name, zurueck){
+    var eigenes = meineTeams.filter(function(x){ return x.id === teamId; })[0];
+    if (eigenes) openModal(teamPanel(eigenes));
+    else openModal(fremdesTeamPanel(teamId, name, zurueck));
+  }
+
+  function noteBlock(box, teamId){
+    var n = teamNoten[teamId];
+    box.appendChild(make("p","section-label", t("tvtBewertung")));
+    if (!n || !n.genug || n.gesamt === null || n.gesamt === undefined){
+      box.appendChild(make("p","muted-line", t("tvtNoteWenige")));
+      box.appendChild(make("p","hint", t("tvtNoteWenigeHint")));
+      return;
+    }
+    box.appendChild(sternzeile(t("bewGesamt"), n.gesamt));
+    BEWKATS.forEach(function(k){ box.appendChild(sternzeile(t(k.key), n[k.feld])); });
+    box.appendChild(make("p","hint", t("bewAnzahl", n.anzahl)));
+  }
+
+  function fremdesTeamPanel(teamId, name, zurueck){
+    return function(panel){
+      clear(panel);
+      panel.appendChild(make("h2", null, name || "—"));
+      var lead = make("p","lead", "…");
+      panel.appendChild(lead);
+      var inhalt = make("div");
+      panel.appendChild(inhalt);
+
+      var zu = make("button","quiet-link", t("cancel"));
+      zu.type = "button";
+      zu.addEventListener("click", function(){ if (zurueck) openModal(zurueck); else closeModal(); });
+      panel.appendChild(zu);
+
+      noteBlock(inhalt, teamId);
+
+      sb.from("teams").select("id,name,bezirk,niveau").eq("id", teamId).then(function(res){
+        var team = alsListe(res)[0];
+        if (!team){ lead.textContent = ""; return; }
+        sb.from("team_members").select("user_id").eq("team_id", teamId).then(function(res2){
+          var n = alsListe(res2).length;
+          lead.textContent = [districtName(team.bezirk),
+            team.niveau ? t(LVLKEY[team.niveau] || "lvlFreizeit") : null,
+            n === 1 ? t("teamEinMitglied") : t("teamMitglieder", n)].filter(Boolean).join(" · ");
+        });
+      });
+    };
+  }
+
+  // ---------- Gegner gesucht ----------
+
+  function gegnerKarte(row){
+    var karte = make("button","feedcard tvtkarte");
+    karte.type = "button";
+    var kopf = make("div","kopf");
+    kopf.appendChild(teamZeichen(row.heim_team, false, true, row.heim_wappen));
+    kopf.appendChild(make("span","nam", row.heim_team || "—"));
+    var note = (row.note === null || row.note === undefined)
+      ? t("tvtKeineNote")
+      : "★ " + zahl1(row.note) + " (" + (row.bewertungen || 0) + ")";
+    kopf.appendChild(make("span","note", note));
+    karte.appendChild(kopf);
+    karte.appendChild(make("p","details",
+      [districtName(row.heim_bezirk),
+       row.heim_niveau ? t(LVLKEY[row.heim_niveau] || "lvlFreizeit") : null,
+       row.eigenes ? t("tvtEureAusschreibung") : null].filter(Boolean).join(" · ")));
+    karte.appendChild(make("div","trenner"));
+    karte.appendChild(make("div","zeit", uhrText(row.beginn)));
+    karte.appendChild(make("h3", null, row.platz));
+    var det = [row.format, row.dauer_min + " " + t("minutes")];
+    if (row.kosten_cent) det.push(money(row.kosten_cent));
+    karte.appendChild(make("p","details", det.join(" · ")));
+    karte.addEventListener("click", function(){ openModal(tvtPanel(row.match_id)); });
+    return karte;
+  }
+
+  function gegnerLeerZustand(box, weiter){
+    var kap = kapitaenTeams();
+    if (kap.length){
+      box.appendChild(make("p","muted-line", t("tvtLeerKapitaen")));
+      box.appendChild(make("p","muted-line", t("tvtLeerKapitaenText")));
+      var reihe = make("div","reihe");
+      var neu = make("button","minibtn", t("tvtSpielAusschreiben"));
+      neu.type = "button";
+      neu.addEventListener("click", function(){ ausschreibenStarten(kap[0]); });
+      reihe.appendChild(neu);
+      var ein = make("button","minibtn leise", t("tvtMitgliederEinladen"));
+      ein.type = "button";
+      ein.addEventListener("click", function(){ openModal(teamPanel(kap[0])); });
+      reihe.appendChild(ein);
+      box.appendChild(reihe);
+      return;
+    }
+    if (!meineTeams.length){
+      // Wer in keinem Team ist, kann niemandem Bescheid sagen.
+      box.appendChild(make("p","muted-line", t("tvtLeerKapitaen")));
+      return;
+    }
+    box.appendChild(make("p","muted-line", t("tvtLeerMitglied")));
+    var auf = make("button","minibtn leise", t("tvtTeamOeffnen"));
+    auf.type = "button";
+    auf.addEventListener("click", function(){ openModal(teamPanel(meineTeams[0])); });
+    box.appendChild(auf);
+  }
+
+  function gegnerGesuchtPanel(){
+    var bezirkWahl = "";
+    var niveauWahl = "";
+    return function(panel){
+      clear(panel);
+      panel.appendChild(make("h2", null, t("tvtGegnerGesucht")));
+      panel.appendChild(make("p","lead", t("tvtGegnerLead")));
+
+      var liste = make("div");
+      var filterBox = make("div","chips filterzeile");
+      if (gegnerListe.length >= 4){
+        var bSel = select("gg-bez", bezirkOptionen(), bezirkWahl);
+        bSel.className = "chip";
+        var lSel = select("gg-lvl",
+          [{ value:"", label:t("tvtAlleNiveaus") }].concat(levelOptions()), niveauWahl);
+        lSel.className = "chip";
+        var neuMalen = function(){
+          bezirkWahl = bSel.value;
+          niveauWahl = lSel.value;
+          fuellen();
+        };
+        bSel.addEventListener("change", neuMalen);
+        lSel.addEventListener("change", neuMalen);
+        filterBox.appendChild(bSel);
+        filterBox.appendChild(lSel);
+        panel.appendChild(filterBox);
+      }
+      panel.appendChild(liste);
+
+      function fuellen(){
+        clear(liste);
+        var rows = gegnerListe.filter(function(x){
+          if (bezirkWahl && String(x.bezirk) !== String(bezirkWahl)) return false;
+          if (niveauWahl && x.niveau !== niveauWahl) return false;
+          return true;
+        });
+        if (!rows.length){
+          if (gegnerListe.length){
+            liste.appendChild(make("p","muted-line", t("tvtFilterLeer", gegnerListe.length)));
+            var zur = make("button","minibtn leise", t("tvtFilterZurueck"));
+            zur.type = "button";
+            zur.addEventListener("click", function(){
+              bezirkWahl = ""; niveauWahl = "";
+              openModal(gegnerGesuchtPanel());
+            });
+            liste.appendChild(zur);
+          } else {
+            gegnerLeerZustand(liste);
+          }
+          return;
+        }
+        var letzterTag = null;
+        rows.forEach(function(row){
+          var kopf = tagKopf(row.beginn);
+          if (kopf !== letzterTag){
+            liste.appendChild(make("p","tagkopf", kopf));
+            letzterTag = kopf;
+          }
+          liste.appendChild(gegnerKarte(row));
+        });
+      }
+      fuellen();
+
+      var zu = make("button","quiet-link", t("cancel"));
+      zu.type = "button";
+      zu.addEventListener("click", closeModal);
+      panel.appendChild(zu);
+    };
+  }
+
+  // ---------- Ausschreiben ----------
+
+  function ausschreibenStarten(team){
+    if (needAccount()) return;
+    closeModal();
+    pinModusAn("teamspiel", team || kapitaenTeams()[0] || null);
+  }
+
+  function ausschreibenPanel(opts){
+    var venue = opts.venue || null;
+    var vorTeam = opts.team || null;
+    var match = opts.match || null;
+    return function(panel){
+      clear(panel);
+      var aendern = !!match;
+      panel.appendChild(make("h2", null, aendern ? t("tvtAendern") : t("tvtSpielAusschreiben")));
+
+      var lead = make("p","lead");
+      lead.appendChild(document.createTextNode((venue ? venue.name : "—") + " · "));
+      var wechsel = make("button","linkish", t("tvtPlatzAendern"));
+      wechsel.type = "button";
+      wechsel.addEventListener("click", function(){
+        var merken = { match: match, werte: sammeln() };
+        var team = teamWahl();
+        closeModal();
+        pinModusAn("teamspiel", team, merken);
+      });
+      lead.appendChild(wechsel);
+      panel.appendChild(lead);
+
+      var msg = make("div","err"); msg.hidden = true; panel.appendChild(msg);
+      var hinweis = make("div","info"); hinweis.hidden = true; panel.appendChild(hinweis);
+
+      var kap = kapitaenTeams();
+      var teamSel = null;
+      var festesTeam = vorTeam || kap[0] || null;
+      if (!aendern && kap.length > 1){
+        teamSel = select("ts-team", kap.map(function(x){ return { value:String(x.id), label:x.name }; }),
+          festesTeam ? String(festesTeam.id) : "");
+        panel.appendChild(field(t("tvtEuerTeam"), teamSel));
+      }
+      function teamWahl(){
+        if (teamSel) return kap.filter(function(x){ return String(x.id) === teamSel.value; })[0] || festesTeam;
+        return festesTeam;
+      }
+
+      var start = match ? new Date(match.beginn) : new Date(Date.now() + 24 * 3600 * 1000);
+      var dateIn = input("ts-date","date","");
+      dateIn.value = isoDate(start);
+      var timeIn = input("ts-time","time","");
+      timeIn.value = match ? (zweiStellen(start.getHours()) + ":" + zweiStellen(start.getMinutes())) : "18:00";
+      var two = make("div","two");
+      two.appendChild(field(t("dateL"), dateIn));
+      two.appendChild(field(t("timeL"), timeIn));
+      panel.appendChild(two);
+
+      var fmtSel = select("ts-fmt", [
+        {value:"3v3",label:"3 vs 3"},{value:"4v4",label:"4 vs 4"},{value:"5v5",label:"5 vs 5"},
+        {value:"6v6",label:"6 vs 6"},{value:"7v7",label:"7 vs 7"},{value:"9v9",label:"9 vs 9"},
+        {value:"11v11",label:"11 vs 11"}
+      ], match ? match.format : "5v5");
+      var durSel = select("ts-dur", [
+        {value:"60",label:"60 " + t("minutes")},{value:"90",label:"90 " + t("minutes")},
+        {value:"120",label:"120 " + t("minutes")}
+      ], String((match && match.dauer_min) || 90));
+      var two2 = make("div","two");
+      two2.appendChild(field(t("formatL"), fmtSel));
+      two2.appendChild(field(t("durationL"), durSel));
+      panel.appendChild(two2);
+
+      var lvlSel = select("ts-lvl", levelOptions(),
+        (match && match.niveau) || (festesTeam && festesTeam.niveau) || "freizeit");
+      var costIn = input("ts-cost","number","€");
+      costIn.value = String(((match && match.kosten_cent) || 0) / 100);
+      costIn.min = "0"; costIn.step = "0.5";
+      var two3 = make("div","two");
+      two3.appendChild(field(t("levelL"), lvlSel));
+      two3.appendChild(field(t("tvtKostenProKopf"), costIn));
+      panel.appendChild(two3);
+
+      var noteIn = input("ts-note","text", t("notePlaceholder"));
+      noteIn.maxLength = 200;
+      noteIn.value = (match && match.notiz) || "";
+      panel.appendChild(field(t("noteL"), noteIn));
+
+      function pruefeGroesse(){
+        var team = teamWahl();
+        var noetig = formatGroesse(fmtSel.value);
+        if (team && team.mitglieder && team.mitglieder < noetig){
+          hinweis.textContent = t("tvtWenigeMitglieder");
+          hinweis.hidden = false;
+        } else {
+          hinweis.hidden = true;
+        }
+      }
+      fmtSel.addEventListener("change", pruefeGroesse);
+      if (teamSel) teamSel.addEventListener("change", pruefeGroesse);
+      pruefeGroesse();
+
+      function sammeln(){
+        return {
+          datum: dateIn.value, zeit: timeIn.value, format: fmtSel.value,
+          dauer: durSel.value, niveau: lvlSel.value, kosten: costIn.value, notiz: noteIn.value
+        };
+      }
+      if (opts.werte){
+        var w = opts.werte;
+        if (w.datum) dateIn.value = w.datum;
+        if (w.zeit) timeIn.value = w.zeit;
+        if (w.format) fmtSel.value = w.format;
+        if (w.dauer) durSel.value = w.dauer;
+        if (w.niveau) lvlSel.value = w.niveau;
+        if (w.kosten !== undefined) costIn.value = w.kosten;
+        if (w.notiz) noteIn.value = w.notiz;
+      }
+
+      panel.appendChild(make("p","hint", t("tvtAendernHinweis")));
+
+      var go = make("button","btn", aendern ? t("save") : t("tvtAusschreibenBtn"));
+      go.type = "button";
+      go.addEventListener("click", function(){
+        var team = teamWahl();
+        if (!venue){ msg.textContent = t("tvtKeinPlatz"); msg.hidden = false; return; }
+        if (!team){ msg.textContent = t("tvtNurKapitaenZusagen"); msg.hidden = false; return; }
+        var beginn = new Date(dateIn.value + "T" + timeIn.value + ":00");
+        if (isNaN(beginn.getTime()) || beginn.getTime() <= Date.now() - 3600000){
+          msg.textContent = t("timeInPast"); msg.hidden = false; return;
+        }
+        if (beginn.getTime() > Date.now() + 60 * 86400000){
+          msg.textContent = t("tooFar"); msg.hidden = false; return;
+        }
+        if (!aendern){
+          var offene = teamSpiele.filter(function(x){
+            return x.heim_team_id === team.id && !x.gast_team_id && x.status === "geplant" &&
+                   new Date(x.beginn).getTime() > Date.now();
+          });
+          if (offene.length >= 3){ msg.textContent = t("tvtDreiOffen"); msg.hidden = false; return; }
+        }
+        msg.hidden = true;
+        go.disabled = true;
+        var args = {
+          p_venue: venue.id,
+          p_beginn: beginn.toISOString(),
+          p_dauer: Number(durSel.value),
+          p_format: fmtSel.value,
+          p_niveau: lvlSel.value,
+          p_kosten: Math.round((Number(costIn.value) || 0) * 100),
+          p_notiz: noteIn.value.trim() || null
+        };
+        var ruf;
+        if (aendern){
+          args.p_match = match.id;
+          ruf = sb.rpc("team_spiel_aendern", args);
+        } else {
+          args.p_team = team.id;
+          ruf = sb.rpc("team_spiel_ausschreiben", args);
+        }
+        ruf.then(function(res){
+          go.disabled = false;
+          if (res.error){
+            var m = String(res.error.message || "");
+            msg.textContent = (m.indexOf("drei offene") !== -1) ? t("tvtDreiOffen") : m;
+            msg.hidden = false;
+            return;
+          }
+          platzMerken(venue.id);
+          var neueId = aendern ? match.id : Number(res.data);
+          loadGames().then(ladeTeamKram).then(function(){
+            toast(aendern ? t("spielGespeichert") : t("tvtAusgeschrieben"));
+            renderFeed();
+            openModal(tvtPanel(neueId));
+          });
+        }).catch(function(e){
+          go.disabled = false;
+          msg.textContent = String(e && e.message ? e.message : e);
+          msg.hidden = false;
+        });
+      });
+      panel.appendChild(go);
+
+      var zu = make("button","quiet-link", t("cancel"));
+      zu.type = "button";
+      zu.addEventListener("click", function(){
+        if (match) openModal(tvtPanel(match.id)); else closeModal();
+      });
+      panel.appendChild(zu);
+    };
+  }
+
+  // ---------- Aufstellung melden ----------
+
+  function aufstellungPanel(id, teamId, teamName, zurueck){
+    return function(panel){
+      clear(panel);
+      panel.appendChild(make("h2", null, t("tvtAufTitel")));
+      panel.appendChild(make("p","lead", (teamName || "—") + " · " + t("tvtAufLead")));
+      var msg = make("div","err"); msg.hidden = true; panel.appendChild(msg);
+      var grenze = make("div","info"); grenze.hidden = true; panel.appendChild(grenze);
+
+      var zaehler = make("p","feedkopf", "…");
+      panel.appendChild(zaehler);
+      var unterzeile = make("p","hint", "");
+      unterzeile.style.textAlign = "left";
+      panel.appendChild(unterzeile);
+
+      var liste = make("div");
+      panel.appendChild(liste);
+      liste.appendChild(make("div","skelett"));
+
+      var go = make("button","btn", t("tvtAufSpeichern"));
+      go.type = "button";
+      go.disabled = true;
+      panel.appendChild(go);
+
+      var zu = make("button","quiet-link", t("cancel"));
+      zu.type = "button";
+      panel.appendChild(zu);
+
+      var gewaehlt = {};
+      var ausgangs = "";
+      var maxGroesse = 11;
+
+      function zurueckGehen(){
+        if (JSON.stringify(gewaehlteListe()) !== ausgangs && !window.confirm(t("tvtAufVerwerfen"))) return;
+        if (zurueck) openModal(zurueck); else closeModal();
+      }
+      zu.addEventListener("click", zurueckGehen);
+
+      function gewaehlteListe(){
+        return Object.keys(gewaehlt).filter(function(k){ return gewaehlt[k]; }).sort();
+      }
+
+      sb.rpc("team_aufstellung", { p_match: id }).then(function(res){
+        clear(liste);
+        var alle = alsListe(res).filter(function(x){ return x.team_id === teamId; });
+        if (!alle.length){ liste.appendChild(make("p","muted-line", "—")); return; }
+        maxGroesse = alle[0].max_groesse || (formatGroesse("11v11") + 3);
+        var soll = alle[0].soll_groesse || 5;
+        unterzeile.textContent = soll + "v" + soll + " " + t("tvtPlusDrei");
+        alle.forEach(function(sp){ if (sp.aufgestellt) gewaehlt[sp.user_id] = true; });
+        ausgangs = JSON.stringify(gewaehlteListe());
+        go.disabled = false;
+
+        var zeilen = [];
+        alle.forEach(function(sp){
+          var z = make("button","wahlzeile");
+          z.type = "button";
+          z.appendChild(avatarBild(sp.bild_url, sp.anzeigename));
+          var wer = make("span","wer");
+          wer.appendChild(make("strong", null, sp.anzeigename || "—"));
+          var unten = [];
+          if (sp.ist_kapitaen) unten.push(t("teamKapitaen"));
+          if (sp.spielt_beim_gegner) unten.push(t("tvtAufBeimGegner"));
+          else if (sp.status === "abgesagt") unten.push(t("tvtAufAbgesagt"));
+          wer.appendChild(make("span", null, unten.join(" · ")));
+          z.appendChild(wer);
+          var haken = make("span","haken", sp.spielt_beim_gegner ? "–" : "✓");
+          z.appendChild(haken);
+          if (sp.spielt_beim_gegner){
+            z.classList.add("gesperrt");
+            z.disabled = true;
+          } else {
+            z.addEventListener("click", function(){
+              if (!gewaehlt[sp.user_id] && gewaehlteListe().length >= maxGroesse){
+                grenze.textContent = t("tvtAufGrenze", maxGroesse);
+                grenze.hidden = false;
+                return;
+              }
+              gewaehlt[sp.user_id] = !gewaehlt[sp.user_id];
+              malen();
+            });
+          }
+          z.__sp = sp;
+          zeilen.push(z);
+          liste.appendChild(z);
+        });
+
+        function malen(){
+          var n = gewaehlteListe().length;
+          zaehler.textContent = vonZahl(n, maxGroesse);
+          var voll = n >= maxGroesse;
+          if (!voll) grenze.hidden = true;
+          zeilen.forEach(function(z){
+            var sp = z.__sp;
+            var an = !!gewaehlt[sp.user_id];
+            z.setAttribute("aria-pressed", an ? "true" : "false");
+            z.classList.remove("blass");
+            if (!sp.spielt_beim_gegner && voll && !an) z.classList.add("blass");
+          });
+        }
+        malen();
+      });
+
+      go.addEventListener("click", function(){
+        go.disabled = true;
+        msg.hidden = true;
+        sb.rpc("team_aufstellung_setzen", {
+          p_match: id, p_team: teamId, p_spieler: gewaehlteListe()
+        }).then(function(res){
+          go.disabled = false;
+          if (res.error){ msg.textContent = res.error.message; msg.hidden = false; return; }
+          ausgangs = JSON.stringify(gewaehlteListe());
+          loadMyPart().then(loadGames).then(ladeTeamKram).then(function(){
+            toast(t("tvtAufGespeichert"));
+            renderFeed();
+            openModal(tvtPanel(id));
+          });
+        });
+      });
+    };
+  }
+
+  // ---------- Team bewerten ----------
+
+  function teamBewertenPanel(matchId, teamName, zurueck){
+    return function(panel){
+      clear(panel);
+      panel.appendChild(make("h2", null, t("tvtBewTitel")));
+      panel.appendChild(make("p","lead", t("tvtBewLead", teamName || "—")));
+      var msg = make("div","err"); msg.hidden = true; panel.appendChild(msg);
+
+      var eingaben = {};
+      BEWKATS.forEach(function(k){
+        var z = make("div","sternzeile");
+        z.appendChild(make("span","was", t(k.key)));
+        var e = sterneEingabe();
+        eingaben[k.feld] = e;
+        z.appendChild(e.el);
+        panel.appendChild(z);
+      });
+
+      panel.appendChild(make("p","hint", t("tvtBewHinweis")));
+
+      var go = make("button","btn", t("tvtBewSenden"));
+      go.type = "button";
+      go.addEventListener("click", function(){
+        var werte = {}, vollstaendig = true;
+        BEWKATS.forEach(function(k){
+          var w = eingaben[k.feld].wert();
+          if (!w) vollstaendig = false;
+          werte[k.feld] = w;
+        });
+        if (!vollstaendig){ msg.textContent = t("bewertenAlle"); msg.hidden = false; return; }
+        go.disabled = true;
+        sb.rpc("team_bewerten", {
+          p_match: matchId,
+          p_fairness: werte.fairness,
+          p_zuverlaessigkeit: werte.zuverlaessigkeit,
+          p_spielstaerke: werte.spielstaerke,
+          p_teamgeist: werte.teamgeist
+        }).then(function(res){
+          go.disabled = false;
+          if (res.error){ msg.textContent = res.error.message; msg.hidden = false; return; }
+          toast(t("tvtBewDanke"));
+          ladeVergangene().then(ladeTeamNoten).then(function(){
+            renderFeed();
+            if (zurueck) openModal(zurueck); else closeModal();
+          });
+        });
+      });
+      panel.appendChild(go);
+
+      var zu = make("button","quiet-link", t("cancel"));
+      zu.type = "button";
+      zu.addEventListener("click", function(){ if (zurueck) openModal(zurueck); else closeModal(); });
+      panel.appendChild(zu);
+    };
+  }
+
+  // ---------- Absagen ----------
+
+  function tvtAbsagenPanel(id, zurueck){
+    return function(panel){
+      clear(panel);
+      panel.appendChild(make("h2", null, t("tvtAbsagen")));
+      panel.appendChild(make("p","lead", t("tvtAbsagenLead")));
+      var msg = make("div","err"); msg.hidden = true; panel.appendChild(msg);
+
+      var grundText = "";
+      var chips = make("div","chips gruende");
+      chips.style.marginBottom = "13px";
+      var frei = input("ab-grund","text", t("tvtGrundPlatzhalter"));
+      frei.maxLength = 200;
+      [t("tvtGrundWenige"), t("tvtGrundWetter"), t("tvtGrundPlatz")].forEach(function(txt){
+        var c = make("button","chip", txt);
+        c.type = "button";
+        c.setAttribute("aria-pressed","false");
+        c.addEventListener("click", function(){
+          grundText = txt;
+          frei.value = txt;
+          Array.prototype.forEach.call(chips.children, function(x){
+            x.setAttribute("aria-pressed", x === c ? "true" : "false");
+          });
+        });
+        chips.appendChild(c);
+      });
+      panel.appendChild(chips);
+      panel.appendChild(field(t("tvtGrundFrei"), frei));
+
+      var go = make("button","btn", t("tvtAbsageSenden"));
+      go.type = "button";
+      go.addEventListener("click", function(){
+        go.disabled = true;
+        msg.hidden = true;
+        sb.rpc("team_spiel_absagen", { p_match: id, p_grund: (frei.value.trim() || grundText || null) })
+          .then(function(res){
+            go.disabled = false;
+            if (res.error){ msg.textContent = res.error.message; msg.hidden = false; return; }
+            if (res.data === "wieder_offen") tvtWiederOffen[id] = true;
+            loadMyPart().then(loadGames).then(ladeTeamKram).then(function(){
+              toast(res.data === "wieder_offen" ? t("tvtGastZurueckOk") : t("tvtAbgesagtOk"));
+              renderFeed();
+              closeModal();
+            });
+          });
+      });
+      panel.appendChild(go);
+
+      var zu = make("button","quiet-link", t("cancel"));
+      zu.type = "button";
+      zu.addEventListener("click", function(){ if (zurueck) openModal(zurueck); else closeModal(); });
+      panel.appendChild(zu);
+    };
+  }
+
+  // ---------- Die Begegnung ----------
+
+  function tvtAufstellungBlock(panel, r, selbst){
+    var eigeneBox = make("div");
+    panel.appendChild(eigeneBox);
+    var gegnerBox = make("div");
+    panel.appendChild(gegnerBox);
+
+    if (!session){
+      eigeneBox.appendChild(make("p","muted-line", t("tvtBesucherNamen")));
+      return;
+    }
+    eigeneBox.appendChild(make("div","skelett"));
+
+    sb.rpc("team_aufstellung", { p_match: r.id }).then(function(res){
+      clear(eigeneBox);
+      clear(gegnerBox);
+      var rows = alsListe(res);
+      if (!rows.length) return;
+      var meineSeite = r.wir_sind_heim === false ? "gast" : "heim";
+      var gegnerSeite = meineSeite === "heim" ? "gast" : "heim";
+      var meine = rows.filter(function(x){ return x.seite === meineSeite && x.aufgestellt; });
+      var gegner = rows.filter(function(x){ return x.seite === gegnerSeite && x.aufgestellt; });
+      var meinName = r.wir_sind_heim === false ? r.gast_team : r.heim_team;
+      var gegnerName = r.wir_sind_heim === false ? r.heim_team : r.gast_team;
+
+      var kopf = make("div","sternzeile");
+      var kopfText = make("span","was", t("tvtEureAufstellung"));
+      kopfText.style.fontFamily = "var(--display)";
+      kopfText.style.fontSize = "16px";
+      kopfText.style.fontWeight = "600";
+      kopf.appendChild(kopfText);
+      kopf.appendChild(make("span","wert", vonZahl(meine.length, r.soll_groesse)));
+      eigeneBox.appendChild(kopf);
+
+      if (!meine.length){
+        eigeneBox.appendChild(make("p","muted-line", t("tvtNichtGemeldet")));
+      } else {
+        var squad = make("div","squad");
+        meine.forEach(function(sp){
+          var item = make("div","player");
+          item.appendChild(avatarBild(sp.bild_url, sp.anzeigename));
+          var nam = make("button","namebtn", sp.anzeigename || "—");
+          nam.type = "button";
+          nam.addEventListener("click", function(){
+            stopChat();
+            openModal(spielerPanel(sp.user_id, selbst));
+          });
+          item.appendChild(nam);
+          if (sp.ist_kapitaen) item.appendChild(make("span","pill", t("teamKapitaen")));
+          squad.appendChild(item);
+        });
+        eigeneBox.appendChild(squad);
+      }
+
+      if (r.bin_kapitaen && r.status === "geplant"){
+        var aend = make("button","btn secondary", t("tvtAufstellungAendern"));
+        aend.type = "button";
+        aend.style.marginBottom = "13px";
+        aend.addEventListener("click", function(){
+          stopChat();
+          openModal(aufstellungPanel(r.id, r.mein_team_id, meinName, selbst));
+        });
+        eigeneBox.appendChild(aend);
+      }
+
+      var auf = make("button","aufklapp");
+      auf.type = "button";
+      auf.setAttribute("aria-expanded","false");
+      var pfeil = make("span","pfeil","▸");
+      auf.appendChild(pfeil);
+      auf.appendChild(make("span","titel",
+        (gegnerName || "—") + " · " + vonZahl(gegner.length, r.soll_groesse)));
+      gegnerBox.appendChild(auf);
+      var innen = make("div","squad");
+      innen.hidden = true;
+      gegnerBox.appendChild(innen);
+      if (!gegner.length){
+        innen.appendChild(make("p","muted-line", t("tvtNichtGemeldet")));
+      } else {
+        gegner.forEach(function(sp){
+          var item = make("div","player");
+          item.appendChild(avatarBild(sp.bild_url, sp.anzeigename));
+          var nam = make("button","namebtn", sp.anzeigename || "—");
+          nam.type = "button";
+          nam.addEventListener("click", function(){
+            stopChat();
+            openModal(spielerPanel(sp.user_id, selbst));
+          });
+          item.appendChild(nam);
+          if (sp.ist_kapitaen) item.appendChild(make("span","pill", t("teamKapitaen")));
+          innen.appendChild(item);
+        });
+      }
+      auf.addEventListener("click", function(){
+        var offen = innen.hidden;
+        innen.hidden = !offen;
+        pfeil.textContent = offen ? "▾" : "▸";
+        auf.setAttribute("aria-expanded", offen ? "true" : "false");
+      });
+    });
+  }
+
+  function tvtZusagenBlock(panel, r, msg){
+    var kap = kapitaenTeams().filter(function(x){ return x.id !== r.heim_team_id; });
+    if (!session){
+      var an = make("button","btn", t("signIn"));
+      an.type = "button";
+      an.addEventListener("click", function(){ openModal(authPanel("login")); });
+      panel.appendChild(an);
+      return;
+    }
+    if (!kap.length){
+      // Ohne eigenes Team ist die Ausschreibung sichtbar, aber nicht zusagbar.
+      // Statt "Zusagen" steht hier der Weg zum eigenen Team.
+      if (!meineTeams.length){
+        panel.appendChild(make("p","muted-line", t("teamBrauchtTeam")));
+        var gruenden = make("button","btn", t("teamGruenden"));
+        gruenden.type = "button";
+        gruenden.addEventListener("click", function(){ openModal(teamGruendenPanel()); });
+        panel.appendChild(gruenden);
+        return;
+      }
+      panel.appendChild(make("p","muted-line", t("tvtNurKapitaenZusagen")));
+      return;
+    }
+    if (r.blockiert){
+      panel.appendChild(make("div","info", t("tvtBlockWarnung")));
+    }
+    var wahl = null;
+    if (kap.length > 1){
+      wahl = select("tvt-team", kap.map(function(x){ return { value:String(x.id), label:x.name }; }),
+        String(kap[0].id));
+      panel.appendChild(field(t("tvtWelchesTeam"), wahl));
+    }
+    var go = make("button","btn", t("tvtZusagen"));
+    go.type = "button";
+    go.addEventListener("click", function(){
+      var team = wahl ? kap.filter(function(x){ return String(x.id) === wahl.value; })[0] : kap[0];
+      if (!team) return;
+      if (!window.confirm(t("tvtZusagenAsk", team.name))) return;
+      go.disabled = true;
+      sb.rpc("team_spiel_annehmen", { p_match: r.id, p_team: team.id }).then(function(res){
+        go.disabled = false;
+        if (!res.error) platzMerken(r.venue_id);
+        if (res.error){
+          var m = String(res.error.message || "");
+          msg.textContent = (m.indexOf("schon einen Gegner") !== -1) ? t("tvtSchonGegner") : m;
+          msg.hidden = false;
+          loadGames().then(ladeTeamKram).then(renderFeed);
+          return;
+        }
+        loadMyPart().then(loadGames).then(ladeTeamKram).then(function(){
+          toast(t("tvtZugesagtOk"));
+          renderFeed();
+          openModal(tvtPanel(r.id));
+        });
+      });
+    });
+    panel.appendChild(go);
+  }
+
+  function tvtPanel(id, zurueck){
+    var selbst = function(p){ return tvtPanel(id, zurueck)(p); };
+    return function(panel){
+      clear(panel);
+      var r = tvtDaten(id);
+      if (!r){
+        panel.appendChild(make("p","lead", t("tvtWeg")));
+        var weg = make("button","quiet-link", t("cancel"));
+        weg.type = "button";
+        weg.addEventListener("click", function(){ if (zurueck) openModal(zurueck); else closeModal(); });
+        panel.appendChild(weg);
+        return;
+      }
+
+      panel.appendChild(make("h2", null, r.platz));
+      panel.appendChild(make("p","lead",
+        fmtWhen(r.beginn) + " · " + r.format + " · " + r.dauer_min + " " + t("minutes")));
+
+      var msg = make("div","err"); msg.hidden = true; panel.appendChild(msg);
+
+      if (r.status === "abgesagt"){
+        panel.appendChild(make("div","err",
+          t("tvtAbgesagt") + (r.absage_grund ? " · " + r.absage_grund : "")));
+      } else if (tvtWiederOffen[id] && r.offen){
+        panel.appendChild(make("div","info", t("tvtWiederOffen")));
+      }
+
+      panel.appendChild(tvtTafel(r, selbst));
+
+      var facts = make("table","facts");
+      var tb = make("tbody");
+      facts.appendChild(tb);
+      function fact(k, v){
+        var tr = make("tr");
+        tr.appendChild(make("th", null, k));
+        tr.appendChild(make("td", null, v));
+        tb.appendChild(tr);
+      }
+      fact(t("levelL"), t(LVLKEY[r.niveau] || "lvlFreizeit"));
+      fact(t("costShort"), money(r.kosten_cent));
+      fact(t("district"), districtName(r.bezirk));
+      if (r.notiz) fact(t("noteL"), r.notiz);
+      panel.appendChild(facts);
+
+      var eigenerKapitaen = !!(session && r.eigenes && r.mein_team_id === r.heim_team_id && r.bin_kapitaen);
+      if (!eigenerKapitaen && r.offen && r.heim_kapitaen) eigenerKapitaen = true;
+
+      if (r.gast_team_id){
+        tvtAufstellungBlock(panel, r, selbst);
+        var darfSchreiben = !!(session && r.mein_team_id && r.status === "geplant");
+        var gegnerName = r.wir_sind_heim === false ? r.heim_team : r.gast_team;
+        if (session && r.mein_team_id){
+          chatBlock(panel, id, darfSchreiben, {
+            meineSeite: r.wir_sind_heim === false ? "gast" : "heim",
+            gegner: gegnerName,
+            nurLesen: !darfSchreiben,
+            zurueck: selbst
+          });
+        }
+      } else {
+        panel.appendChild(make("p","section-label", t("chat")));
+        panel.appendChild(make("p","muted-line", t("tvtChatStartet")));
+      }
+
+      if (r.status === "geplant" && r.offen){
+        if (eigenerKapitaen){
+          var aend = make("button","btn", t("tvtAendern"));
+          aend.type = "button";
+          aend.addEventListener("click", function(){
+            stopChat();
+            openModal(ausschreibenPanel({
+              venue: { id: r.venue_id, name: r.platz },
+              match: { id: r.id, beginn: r.beginn, format: r.format, dauer_min: r.dauer_min,
+                       niveau: r.niveau, kosten_cent: r.kosten_cent, notiz: r.notiz }
+            }));
+          });
+          panel.appendChild(aend);
+        } else {
+          tvtZusagenBlock(panel, r, msg);
+        }
+      }
+
+      var teilen = make("button","btn secondary", t("teilenBtn"));
+      teilen.type = "button";
+      teilen.style.marginTop = "9px";
+      teilen.addEventListener("click", function(){
+        spielTeilen({ id: r.id, platz: r.platz, beginn: r.beginn, format: r.format });
+      });
+      panel.appendChild(teilen);
+
+      if (session && !r.eigenes && !r.mein_team_id && r.heim_team_id){
+        var ans = make("button","btn secondary", t("tvtTeamAnsehen"));
+        ans.type = "button";
+        ans.style.marginTop = "9px";
+        ans.addEventListener("click", function(){
+          stopChat();
+          teamOeffnen(r.heim_team_id, r.heim_team, selbst);
+        });
+        panel.appendChild(ans);
+      }
+
+      if (r.status === "geplant" && r.gast_team_id && session && r.mein_team_id &&
+          r.mein_status === "zugesagt"){
+        var raus = make("button","btn secondary", t("tvtKannNicht"));
+        raus.type = "button";
+        raus.style.marginTop = "9px";
+        raus.addEventListener("click", function(){
+          if (!window.confirm(t("tvtKannNichtAsk"))) return;
+          raus.disabled = true;
+          sb.rpc("team_aufstellung_selbst_absagen", { p_match: id }).then(function(res){
+            raus.disabled = false;
+            if (res.error){ msg.textContent = res.error.message; msg.hidden = false; return; }
+            loadMyPart().then(loadGames).then(ladeTeamKram).then(function(){
+              toast(t("tvtAbgemeldet"));
+              renderFeed();
+              stopChat();
+              openModal(tvtPanel(id, zurueck));
+            });
+          });
+        });
+        panel.appendChild(raus);
+      }
+
+      if (r.status === "geplant" && r.bin_kapitaen && r.gast_team_id){
+        var ab = make("button","danger-link", t("tvtAbsagen"));
+        ab.type = "button";
+        ab.addEventListener("click", function(){
+          stopChat();
+          openModal(tvtAbsagenPanel(id, selbst));
+        });
+        panel.appendChild(ab);
+      }
+
+      if (r.status === "geplant" && r.offen && eigenerKapitaen){
+        var zurueckZiehen = make("button","danger-link", t("tvtZuruecknehmen"));
+        zurueckZiehen.type = "button";
+        zurueckZiehen.addEventListener("click", function(){
+          if (!window.confirm(t("tvtZuruecknehmenAsk"))) return;
+          zurueckZiehen.disabled = true;
+          sb.rpc("team_spiel_zuruecknehmen", { p_match: id }).then(function(res){
+            zurueckZiehen.disabled = false;
+            if (res.error){ msg.textContent = res.error.message; msg.hidden = false; return; }
+            loadGames().then(ladeTeamKram).then(function(){
+              toast(t("tvtZurueckgenommen"));
+              renderFeed();
+              closeModal();
+            });
+          });
+        });
+        panel.appendChild(zurueckZiehen);
+      }
+
+      if (session && !r.eigenes){
+        var mel = make("button","quiet-link", t("reportBtn"));
+        mel.type = "button";
+        mel.addEventListener("click", function(){
+          stopChat();
+          openModal(reportPanel("spiel", id, selbst));
+        });
+        panel.appendChild(mel);
+      }
+
+      var close = make("button","quiet-link", t("cancel"));
+      close.type = "button";
+      close.addEventListener("click", function(){ if (zurueck) openModal(zurueck); else closeModal(); });
+      panel.appendChild(close);
     };
   }
 
@@ -4043,14 +6293,15 @@
     el("sheetFotoBtn").textContent = t("fotoHinzu");
     el("sheetBildQuelle").textContent = t("fotoQuelleKurz");
     el("sheetMelden").textContent = t("meldenSheet");
-    el("pinbannerText").textContent = t("meldenPinHinweis");
+    el("pinbannerText").textContent = pinBannerText();
     el("pinbannerAbbrechen").textContent = t("meldenPinAbbrechen");
     el("myGamesBtn").textContent = t("myGames");
     el("tabSpieleText").textContent = t("tabSpiele");
     el("tabKarteText").textContent = t("tabKarte");
-    el("tabFreundeText").textContent = t("tabFreunde");
+    el("tabTeamsText").textContent = t("tabTeams");
     el("tabMeineText").textContent = t("tabMeine");
     el("tabProfilText").textContent = t("tabProfil");
+    el("fabNeuText").textContent = t("fabNeuesSpiel");
     if (ansicht !== "karte") renderFeed();
     el("langBtn").textContent = lang === "de" ? "EN" : "DE";
     document.documentElement.lang = lang;
@@ -4099,7 +6350,7 @@
       applyFilters();
     });
     el("sheetClose").addEventListener("click", closeSheet);
-    el("meldenBtn").addEventListener("click", pinModusAn);
+    el("meldenBtn").addEventListener("click", function(){ pinModusAn("melden"); });
     el("sheetFotoBtn").addEventListener("click", function(){
       if (!selectedVenue) return;
       if (needAccount()) return;
@@ -4110,7 +6361,12 @@
       this.value = "";
       fotoHochladen(f);
     });
-    el("pinbannerAbbrechen").addEventListener("click", pinModusAus);
+    el("pinbannerAbbrechen").addEventListener("click", function(){
+      var warNeuesSpiel = (pinZweck === "neuesspiel");
+      pinModusAus();
+      // Abbrechen darf die schon eingetippten Werte nicht wegwerfen.
+      if (warNeuesSpiel) openModal(createPanel(null, "offen"));
+    });
     el("sheetMelden").addEventListener("click", function(){
       if (!selectedVenue) return;
       if (needAccount()) return;
@@ -4121,12 +6377,21 @@
       if (needAccount()) return;
       openModal(createPanel(selectedVenue));
     });
+    el("sheetTeamSpiel").addEventListener("click", function(){
+      if (!selectedVenue) return;
+      if (needAccount()) return;
+      var kap = kapitaenTeams();
+      if (!kap.length) return;
+      closeSheet();
+      openModal(ausschreibenPanel({ venue: selectedVenue, team: kap[0] }));
+    });
     el("myGamesBtn").addEventListener("click", function(){ zeigeAnsicht("meine"); });
     el("tabSpiele").addEventListener("click", function(){ zeigeAnsicht("feed"); });
     el("tabKarte").addEventListener("click", function(){ zeigeAnsicht("karte"); });
-    el("tabFreunde").addEventListener("click", function(){ zeigeAnsicht("freunde"); });
+    el("tabTeams").addEventListener("click", function(){ zeigeAnsicht("teams"); });
     el("tabMeine").addEventListener("click", function(){ zeigeAnsicht("meine"); });
     el("tabProfil").addEventListener("click", function(){ zeigeAnsicht("profil"); });
+    el("fabNeu").addEventListener("click", spielAnlegenStarten);
     el("langBtn").addEventListener("click", function(){
       lang = lang === "de" ? "en" : "de";
       try { localStorage.setItem("jogavia-lang", lang); } catch(e){}
@@ -4209,7 +6474,7 @@
       applyLanguageToChrome();
       wire();
       buildMap();
-      zeigeAnsicht("feed");
+      zeigeAnsicht("karte");
       positionMain();
       window.addEventListener("resize", positionMain);
       if (location.search.indexOf("debug") !== -1) setTimeout(debugAnzeigen, 2000);
@@ -4227,8 +6492,8 @@
       sb.auth.getSession().then(function(res){
         session = res.data.session;
         loadProfile().then(loadMyPart).then(loadBlocked).then(loadFreunde).then(loadEinladungen)
-          .then(ladeVergangene).then(ladeTeams).then(loadGames)
-          .then(spielAusLink).then(teamAusLink);
+          .then(ladeVergangene).then(ladeTeams).then(ladeTeamKram).then(loadGames)
+          .then(punkteSetzen).then(spielAusLink).then(teamAusLink);
       });
       sb.auth.onAuthStateChange(function(evt, s){
         session = s;
@@ -4237,7 +6502,8 @@
           openModal(pwNeuPanel(), true);
         }
         loadProfile().then(loadMyPart).then(loadBlocked).then(loadFreunde).then(loadEinladungen)
-          .then(ladeVergangene).then(ladeTeams).then(loadGames);
+          .then(ladeVergangene).then(ladeTeams).then(ladeTeamKram).then(loadGames)
+          .then(punkteSetzen);
       });
     } catch (err){
       var box = make("div","err");
