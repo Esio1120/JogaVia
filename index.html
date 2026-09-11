@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#FAF6EF">
+<meta name="format-detection" content="telephone=no">
 <meta name="color-scheme" content="light">
 <title>JogaVia — Fußball in Wien</title>
 <link rel="icon" type="image/svg+xml" href="logo.svg">
@@ -551,6 +552,90 @@
     letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
   }
   .profilkarte .wer span{display:block;font-size:13px;color:var(--muted)}
+
+  /* ---------- Profil: erweiterte Ansicht ---------- */
+
+  /* Faktenchips im Profilkopf: dunkle Schrift auf Weiss, damit sie
+     in der Sonne lesbar bleiben - die graue Punktzeile war es nicht. */
+  .badge.fakt{
+    font-size:13px;padding:5px 11px;
+    background:var(--surface);color:var(--ink);border-color:var(--line-strong);
+  }
+
+  /* Freitext "Ueber mich". Wird ausschliesslich per textContent gefuellt,
+     nie per innerHTML - daher keine Links, kein HTML. */
+  .freitext{
+    background:var(--paper);border:1px solid var(--line);border-radius:12px;
+    padding:11px 13px;margin:0 0 15px;
+    font-size:14.5px;line-height:1.45;
+    white-space:pre-wrap;overflow-wrap:anywhere;
+  }
+
+  /* Feste Kachelhoehe, damit das Statistikraster nicht springt,
+     wenn statt der Quote "Noch zu wenige Spiele" darin steht. */
+  .statbox{min-height:74px;display:flex;flex-direction:column;justify-content:center}
+  .statbox .wenig{
+    display:block;font-family:var(--display);font-size:14px;font-weight:600;
+    line-height:1.2;color:var(--muted);margin-bottom:2px;
+  }
+
+  /* Melden und Blockieren nebeneinander, je 44 px hoch. */
+  .fussaktionen{
+    display:flex;gap:10px;margin:6px 0 0;padding-top:8px;border-top:1px solid var(--line);
+  }
+  .fussaktionen > *{flex:1 1 0;min-width:0;min-height:44px}
+  .quiet-link,.danger-link{min-height:44px}
+
+  /* Textfeld "Ueber mich". 16 px, sonst zoomt iOS beim Antippen hinein. */
+  .field textarea{
+    width:100%;min-height:96px;resize:vertical;
+    padding:11px 13px;border:1px solid var(--line-strong);border-radius:11px;
+    background:var(--paper);color:var(--ink);
+    font-family:inherit;font-size:16px;line-height:1.45;
+  }
+  .zeichenzaehler{
+    display:block;text-align:right;font-size:12.5px;color:var(--muted);margin:4px 0 0;
+  }
+  .zeichenzaehler.knapp{color:var(--clay)}
+
+  /* Eigene Fotogalerie */
+  .meinefotos{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 8px}
+  .meinfoto{
+    position:relative;width:96px;height:96px;flex:0 0 auto;
+    border-radius:12px;overflow:hidden;background:var(--sand);border:1px solid var(--line);
+  }
+  .meinfoto img{width:100%;height:100%;object-fit:cover;display:block}
+  .meinfoto .weg{
+    position:absolute;top:0;right:0;width:44px;height:44px;padding:5px;
+    background:none;border:0;display:flex;align-items:flex-start;justify-content:flex-end;
+  }
+  .meinfoto .weg span{
+    width:26px;height:26px;border-radius:50%;background:rgba(46,42,36,.72);color:#FFFFFF;
+    display:flex;align-items:center;justify-content:center;font-size:17px;line-height:1;
+  }
+  .fotoplus{
+    width:96px;height:96px;flex:0 0 auto;
+    border:2px dashed var(--line-strong);border-radius:12px;
+    background:var(--paper);color:var(--accent-deep);
+    font-size:28px;font-weight:600;line-height:1;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .fotoplus:hover{border-color:var(--accent)}
+
+  /* Quadratische Vorschaubilder im fremden Profil */
+  .bilder.quadrat .bild{width:96px;height:96px}
+
+  /* Ruhiger Hinweiskasten mit fetter erster Zeile */
+  .info b{display:block;font-weight:700;margin-bottom:3px}
+  .info.warn{background:var(--clay-soft);border-color:#EED9CC;color:var(--clay)}
+
+  /* Speichern klebt am unteren Rand des Panels, damit es bei
+     langem Formular immer erreichbar bleibt. */
+  .panelfuss{
+    position:sticky;bottom:0;z-index:1;
+    background:var(--surface);padding:10px 0 8px;margin-top:6px;
+    box-shadow:0 -10px 14px -12px rgba(60,48,32,.5);
+  }
 </style>
 </head>
 <body>
@@ -688,7 +773,7 @@
   var SUPABASE_KEY = "sb_publishable_NnIdoQ9sTsMkbRbuu_mYHw_T2bQ-iSZ";
   var APP_URL = "https://esio1120.github.io/JogaVia/";
   var BESTAETIGT_URL = "https://esio1120.github.io/JogaVia/bestaetigt.html";
-  var APP_VERSION = "2026-09-10 a";
+  var APP_VERSION = "2026-09-11 a";
   var FEHLER = [];
   function merkeFehler(e){
     var s = "";
@@ -915,6 +1000,68 @@
       reportReason: "Grund", reportPlaceholder: "kurz beschreiben",
       reportSend: "Meldung abschicken", reportSent: "Danke, wir schauen uns das an.",
       blockedHere: "Von dir blockiert",
+
+      profilUeberMich: "Über mich",
+      profilUeberMichHinweis: "Keine Handynummer, keine Adresse, kein Instagram-Name. Das hier lesen alle.",
+      profilUeberMichPlatzhalter: "Womit spielst du am liebsten? Ein, zwei Sätze reichen.",
+      profilZeichenRest: "noch {n} Zeichen",
+      profilAlterJahre: "{n} Jahre",
+
+      profilFotos: "Meine Fotos",
+      profilFotosFremd: "Fotos",
+      profilFotosHinweis: "Andere sehen sie in deinem Profil.",
+      profilFotoHinzu: "Foto hinzufügen",
+      profilFotoWeg: "Foto entfernen",
+      profilFotoWegAsk: "Dieses Foto aus deinem Profil nehmen?",
+      profilFotoGrenze: "Fünf Fotos sind das Höchste. Nimm zuerst eines heraus.",
+      profilFotoZuViele: "Du hast heute schon fünf Fotos hochgeladen. Morgen geht es weiter.",
+
+      profilFreigabeTitel: "Kurz vor dem Hochladen",
+      profilFreigabeLead: "Zwei Punkte, beide musst du bestätigen.",
+      profilFreigabe1: "Auf dem Bild bin nur ich zu sehen, oder ich habe die Zustimmung aller erkennbaren Personen.",
+      profilFreigabe2: "Auf dem Bild ist außer mir niemand unter 18 zu sehen.",
+      profilFreigabeFolgen: "Bilder mit fremden Leuten nehmen wir wieder herunter.",
+      profilFreigabeWeiter: "Bild auswählen",
+      profilFreigabeNoch: "Bestätige beide Punkte, dann geht es weiter.",
+
+      profilSicht: "Wer sieht was",
+      profilSichtHinweis: "Du siehst hier immer alles von dir. Verborgen heißt: nur für die anderen.",
+      profilSichtStatistik: "Spiele, Absagen und Bewertungen sehen immer alle. Das lässt sich nicht verbergen.",
+      profilSichtJugend: "Solange du unter 18 bist, bleiben Alter, Bezirk und Foto für andere verborgen. Ab 18 entscheidest du das selbst.",
+      profilZeigeAlter: "Alter",
+      profilZeigeAlterAn: "Andere sehen dein Alter als Zahl, zum Beispiel 24.",
+      profilZeigeAlterAus: "Niemand sieht dein Alter.",
+      profilZeigeBezirk: "Wohnbezirk",
+      profilZeigeBezirkAn: "Andere sehen, in welchem Bezirk du wohnst.",
+      profilZeigeBezirkAus: "Dein Bezirk bleibt für andere verborgen.",
+      profilZeigeFoto: "Profilfoto",
+      profilZeigeFotoAn: "Andere sehen dein Foto — überall in der App.",
+      profilZeigeFotoAus: "Andere sehen überall nur deine Initialen.",
+      profilFotoVerborgenKurz: "Foto verborgen",
+
+      profilGesperrt: "Dieses Konto ist zurzeit gesperrt.",
+      profilQuoteWenige: "Noch zu wenige Spiele",
+      profilQuoteWenigeHint: "Die Absagequote zeigen wir ab fünf gespielten Spielen.",
+      profilBewWenige: "noch nicht genug Bewertungen",
+
+      profilMelden: "Profil melden",
+      profilBlockieren: "Blockieren",
+      profilBildMelden: "Bild melden",
+      profilBildGrundFrage: "Was stimmt mit dem Bild nicht?",
+      profilBildGrundIchDrauf: "Ich bin auf dem Bild und will das nicht",
+      profilBildGrundAnderes: "Anderer Grund",
+      profilBildVerborgen: "Das Bild ist ausgeblendet. Wir schauen es uns an.",
+
+      profilAnfrage: "Freundschaftsanfrage senden",
+      profilAnfrageLaeuft: "Deine Anfrage läuft. Es gibt noch keine Antwort.",
+      profilAnfrageErhalten: "Diese Person hat dir eine Anfrage geschickt. Du findest sie im Reiter „Profil“.",
+      profilBefreundet: "Ihr seid befreundet.",
+
+      profilJahrTitel: "Noch eine Angabe",
+      profilJahrLead: "Wir brauchen dein Geburtsjahr, weil manche Teile der App erst ab 18 offen sind — Fotogalerie und Freitext. Wir zeigen anderen nie das Jahr, höchstens dein Alter in Jahren.",
+
+      profilAbsageTitel: "Einmal kurz zum Absagen",
+      profilAbsageText: "Wenn du zusagst, rechnen die anderen mit dir. Sagst du weniger als sechs Stunden vor Beginn ab, zählen wir das als kurzfristige Absage, und die Zahl steht in deinem Profil. Absagen ist in Ordnung — sag nur früh Bescheid.",
 
       tvtUnsereSpiele: "Unsere Spiele",
       tvtUnsereSpieleLeer: "Noch keine Begegnung.",
@@ -1214,6 +1361,68 @@
       reportReason: "Reason", reportPlaceholder: "describe briefly",
       reportSend: "Send report", reportSent: "Thanks, we will look into it.",
       blockedHere: "Blocked by you",
+
+      profilUeberMich: "About me",
+      profilUeberMichHinweis: "No phone number, no address, no Instagram handle. Everyone can read this.",
+      profilUeberMichPlatzhalter: "What do you like to play? A sentence or two is enough.",
+      profilZeichenRest: "{n} characters left",
+      profilAlterJahre: "{n} years old",
+
+      profilFotos: "My photos",
+      profilFotosFremd: "Photos",
+      profilFotosHinweis: "Others see them on your profile.",
+      profilFotoHinzu: "Add a photo",
+      profilFotoWeg: "Remove photo",
+      profilFotoWegAsk: "Take this photo off your profile?",
+      profilFotoGrenze: "Five photos is the maximum. Remove one first.",
+      profilFotoZuViele: "You have uploaded five photos today. More tomorrow.",
+
+      profilFreigabeTitel: "Before you upload",
+      profilFreigabeLead: "Two points. You need to confirm both.",
+      profilFreigabe1: "I am the only person in this picture, or I have the consent of everyone recognisable in it.",
+      profilFreigabe2: "Nobody under 18 apart from me is in this picture.",
+      profilFreigabeFolgen: "We take down pictures of people who did not agree to them.",
+      profilFreigabeWeiter: "Choose an image",
+      profilFreigabeNoch: "Confirm both points to continue.",
+
+      profilSicht: "Who sees what",
+      profilSichtHinweis: "You always see everything about yourself here. Hidden means: hidden from others.",
+      profilSichtStatistik: "Games, cancellations and ratings are always visible to everyone. That cannot be hidden.",
+      profilSichtJugend: "While you are under 18, your age, district and picture stay hidden from others. From 18 on it is your call.",
+      profilZeigeAlter: "Age",
+      profilZeigeAlterAn: "Others see your age as a number, for example 24.",
+      profilZeigeAlterAus: "Nobody sees your age.",
+      profilZeigeBezirk: "Home district",
+      profilZeigeBezirkAn: "Others see which district you live in.",
+      profilZeigeBezirkAus: "Your district stays hidden from others.",
+      profilZeigeFoto: "Profile picture",
+      profilZeigeFotoAn: "Others see your picture — everywhere in the app.",
+      profilZeigeFotoAus: "Others only ever see your initials.",
+      profilFotoVerborgenKurz: "Picture hidden",
+
+      profilGesperrt: "This account is currently suspended.",
+      profilQuoteWenige: "Not enough games yet",
+      profilQuoteWenigeHint: "We show the cancellation rate once you have played five games.",
+      profilBewWenige: "not enough ratings yet",
+
+      profilMelden: "Report profile",
+      profilBlockieren: "Block",
+      profilBildMelden: "Report picture",
+      profilBildGrundFrage: "What is wrong with this picture?",
+      profilBildGrundIchDrauf: "I am in this picture and I do not want that",
+      profilBildGrundAnderes: "Another reason",
+      profilBildVerborgen: "The picture is hidden now. We will look into it.",
+
+      profilAnfrage: "Send friend request",
+      profilAnfrageLaeuft: "Your request is pending. No answer yet.",
+      profilAnfrageErhalten: "This person sent you a request. You will find it on the “Profile” tab.",
+      profilBefreundet: "You are friends.",
+
+      profilJahrTitel: "One more detail",
+      profilJahrLead: "We need your year of birth because parts of the app open up at 18 — the photo gallery and the free text. We never show others the year, at most your age in years.",
+
+      profilAbsageTitel: "One thing about cancelling",
+      profilAbsageText: "When you sign up, the others count on you. If you cancel less than six hours before kick-off we count it as a late cancellation, and the number shows on your profile. Cancelling is fine — just tell them early.",
 
       tvtUnsereSpiele: "Our matches",
       tvtUnsereSpieleLeer: "No match yet.",
@@ -1869,6 +2078,9 @@
     var ja = make("button","minibtn", t("zusagen"));
     ja.type = "button";
     ja.addEventListener("click", function(){
+      // Hier gibt es kein Spielfenster. Wer den Hinweis noch nicht gesehen hat,
+      // bekommt erst das Spiel gezeigt - der naechste Tipp sagt zu.
+      if (absageHinweisNoetig()){ openModal(gamePanel(e.match_id)); return; }
       sb.rpc("spiel_beitreten", { p_match: e.match_id }).then(function(res){
         if (res.error){ toast(res.error.message); return; }
         sb.from("einladungen").delete().eq("id", e.id).then(function(){
@@ -2188,6 +2400,14 @@
       [profile && districtName(profile.bezirk),
        profile && profile.niveau ? t(LVLKEY[profile.niveau] || "lvlFreizeit") : null]
       .filter(Boolean).join(" · ")));
+    // Das eigene Bild bleibt hier sichtbar. Ohne diesen Hinweis glaubt man,
+    // der Schalter habe nicht gewirkt.
+    if (profile && profile.zeige_bild === false){
+      var verborgen = make("span","badge", t("profilFotoVerborgenKurz"));
+      verborgen.style.display = "inline-block";
+      verborgen.style.marginTop = "4px";
+      wer.appendChild(verborgen);
+    }
     karte.appendChild(wer);
     var edit = make("button","minibtn", t("profilBearbeiten"));
     edit.type = "button";
@@ -2235,13 +2455,7 @@
 
   function personZeile(p, aktionen){
     var zeile = make("div","person");
-    if (p.bild_url){
-      var bild = document.createElement("img");
-      bild.className = "avatar"; bild.src = p.bild_url; bild.alt = "";
-      zeile.appendChild(bild);
-    } else {
-      zeile.appendChild(make("div","avatar-fallback", initials(p.anzeigename || "?")));
-    }
+    zeile.appendChild(avatarVon(p));
     var wer = make("button","wer");
     wer.type = "button";
     wer.addEventListener("click", function(){
@@ -2262,11 +2476,14 @@
     return zeile;
   }
 
-  function anfrageSenden(zielId){
+  function anfrageSenden(zielId, danach){
     sb.from("friendships").insert({ von_id: session.user.id, an_id: zielId }).then(function(res){
       if (res.error){ toast(res.error.message); return; }
       toast(t("anfrageGesendet"));
-      loadFreunde().then(renderFreunde);
+      loadFreunde().then(function(){
+        renderFreunde();
+        if (danach) danach();
+      });
     });
   }
 
@@ -2293,8 +2510,9 @@
     if (!box) return;
     clear(box);
     if (text.length < 2){ box.appendChild(make("p","muted-line", t("mindestensZwei"))); return; }
-    sb.from("profiles").select("id,anzeigename,bild_url,bezirk,niveau")
-      .ilike("anzeigename", "%" + text + "%").limit(20)
+    // Suche laeuft ueber spieler_suchen(): dort werden Blockierte, bestehende
+    // Freundschaften und verborgene Bilder schon in der Datenbank beruecksichtigt.
+    sb.rpc("spieler_suchen", { p_text: text })
       .then(function(res){
         clear(box);
         var treffer = (res.data || []).filter(function(p){
@@ -3168,7 +3386,7 @@
         if (!rows.length){ liste.appendChild(make("p","muted-line", "—")); return; }
         rows.forEach(function(r){
           var item = make("div","player");
-          item.appendChild(avatarBild(r.bild_url, r.anzeigename));
+          item.appendChild(avatarVon(r));
           var nam = make("button","namebtn", r.anzeigename || "—");
           nam.type = "button";
           nam.addEventListener("click", function(){ openModal(spielerPanel(r.user_id, teamPanel(team))); });
@@ -3491,6 +3709,17 @@
       {value:"ambitioniert",label:t("lvlAmbitioniert")},{value:"wettkampf",label:t("lvlWettkampf")}
     ];
   }
+  // Gemerkt wird das im Profil, nicht im Browser: localStorage gilt fuer ein
+  // Geraet, und eine Pflichtinformation muss belegbar bleiben.
+  function absageHinweisNoetig(){
+    return !!(session && profile && !profile.absage_hinweis_gesehen);
+  }
+  function absageHinweisMerken(){
+    if (!absageHinweisNoetig()) return;
+    profile.absage_hinweis_gesehen = true;
+    sb.rpc("mein_absage_hinweis_gesehen").then(function(){}, function(){});
+  }
+
   function needAccount(){
     if (!session){ openModal(authPanel("login")); return true; }
     if (!profile){ openModal(profilePanel(true), true); return true; }
@@ -3783,15 +4012,168 @@
     };
   }
 
+  // Wird waehrend eines laufenden Uploads gesetzt, damit das Profil eine
+  // Platzhalter-Kachel zeigt, statt dass der Vorgang unsichtbar bleibt.
+  var profilFotoLaeuft = false;
+  var profilFotoFehler = null;
+
+  function istErwachsenJahr(jahr){
+    return !!jahr && (new Date().getFullYear() - Number(jahr)) >= 18;
+  }
+
+  // Ein nicht wegklickbares Fenster: ohne Geburtsjahr gilt ein Konto als
+  // minderjaehrig, und das wirkt sich auf Galerie und Freitext aus.
+  function geburtsjahrPanel(){
+    return function(panel){
+      clear(panel);
+      panel.appendChild(make("h2", null, t("profilJahrTitel")));
+      panel.appendChild(make("p","lead", t("profilJahrLead")));
+      var msg = make("div","err"); msg.hidden = true; panel.appendChild(msg);
+
+      var yearIn = input("f-year-pflicht","number", t("birthHint"));
+      yearIn.min = "1930";
+      yearIn.max = String(new Date().getFullYear());
+      panel.appendChild(field(t("birthYear"), yearIn));
+
+      var save = make("button","btn", t("save"));
+      save.type = "button";
+      save.addEventListener("click", function(){
+        var jahr = parseInt(yearIn.value, 10);
+        if (!jahr || jahr < 1930 || jahr > new Date().getFullYear()){
+          msg.textContent = t("needYear"); msg.hidden = false; return;
+        }
+        if (new Date().getFullYear() - jahr < 14){
+          msg.textContent = t("minAge"); msg.hidden = false; return;
+        }
+        save.disabled = true;
+        sb.rpc("mein_geburtsjahr_setzen", { p_jahr: jahr })
+          .then(function(res){
+            save.disabled = false;
+            if (res && res.error){ msg.textContent = res.error.message; msg.hidden = false; return; }
+            if (profile) profile.geburtsjahr = jahr;
+            toast(t("saved"));
+            forceCloseModal();
+          });
+      });
+      panel.appendChild(save);
+    };
+  }
+
+  // Zwei getrennte Haekchen vor jedem Hochladen. Sie werden nie gemerkt.
+  function profilFotoFreigabePanel(zurueck){
+    return function(panel){
+      clear(panel);
+      panel.appendChild(make("h2", null, t("profilFreigabeTitel")));
+      panel.appendChild(make("p","lead", t("profilFreigabeLead")));
+
+      var zusagen = { personen: false, minder: false };
+      function bauZeile(schluessel, text){
+        var z = make("button","wahlzeile");
+        z.type = "button";
+        z.setAttribute("aria-pressed", "false");
+        var wer = make("span","wer");
+        wer.appendChild(make("strong", null, text));
+        z.appendChild(wer);
+        z.appendChild(make("span","haken", "✓"));
+        z.addEventListener("click", function(){
+          zusagen[schluessel] = !zusagen[schluessel];
+          z.setAttribute("aria-pressed", zusagen[schluessel] ? "true" : "false");
+          malen();
+        });
+        panel.appendChild(z);
+      }
+      bauZeile("personen", t("profilFreigabe1"));
+      bauZeile("minder", t("profilFreigabe2"));
+
+      panel.appendChild(make("p","hint", t("profilFreigabeFolgen")));
+
+      var weiter = make("button","btn", t("profilFreigabeWeiter"));
+      weiter.type = "button";
+      weiter.disabled = true;
+      panel.appendChild(weiter);
+
+      // Weil ein gesperrter Knopf kein Antippen meldet, steht darunter
+      // dauerhaft, was noch fehlt - solange er gesperrt ist.
+      var nochHint = make("p","hint", t("profilFreigabeNoch"));
+      panel.appendChild(nochHint);
+
+      function malen(){
+        var beide = zusagen.personen && zusagen.minder;
+        weiter.disabled = !beide;
+        nochHint.hidden = beide;
+      }
+      malen();
+
+      var fileInput = document.createElement("input");
+      fileInput.type = "file"; fileInput.accept = "image/*"; fileInput.hidden = true;
+      panel.appendChild(fileInput);
+
+      weiter.addEventListener("click", function(){
+        if (!(zusagen.personen && zusagen.minder)) return;
+        fileInput.click();
+      });
+      fileInput.addEventListener("change", function(){
+        var f = fileInput.files && fileInput.files[0];
+        if (!f) return;
+        if (!(zusagen.personen && zusagen.minder)) return;
+        profilFotoHochladen(f);
+      });
+
+      var quit = make("button","quiet-link", t("cancel"));
+      quit.type = "button";
+      quit.addEventListener("click", function(){ if (zurueck) openModal(zurueck); else closeModal(); });
+      panel.appendChild(quit);
+    };
+  }
+
+  function profilFotoHochladen(datei){
+    if (!session) return;
+    if (datei.size > 5 * 1024 * 1024){ toast(t("fotoZuGross")); return; }
+    var ext = (datei.name.split(".").pop() || "jpg").toLowerCase();
+    if (["jpg","jpeg","png","webp"].indexOf(ext) === -1) ext = "jpg";
+    var pfad = session.user.id + "/" + Date.now() + "." + ext;
+
+    profilFotoLaeuft = true;
+    profilFotoFehler = null;
+    toast(t("fotoHochladen"));
+    openModal(profilePanel(false));
+
+    function fertig(fehler){
+      profilFotoLaeuft = false;
+      profilFotoFehler = fehler || null;
+      openModal(profilePanel(false));
+    }
+
+    sb.storage.from("profil").upload(pfad, datei).then(function(res){
+      if (res && res.error){ fertig(res.error.message); return; }
+      sb.from("profil_fotos").insert({
+        user_id: session.user.id,
+        pfad: pfad,
+        zusage_personen: true,
+        zusage_minderjaehrige: true
+      }).then(function(r2){
+        if (r2 && r2.error){
+          try { sb.storage.from("profil").remove([pfad]); } catch(e){}
+          fertig(r2.error.code === "42501" ? t("profilFotoZuViele") : r2.error.message);
+          return;
+        }
+        toast(t("fotoDa"));
+        fertig(null);
+      });
+    }).catch(function(e){ fertig(String(e)); });
+  }
+
   function profilePanel(isNew){
     return function(panel){
       clear(panel);
       panel.appendChild(make("h2", null, isNew ? t("almostDone") : t("profileTitle")));
       panel.appendChild(make("p","lead", isNew ? t("completeLead") : t("profileLead")));
       var msg = make("div","err"); msg.hidden = true; panel.appendChild(msg);
+      if (profilFotoFehler){ msg.textContent = profilFotoFehler; msg.hidden = false; profilFotoFehler = null; }
 
       var meta = (session && session.user && session.user.user_metadata) || {};
       var p = profile || { anzeigename: meta.anzeigename || "", geburtsjahr: meta.geburtsjahr || null };
+      var erwachsen = istErwachsenJahr(p.geburtsjahr);
       var avatarBox = make("div","avatar-edit");
       var avatarView;
       if (p.bild_url){
@@ -3832,44 +4214,58 @@
       });
       avatarBox.appendChild(fileBtn);
       avatarBox.appendChild(fileInput);
-      panel.appendChild(avatarBox);
+      // Eigener Rahmen um das Formular: der klebende Speichern-Streifen haelt
+      // nur bis hier, sonst laege er ueber Abmelden und Konto loeschen.
+      var formTeil = make("div");
+      panel.appendChild(formTeil);
+      formTeil.appendChild(avatarBox);
 
       var nameIn = input("f-name","text","");
       nameIn.value = p.anzeigename || "";
       nameIn.maxLength = 40;
-      panel.appendChild(field(t("displayName"), nameIn));
+      formTeil.appendChild(field(t("displayName"), nameIn));
 
       var yearIn = input("f-year","number", t("birthHint"));
       yearIn.min = "1930";
       yearIn.max = String(new Date().getFullYear());
       yearIn.value = p.geburtsjahr ? String(p.geburtsjahr) : "";
-      panel.appendChild(field(t("birthYear"), yearIn));
+      formTeil.appendChild(field(t("birthYear"), yearIn));
 
       var districtOpts = [{value:"", label:t("allDistricts")}];
       for (var i = 1; i <= 23; i++) districtOpts.push({ value:String(i), label: districtName(i) });
       var distSel = select("f-dist", districtOpts, p.bezirk ? String(p.bezirk) : "");
-      panel.appendChild(field(t("district"), distSel));
+      formTeil.appendChild(field(t("district"), distSel));
 
       var posSel = select("f-pos", [
         {value:"egal",label:t("posEgal")},{value:"tor",label:t("posTor")},
         {value:"abwehr",label:t("posAbwehr")},{value:"mittelfeld",label:t("posMittelfeld")},
         {value:"sturm",label:t("posSturm")}
       ], p.spielposition || "egal");
-      panel.appendChild(field(t("positionLabel"), posSel));
+      formTeil.appendChild(field(t("positionLabel"), posSel));
 
       var lvlSel = select("f-lvl", levelOptions(), p.niveau || "freizeit");
-      panel.appendChild(field(t("levelLabel"), lvlSel));
+      formTeil.appendChild(field(t("levelLabel"), lvlSel));
 
+      // Beim ersten Ausfuellen bleiben die drei neuen Abschnitte weg -
+      // sonst dauert der Einstieg doppelt so lang.
+      var ueberFeld = null;
+      if (!isNew){
+        sichtBlock(formTeil, p, erwachsen);
+        if (erwachsen) ueberFeld = ueberMichBlock(formTeil, p);
+        if (erwachsen) meineFotosBlock(formTeil);
+      }
+
+      var fuss = make("div","panelfuss");
       var save = make("button","btn", t("save"));
       save.type = "button";
       save.addEventListener("click", function(){
-        if (nameIn.value.trim().length < 2){ msg.textContent = t("needName"); msg.hidden = false; return; }
+        if (nameIn.value.trim().length < 2){ msg.textContent = t("needName"); msg.hidden = false; el("panel").scrollTop = 0; return; }
         var jahr = parseInt(yearIn.value, 10);
         if (!jahr || jahr < 1930 || jahr > new Date().getFullYear()){
-          msg.textContent = t("needYear"); msg.hidden = false; return;
+          msg.textContent = t("needYear"); msg.hidden = false; el("panel").scrollTop = 0; return;
         }
         if (new Date().getFullYear() - jahr < 14){
-          msg.textContent = t("minAge"); msg.hidden = false; return;
+          msg.textContent = t("minAge"); msg.hidden = false; el("panel").scrollTop = 0; return;
         }
         save.disabled = true;
         var row = {
@@ -3882,16 +4278,37 @@
           niveau: lvlSel.value,
           sprache: lang
         };
-        sb.from("profiles").upsert(row).then(function(res){
+        if (ueberFeld) row.ueber_mich = ueberFeld.value.trim() || null;
+        // Ueber mein_profil_speichern statt upsert: die Funktion laeuft mit
+        // erhoehten Rechten, prueft die Sperre und laesst Felder, die nicht
+        // mitgeschickt werden, unveraendert stehen.
+        sb.rpc("mein_profil_speichern", {
+          p_anzeigename: row.anzeigename,
+          p_geburtsjahr: row.geburtsjahr,
+          p_bild_url: row.bild_url,
+          p_bezirk: row.bezirk,
+          p_spielposition: row.spielposition,
+          p_niveau: row.niveau,
+          p_sprache: row.sprache,
+          p_ueber_mich: ueberFeld ? (ueberFeld.value.trim() || null) : null,
+          p_ueber_mich_setzen: !!ueberFeld
+        }).then(function(res){
           save.disabled = false;
-          if (res.error){ msg.textContent = res.error.message; msg.hidden = false; return; }
-          profile = row;
+          if (res.error){ msg.textContent = res.error.message; msg.hidden = false; el("panel").scrollTop = 0; return; }
+          // Zusammenfuehren statt ersetzen: sonst gingen moderator,
+          // die Sichtbarkeitsschalter und der Absagehinweis verloren.
+          var alt = profile || {};
+          var neu = {};
+          Object.keys(alt).forEach(function(k){ neu[k] = alt[k]; });
+          Object.keys(row).forEach(function(k){ neu[k] = row[k]; });
+          profile = neu;
           renderAccount();
           toast(t("saved"));
           forceCloseModal();
         });
       });
-      panel.appendChild(save);
+      fuss.appendChild(save);
+      formTeil.appendChild(fuss);
 
       if (!isNew){
         var out = make("button","btn secondary", t("signOut"));
@@ -3936,7 +4353,7 @@
           panel.appendChild(make("p","section-label", t("blockedList")));
           var liste = make("div","squad");
           panel.appendChild(liste);
-          sb.from("profiles").select("id,anzeigename,bild_url").in("id", blockKeys)
+          sb.from("profiles").select("id,anzeigename").in("id", blockKeys)
             .then(function(res){
               clear(liste);
               (res.data || []).forEach(function(r){
@@ -3960,6 +4377,148 @@
         panel.appendChild(close);
       }
     };
+  }
+
+  // Drei Schalter, die sofort speichern. Ein Datenschutzschalter, der still
+  // verfaellt, weil man das Panel ohne "Speichern" verlaesst, ist eine Falle.
+  function sichtBlock(panel, p, erwachsen){
+    panel.appendChild(make("p","section-label", t("profilSicht")));
+    if (!erwachsen) panel.appendChild(make("div","info", t("profilSichtJugend")));
+
+    var felder = [
+      { spalte: "zeige_alter",  titel: "profilZeigeAlter",  an: "profilZeigeAlterAn",  aus: "profilZeigeAlterAus" },
+      { spalte: "zeige_bezirk", titel: "profilZeigeBezirk", an: "profilZeigeBezirkAn", aus: "profilZeigeBezirkAus" },
+      { spalte: "zeige_bild",   titel: "profilZeigeFoto",   an: "profilZeigeFotoAn",   aus: "profilZeigeFotoAus" }
+    ];
+
+    felder.forEach(function(f){
+      // Unter 18 gilt "verborgen", unabhaengig davon, was in der Spalte steht.
+      var an = erwachsen ? (p[f.spalte] !== false) : false;
+      var z = make("button","wahlzeile");
+      z.type = "button";
+      z.setAttribute("aria-pressed", an ? "true" : "false");
+      var wer = make("span","wer");
+      wer.appendChild(make("strong", null, t(f.titel)));
+      var satz = make("span", null, t(an ? f.an : f.aus));
+      wer.appendChild(satz);
+      z.appendChild(wer);
+      // Strich statt leerem Kaestchen: "gilt hier nicht", nicht "noch nicht gedrueckt".
+      var haken = make("span","haken", erwachsen ? "✓" : "–");
+      z.appendChild(haken);
+
+      if (!erwachsen){
+        z.classList.add("gesperrt");
+        z.disabled = true;
+      } else {
+        z.addEventListener("click", function(){
+          var neu = !an;
+          z.disabled = true;
+          // Die Funktion verlangt alle drei Schalter, damit der Server nie
+          // einen Zwischenstand sieht. Die beiden anderen bleiben wie sie sind.
+          var satzObj = {
+            p_zeige_alter:  p.zeige_alter  !== false,
+            p_zeige_bezirk: p.zeige_bezirk !== false,
+            p_zeige_bild:   p.zeige_bild   !== false
+          };
+          satzObj["p_" + f.spalte] = neu;
+          sb.rpc("mein_sichtbarkeit_setzen", satzObj).then(function(res){
+            z.disabled = false;
+            if (res && res.error){ toast(res.error.message); return; }
+            an = neu;
+            if (profile) profile[f.spalte] = neu;
+            p[f.spalte] = neu;
+            z.setAttribute("aria-pressed", an ? "true" : "false");
+            satz.textContent = t(an ? f.an : f.aus);
+            toast(t("saved"));
+            if (f.spalte === "zeige_bild" && ansicht === "profil") renderProfil();
+          });
+        });
+      }
+      panel.appendChild(z);
+    });
+
+    panel.appendChild(make("p","hint", t("profilSichtHinweis")));
+    panel.appendChild(make("p","hint", t("profilSichtStatistik")));
+  }
+
+  function ueberMichBlock(panel, p){
+    panel.appendChild(make("p","section-label", t("profilUeberMich")));
+    panel.appendChild(make("div","info", t("profilUeberMichHinweis")));
+
+    var feld = document.createElement("textarea");
+    feld.id = "f-ueber";
+    feld.maxLength = 200;
+    feld.placeholder = t("profilUeberMichPlatzhalter");
+    feld.value = p.ueber_mich || "";
+    var wrap = make("div","field");
+    wrap.appendChild(feld);
+    panel.appendChild(wrap);
+
+    // Verbleibende Zeichen, nicht verbrauchte: "noch 163" ist eine Erlaubnis.
+    var zaehler = make("span","zeichenzaehler", "");
+    wrap.appendChild(zaehler);
+    function male(){
+      var rest = 200 - feld.value.length;
+      zaehler.textContent = t("profilZeichenRest", rest);
+      zaehler.className = "zeichenzaehler" + (rest <= 20 ? " knapp" : "");
+    }
+    feld.addEventListener("input", male);
+    male();
+    return feld;
+  }
+
+  function meineFotosBlock(panel){
+    panel.appendChild(make("p","section-label", t("profilFotos")));
+    var reihe = make("div","meinefotos");
+    panel.appendChild(reihe);
+    var hint = make("p","hint", "");
+    panel.appendChild(hint);
+
+    function malen(fotos){
+      clear(reihe);
+      fotos.forEach(function(f){
+        var kachel = make("div","meinfoto");
+        var im = document.createElement("img");
+        im.src = f.url; im.alt = "";
+        kachel.appendChild(im);
+        var weg = make("button","weg");
+        weg.type = "button";
+        weg.setAttribute("aria-label", t("profilFotoWeg"));
+        weg.appendChild(make("span", null, "×"));
+        weg.addEventListener("click", function(){
+          if (!window.confirm(t("profilFotoWegAsk"))) return;
+          profilFotoLoeschen(f, function(){ openModal(profilePanel(false)); });
+        });
+        kachel.appendChild(weg);
+        reihe.appendChild(kachel);
+      });
+
+      if (profilFotoLaeuft){
+        var warte = make("div","meinfoto");
+        warte.style.background = "var(--sand)";
+        warte.style.opacity = ".65";
+        reihe.appendChild(warte);
+      }
+
+      var anzahl = fotos.length + (profilFotoLaeuft ? 1 : 0);
+      if (anzahl < 5){
+        var plus = make("button","fotoplus", "+");
+        plus.type = "button";
+        plus.setAttribute("aria-label", t("profilFotoHinzu"));
+        plus.addEventListener("click", function(){
+          openModal(profilFotoFreigabePanel(profilePanel(false)));
+        });
+        reihe.appendChild(plus);
+        hint.textContent = vonZahl(fotos.length, 5) + " · " + t("profilFotosHinweis");
+      } else {
+        hint.textContent = t("profilFotoGrenze");
+      }
+    }
+
+    malen([]);
+    if (session){
+      profilFotosLaden(session.user.id).then(function(fotos){ malen(fotos); });
+    }
   }
 
   function loadBlocked(){
@@ -4244,64 +4803,401 @@
     return f;
   }
 
-  function spielerPanel(userId, zurueck){
+  // Ein Ort fuer die Regel "verborgenes Profilfoto": der Server liefert bild_url
+  // gar nicht erst aus, wenn es verborgen ist. Die Oberflaeche baut nie selbst
+  // eine Adresse aus der Nutzer-ID. Alle Listen gehen hier durch.
+  function avatarVon(p, gross){
+    return avatarBild(p && p.bild_url, p && p.anzeigename, gross);
+  }
+
+  // Gueltigkeitsdauer der signierten Adressen fuer den nicht oeffentlichen
+  // Ordner "profil". Eine Stunde: lang genug, um ein Profil in Ruhe anzusehen,
+  // kurz genug, dass eine weitergegebene Adresse nicht liegen bleibt. Die
+  // Adressen werden bei jedem Oeffnen der Ansicht neu geholt.
+  var PROFIL_URL_DAUER = 3600;
+
+  function profilFotosLaden(userId){
+    return sb.from("profil_fotos").select("id,pfad,user_id")
+      .eq("user_id", userId).order("sortierung")
+      .then(function(res){
+        var reihen = (res && res.data) || [];
+        if (!reihen.length) return [];
+        var pfade = reihen.map(function(r){ return r.pfad; });
+        return sb.storage.from("profil").createSignedUrls(pfade, PROFIL_URL_DAUER)
+          .then(function(sig){
+            var karte = {};
+            ((sig && sig.data) || []).forEach(function(e){
+              if (e && e.path && e.signedUrl) karte[e.path] = e.signedUrl;
+            });
+            var fertig = [];
+            reihen.forEach(function(r){
+              if (karte[r.pfad]){ r.url = karte[r.pfad]; fertig.push(r); }
+            });
+            return fertig;
+          }).catch(function(){ return []; });
+      }).catch(function(){ return []; });
+  }
+
+  // Grossansicht eines Profilfotos. Bewusst eine eigene Funktion neben
+  // galeriePanel: die Platzgalerie mischt Luftbild, Platz- und Parkfotos und
+  // wird an mehreren Stellen gerufen - die bleibt unberuehrt.
+  function profilFotoLoeschen(foto, danach){
+    sb.from("profil_fotos").delete().eq("id", foto.id).then(function(res){
+      if (res && res.error){ toast(res.error.message); return; }
+      try { sb.storage.from("profil").remove([foto.pfad]); } catch(e){}
+      if (danach) danach();
+    });
+  }
+
+  function profilGaleriePanel(daten, fotos, start, zurueck){
     return function(panel){
+      var pos = Math.max(0, Math.min(start || 0, fotos.length - 1));
       clear(panel);
-      panel.appendChild(make("h2", null, t("profilTitel")));
-      var inhalt = make("div");
-      panel.appendChild(inhalt);
-      inhalt.appendChild(make("p","muted-line", "…"));
+      panel.appendChild(make("h2", null, daten.anzeigename || "—"));
+      var lead = make("p","lead", "");
+      panel.appendChild(lead);
+      var rahmen = make("div","grossbild foto");
+      panel.appendChild(rahmen);
+
+      var leiste = make("div","galleiste");
+      var zurueckKn = make("button","pfeil", "‹");
+      zurueckKn.type = "button";
+      zurueckKn.setAttribute("aria-label", t("bildZurueck"));
+      var zaehler = make("span","zaehler", "");
+      var vorKn = make("button","pfeil", "›");
+      vorKn.type = "button";
+      vorKn.setAttribute("aria-label", t("bildWeiter"));
+      leiste.appendChild(zurueckKn);
+      leiste.appendChild(zaehler);
+      leiste.appendChild(vorKn);
+      panel.appendChild(leiste);
+
+      var fuss = make("div");
+      panel.appendChild(fuss);
 
       var zu = make("button","quiet-link", t("cancel"));
       zu.type = "button";
       zu.addEventListener("click", function(){ if (zurueck) openModal(zurueck); else closeModal(); });
       panel.appendChild(zu);
 
+      function zeichne(){
+        var f = fotos[pos];
+        clear(rahmen);
+        clear(fuss);
+        zaehler.textContent = (pos + 1) + " / " + fotos.length;
+        zurueckKn.disabled = (pos === 0);
+        vorKn.disabled = (pos === fotos.length - 1);
+        lead.textContent = t("fotoVon", daten.anzeigename || "—");
+        var img = document.createElement("img");
+        img.alt = ""; img.src = f.url;
+        rahmen.appendChild(img);
+
+        var eigenes = !!(session && f.user_id === session.user.id);
+        if (eigenes){
+          var weg = make("button","danger-link", t("profilFotoWeg"));
+          weg.type = "button";
+          weg.addEventListener("click", function(){
+            if (!window.confirm(t("profilFotoWegAsk"))) return;
+            profilFotoLoeschen(f, function(){ if (zurueck) openModal(zurueck); else closeModal(); });
+          });
+          fuss.appendChild(weg);
+        } else if (session){
+          var mel = make("button","quiet-link", t("profilBildMelden"));
+          mel.type = "button";
+          mel.addEventListener("click", function(){
+            openModal(bildMeldenPanel(f, profilGaleriePanel(daten, fotos, pos, zurueck), zurueck));
+          });
+          fuss.appendChild(mel);
+        }
+      }
+
+      function blaettern(schritt){
+        var neu = pos + schritt;
+        if (neu < 0 || neu >= fotos.length) return;
+        pos = neu;
+        zeichne();
+      }
+      zurueckKn.addEventListener("click", function(){ blaettern(-1); });
+      vorKn.addEventListener("click", function(){ blaettern(1); });
+
+      var startX = null, startY = null;
+      rahmen.addEventListener("touchstart", function(ev){
+        if (!ev.touches || ev.touches.length !== 1) return;
+        startX = ev.touches[0].clientX;
+        startY = ev.touches[0].clientY;
+      }, { passive: true });
+      rahmen.addEventListener("touchend", function(ev){
+        if (startX === null || !ev.changedTouches) return;
+        var dx = ev.changedTouches[0].clientX - startX;
+        var dy = ev.changedTouches[0].clientY - startY;
+        startX = null; startY = null;
+        if (Math.abs(dx) < 45 || Math.abs(dx) < Math.abs(dy)) return;
+        blaettern(dx < 0 ? 1 : -1);
+      }, { passive: true });
+
+      zeichne();
+    };
+  }
+
+  // Eigenes kleines Meldefenster: der Grund bestimmt hier die Wirkung,
+  // deshalb nicht das allgemeine reportPanel mit blossem Freitext.
+  function bildMeldenPanel(foto, zurueckBild, zurueckProfil){
+    return function(panel){
+      clear(panel);
+      panel.appendChild(make("h2", null, t("profilBildMelden")));
+      panel.appendChild(make("p","lead", t("profilBildGrundFrage")));
+      var msg = make("div","err"); msg.hidden = true; panel.appendChild(msg);
+
+      var wahl = null;
+      var zeilen = [];
+      function bauZeile(schluessel, text){
+        var z = make("button","wahlzeile");
+        z.type = "button";
+        z.setAttribute("aria-pressed", "false");
+        var wer = make("span","wer");
+        wer.appendChild(make("strong", null, text));
+        z.appendChild(wer);
+        z.appendChild(make("span","haken", "✓"));
+        z.addEventListener("click", function(){
+          wahl = schluessel;
+          malen();
+        });
+        zeilen.push({ el: z, key: schluessel });
+        panel.appendChild(z);
+        return z;
+      }
+      bauZeile("ich", t("profilBildGrundIchDrauf"));
+      bauZeile("anderes", t("profilBildGrundAnderes"));
+
+      var grundFeld = input("bm-grund","text", t("reportPlaceholder"));
+      grundFeld.maxLength = 300;
+      var grundBox = field(t("reportReason"), grundFeld);
+      grundBox.hidden = true;
+      panel.appendChild(grundBox);
+
+      var go = make("button","btn", t("reportSend"));
+      go.type = "button";
+      go.disabled = true;
+      panel.appendChild(go);
+
+      function malen(){
+        zeilen.forEach(function(z){
+          z.el.setAttribute("aria-pressed", z.key === wahl ? "true" : "false");
+        });
+        grundBox.hidden = (wahl !== "anderes");
+        go.disabled = !wahl;
+      }
+      malen();
+
+      go.addEventListener("click", function(){
+        if (!wahl) return;
+        if (wahl === "anderes" && grundFeld.value.trim().length < 3){
+          msg.textContent = t("reportPlaceholder"); msg.hidden = false; return;
+        }
+        go.disabled = true;
+        sb.rpc("bild_melden", {
+          p_typ: "profilfoto",
+          p_id: foto.id,
+          p_ich_bin_drauf: wahl === "ich",
+          p_grund: wahl === "anderes" ? grundFeld.value.trim() : null
+        }).then(function(res){
+          go.disabled = false;
+          if (res.error){ msg.textContent = res.error.message; msg.hidden = false; return; }
+          if (wahl === "ich"){
+            toast(t("profilBildVerborgen"));
+            if (zurueckProfil) openModal(zurueckProfil); else closeModal();
+          } else {
+            toast(t("reportSent"));
+            if (zurueckBild) openModal(zurueckBild); else closeModal();
+          }
+        });
+      });
+
+      var quit = make("button","quiet-link", t("cancel"));
+      quit.type = "button";
+      quit.addEventListener("click", function(){ if (zurueckBild) openModal(zurueckBild); else closeModal(); });
+      panel.appendChild(quit);
+    };
+  }
+
+  function spielerPanel(userId, zurueck){
+    return function(panel){
+      var selbst = !!(session && userId === session.user.id);
+
+      function zurueckTun(){ if (zurueck) openModal(zurueck); else closeModal(); }
+
+      clear(panel);
+      panel.appendChild(make("h2", null, t("profilTitel")));
+      var inhalt = make("div");
+      panel.appendChild(inhalt);
+      inhalt.appendChild(make("div","skelett"));
+      inhalt.appendChild(make("div","skelett"));
+
+      var zu = make("button","quiet-link", t("cancel"));
+      zu.type = "button";
+      zu.addEventListener("click", zurueckTun);
+      panel.appendChild(zu);
+
       sb.rpc("spieler_profil", { p_user: userId }).then(function(res){
         clear(inhalt);
+        if (res && res.error){ fehlerZeigen(); return; }
         var p = res.data && res.data[0];
         if (!p){ inhalt.appendChild(make("p","muted-line", t("modKeinInhalt"))); return; }
+        zeichne(p);
+      }).catch(function(){ clear(inhalt); fehlerZeigen(); });
 
+      function fehlerZeigen(){
+        inhalt.appendChild(make("div","info", t("teamsNochmalText")));
+        var wieder = make("button","btn secondary", t("teamsNochmal"));
+        wieder.type = "button";
+        wieder.addEventListener("click", function(){ openModal(spielerPanel(userId, zurueck)); });
+        inhalt.appendChild(wieder);
+      }
+
+      function zeichne(p){
+        var gesperrt = !!p.ist_gesperrt;
+        if (gesperrt) inhalt.appendChild(make("div","info warn", t("profilGesperrt")));
+
+        // Kopf: Avatar, Name, "dabei seit". Die Fakten stehen darunter als
+        // Chips - die graue Punktzeile war in der Sonne nicht lesbar.
         var kopf = make("div","profilkopf");
-        kopf.appendChild(avatarBild(p.bild_url, p.anzeigename, true));
+        kopf.appendChild(avatarVon(p, true));
         var wer = make("span","wer");
         wer.appendChild(make("strong", null, p.anzeigename || "—"));
-        var unten = [districtName(p.bezirk),
-                     p.niveau ? t(LVLKEY[p.niveau] || "lvlFreizeit") : null,
-                     p.spielposition ? t(POSKEY[p.spielposition] || "posEgal") : null].filter(Boolean);
-        wer.appendChild(make("span", null, unten.join(" · ")));
+        if (p.dabei_seit){
+          var wann = "";
+          try {
+            wann = new Intl.DateTimeFormat(lang === "de" ? "de-AT" : "en-GB",
+              { month:"long", year:"numeric", timeZone:"Europe/Vienna" }).format(new Date(p.dabei_seit));
+          } catch(e){}
+          if (wann) wer.appendChild(make("span", null, t("profilSeit", wann)));
+        }
         kopf.appendChild(wer);
         inhalt.appendChild(kopf);
 
-        if (p.dabei_seit){
-          inhalt.appendChild(make("p","hint", t("profilSeit", new Intl.DateTimeFormat(
-            lang === "de" ? "de-AT" : "en-GB",
-            { month:"long", year:"numeric", timeZone:"Europe/Vienna" }).format(new Date(p.dabei_seit)))));
+        // Jeder Fakt ein eigener Chip. Fehlt einer - etwa das verborgene Alter -,
+        // fehlt genau ein Chip, kein Platzhalter und kein doppelter Trennpunkt.
+        var chips = make("div","badges");
+        var fakten = [
+          districtName(p.bezirk),
+          p.niveau ? t(LVLKEY[p.niveau] || "lvlFreizeit") : null,
+          p.spielposition ? t(POSKEY[p.spielposition] || "posEgal") : null,
+          (p.alter_jahre != null) ? t("profilAlterJahre", p.alter_jahre) : null
+        ];
+        fakten.forEach(function(f){ if (f) chips.appendChild(make("span","badge fakt", f)); });
+        if (chips.firstChild) inhalt.appendChild(chips);
+
+        // Ueber mich und Fotogalerie fehlen bei gesperrtem Konto vollstaendig.
+        if (!gesperrt && p.ueber_mich && String(p.ueber_mich).trim()){
+          inhalt.appendChild(make("p","section-label", t("profilUeberMich")));
+          var frei = make("div","freitext");
+          frei.textContent = String(p.ueber_mich);   // niemals innerHTML
+          inhalt.appendChild(frei);
+        }
+
+        var galerieAnker = make("div");
+        inhalt.appendChild(galerieAnker);
+        if (!gesperrt){
+          profilFotosLaden(userId).then(function(fotos){
+            if (!fotos.length) return;
+            clear(galerieAnker);
+            galerieAnker.appendChild(make("p","section-label", t("profilFotosFremd")));
+            var reihe = make("div","bilder quadrat");
+            fotos.forEach(function(f, i){
+              var k = make("button","bild foto");
+              k.type = "button";
+              var im = document.createElement("img");
+              im.src = f.url; im.alt = "";
+              k.appendChild(im);
+              k.addEventListener("click", function(){
+                openModal(profilGaleriePanel(p, fotos, i, spielerPanel(userId, zurueck)));
+              });
+              reihe.appendChild(k);
+            });
+            galerieAnker.appendChild(reihe);
+          });
         }
 
         var gitter = make("div","statgrid");
-        function kasten(zahl, text){
+        function kasten(wert, text, wenig){
           var b = make("div","statbox");
-          b.appendChild(make("b", null, String(zahl)));
+          if (wenig) b.appendChild(make("span","wenig", wert));
+          else b.appendChild(make("b", null, String(wert)));
           b.appendChild(make("span", null, text));
           gitter.appendChild(b);
         }
         kasten(p.spiele || 0, t("statSpiele"));
         kasten(p.organisiert || 0, t("statOrganisiert"));
         kasten(p.absagen || 0, t("statAbsagen"));
-        kasten((p.absagen_quote || 0) + " %", t("statQuote"));
+        // Kein Einfaerben, in keinem Fall: eine rote Kachel ist ein Brandzeichen.
+        if (p.genug_spiele) kasten((p.absagen_quote || 0) + " %", t("statQuote"));
+        else kasten(t("profilQuoteWenige"), t("statQuote"), true);
         inhalt.appendChild(gitter);
+        if (!p.genug_spiele) inhalt.appendChild(make("p","hint", t("profilQuoteWenigeHint")));
 
         inhalt.appendChild(make("p","section-label", t("bewTitel")));
-        if (!p.anzahl_bewertungen){
+        var anzahl = p.anzahl_bewertungen || 0;
+        if (!anzahl){
           inhalt.appendChild(make("p","muted-line", t("bewKeine")));
+        } else if (!p.genug_bewertungen){
+          inhalt.appendChild(make("p","muted-line", t("profilBewWenige")));
+          inhalt.appendChild(make("p","hint", anzahl === 1 ? t("bewEine") : t("bewAnzahl", anzahl)));
         } else {
           inhalt.appendChild(sternzeile(t("bewGesamt"), p.gesamt));
           BEWKATS.forEach(function(k){ inhalt.appendChild(sternzeile(t(k.key), p[k.feld])); });
-          inhalt.appendChild(make("p","hint",
-            p.anzahl_bewertungen === 1 ? t("bewEine") : t("bewAnzahl", p.anzahl_bewertungen)));
+          inhalt.appendChild(make("p","hint", anzahl === 1 ? t("bewEine") : t("bewAnzahl", anzahl)));
         }
-      });
+
+        // Ein Weg hin, nicht nur drei Wege hinaus.
+        if (session && !selbst){
+          var stand = null;
+          freunde.forEach(function(f){
+            if (f.partner_id === userId && f.status !== "abgelehnt") stand = f;
+          });
+          if (stand && stand.status === "bestaetigt"){
+            inhalt.appendChild(make("p","hint", t("profilBefreundet")));
+          } else if (stand && stand.richtung === "gesendet"){
+            inhalt.appendChild(make("p","hint", t("profilAnfrageLaeuft")));
+          } else if (stand){
+            inhalt.appendChild(make("p","hint", t("profilAnfrageErhalten")));
+          } else {
+            var anfrage = make("button","btn", t("profilAnfrage"));
+            anfrage.type = "button";
+            anfrage.addEventListener("click", function(){
+              anfrage.disabled = true;
+              anfrageSenden(userId, function(){ openModal(spielerPanel(userId, zurueck)); });
+            });
+            inhalt.appendChild(anfrage);
+          }
+        }
+
+        if (session && !selbst){
+          var reihe2 = make("div","fussaktionen");
+          var melden = make("button","btn secondary", t("profilMelden"));
+          melden.type = "button";
+          melden.addEventListener("click", function(){
+            openModal(reportPanel("profil", userId, spielerPanel(userId, zurueck)));
+          });
+          reihe2.appendChild(melden);
+
+          if (blockedSet[userId]){
+            var auf = make("button","btn secondary", t("unblock"));
+            auf.type = "button";
+            auf.addEventListener("click", function(){
+              unblockUser(userId, function(){ openModal(spielerPanel(userId, zurueck)); });
+            });
+            reihe2.appendChild(auf);
+          } else {
+            var sperr = make("button","btn secondary", t("profilBlockieren"));
+            sperr.type = "button";
+            sperr.addEventListener("click", function(){
+              blockUser(userId, zurueckTun);
+            });
+            reihe2.appendChild(sperr);
+          }
+          inhalt.appendChild(reihe2);
+        }
+      }
     };
   }
 
@@ -4408,7 +5304,7 @@
           if (!rows.length){ liste.appendChild(make("p","muted-line", "—")); return; }
           rows.forEach(function(r){
             var item = make("div","player");
-            item.appendChild(avatarBild(r.bild_url, r.anzeigename));
+            item.appendChild(avatarVon(r));
             var nam = make("button","namebtn", r.anzeigename || "—");
             nam.type = "button";
             nam.addEventListener("click", function(){ openModal(spielerPanel(r.user_id, selbst)); });
@@ -4578,13 +5474,7 @@
           if (!rows.length){ squad.appendChild(make("p","muted-line", "—")); return; }
           rows.forEach(function(r){
             var item = make("div","player");
-            if (r.bild_url){
-              var im = document.createElement("img");
-              im.className = "avatar"; im.src = r.bild_url; im.alt = "";
-              item.appendChild(im);
-            } else {
-              item.appendChild(make("div","avatar-fallback", initials(r.anzeigename || "?")));
-            }
+            item.appendChild(avatarVon(r));
             var namKn = make("button","namebtn", r.anzeigename || "—");
             namKn.type = "button";
             namKn.addEventListener("click", function(){
@@ -4652,6 +5542,17 @@
       } else {
         act.textContent = frei > 0 ? t("joinBtn") : t("waitBtn");
       }
+
+      // Der Hinweis steht vor der Handlung, im selben Blickfeld, und der
+      // Beitritt kostet weiterhin genau einen Tipp. Kein Zwischenfenster.
+      if (absageHinweisNoetig() && mine !== "zugesagt" && mine !== "warteliste" &&
+          g.organisator_id !== (session && session.user.id)){
+        var kasten = make("div","info");
+        kasten.appendChild(make("b", null, t("profilAbsageTitel")));
+        kasten.appendChild(document.createTextNode(t("profilAbsageText")));
+        panel.appendChild(kasten);
+      }
+
       act.addEventListener("click", function(){
         if (needAccount()) return;
         act.disabled = true;
@@ -4660,6 +5561,7 @@
         call.then(function(res){
           act.disabled = false;
           if (res.error){ msg.textContent = res.error.message; msg.hidden = false; return; }
+          if (!leaving) absageHinweisMerken();
           loadMyPart().then(loadGames).then(function(){
             stopChat();
             openModal(gamePanel(id));
@@ -5651,7 +6553,7 @@
         alle.forEach(function(sp){
           var z = make("button","wahlzeile");
           z.type = "button";
-          z.appendChild(avatarBild(sp.bild_url, sp.anzeigename));
+          z.appendChild(avatarVon(sp));
           var wer = make("span","wer");
           wer.appendChild(make("strong", null, sp.anzeigename || "—"));
           var unten = [];
@@ -5870,7 +6772,7 @@
         var squad = make("div","squad");
         meine.forEach(function(sp){
           var item = make("div","player");
-          item.appendChild(avatarBild(sp.bild_url, sp.anzeigename));
+          item.appendChild(avatarVon(sp));
           var nam = make("button","namebtn", sp.anzeigename || "—");
           nam.type = "button";
           nam.addEventListener("click", function(){
@@ -5911,7 +6813,7 @@
       } else {
         gegner.forEach(function(sp){
           var item = make("div","player");
-          item.appendChild(avatarBild(sp.bild_url, sp.anzeigename));
+          item.appendChild(avatarVon(sp));
           var nam = make("button","namebtn", sp.anzeigename || "—");
           nam.type = "button";
           nam.addEventListener("click", function(){
@@ -6181,13 +7083,20 @@
     el("myGamesBtn").hidden = !session;
   }
 
+  // Das eigene Profil kommt ueber mein_profil(). Die Funktion liefert nur die
+  // Zeile des Aufrufers und laeuft mit erhoehten Rechten - deshalb duerfen die
+  // geschuetzten Spalten (Geburtsjahr, Ueber mich, Sichtbarkeitsschalter) fuer
+  // authenticated gesperrt bleiben, ohne dass man sein eigenes Profil verliert.
   function loadProfile(){
     if (!session){ profile = null; renderAccount(); return Promise.resolve(); }
-    return sb.from("profiles").select("*").eq("id", session.user.id).maybeSingle()
+    return sb.rpc("mein_profil")
       .then(function(res){
-        profile = res.data || null;
+        profile = (res.data && res.data[0]) || null;
         renderAccount();
-        if (!profile) openModal(profilePanel(true), true);
+        if (!profile){ openModal(profilePanel(true), true); return; }
+        // Ohne Geburtsjahr gilt ein Konto als minderjaehrig. Einmal
+        // verpflichtend nachfragen, nicht wegklickbar.
+        if (profile.geburtsjahr == null) openModal(geburtsjahrPanel(), true);
       })
       .catch(function(){ renderAccount(); });
   }
