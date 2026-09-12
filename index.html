@@ -83,9 +83,11 @@
   }
   .brand{
     display:flex;align-items:center;
-    font-family:"Space Grotesk",var(--display);font-weight:700;font-size:24px;line-height:1;letter-spacing:-.01em;user-select:none;
+    font-family:"Space Grotesk",var(--display);font-weight:700;font-size:22px;line-height:1;letter-spacing:-.01em;user-select:none;
+    background:var(--accent);color:#FFFFFF;
+    padding:7px 13px;border-radius:var(--r-sm);
   }
-  .brand span{color:var(--accent)}
+  .brand span{color:#FFFFFF}
   .grow{flex:1}
   .ghost{
     background:var(--sand);border:1px solid var(--line-strong);color:var(--ink);
@@ -752,6 +754,14 @@
     </svg>
     <span id="tabTeamsText">Teams</span>
     <span class="punkt" id="punktTeams" hidden></span>
+  </button>
+  <button class="tab" type="button" id="tabFreunde">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="9" cy="8.5" r="2.6"/><path d="M3.8 19c0-3.3 2.3-5.6 5.2-5.6s5.2 2.3 5.2 5.6"/>
+      <circle cx="17" cy="9.5" r="2.1"/><path d="M14.6 19c0-2.5 1.6-4.5 4-4.5 1.9 0 3.5 1.2 3.9 3"/>
+    </svg>
+    <span id="tabFreundeText">Freunde</span>
+    <span class="punkt" id="punktFreunde" hidden></span>
   </button>
   <button class="tab" type="button" id="tabMeine">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -2055,6 +2065,7 @@
   // renderFeed ist nur noch die Weiche. Jeder Reiter hat seine eigene Funktion.
   function renderFeed(){
     if (ansicht === "teams"){ renderTeams(); return; }
+    if (ansicht === "freunde"){ renderFreundeSeite(); return; }
     if (ansicht === "profil"){ renderProfil(); return; }
     if (ansicht === "meine"){ renderMeine(); return; }
     renderSpiele();
@@ -2466,8 +2477,6 @@
     karte.appendChild(edit);
     box.appendChild(karte);
 
-    freundeBlock(box);
-
     box.appendChild(make("p","tagkopf", t("einstellungen")));
     spracheZeile(box);
 
@@ -2580,16 +2589,19 @@
       });
   }
 
-  // Frueher ein eigener Reiter, jetzt der oberste Abschnitt im Reiter "Profil".
-  // Wird nach jeder Aenderung an den Freunden gerufen und zeichnet nur neu,
-  // wenn der Reiter "Profil" gerade offen ist.
+  // Eigener Reiter "Freunde". Wird nach jeder Aenderung an den Freunden
+  // gerufen und zeichnet nur neu, wenn der Reiter gerade offen ist.
   function renderFreunde(){
-    if (ansicht === "profil") renderProfil();
+    if (ansicht === "freunde") renderFreundeSeite();
     punkteSetzen();
   }
 
-  function freundeBlock(box){
-    box.appendChild(make("p","tagkopf", t("freundeTitel")));
+  var suchTimer = null;
+
+  function renderFreundeSeite(){
+    var box = el("feed");
+    clear(box);
+    box.appendChild(make("h2","feedkopf", t("freundeTitel")));
 
     if (!session){
       box.appendChild(make("p","muted-line", t("anmeldenFuerFreunde")));
@@ -2603,18 +2615,26 @@
     var zeile = make("div","suchzeile");
     var feld = input("f-suche","search", t("freundeSuchen"));
     feld.value = suchText;
-    feld.addEventListener("input", function(e){ suchText = e.target.value; });
-    feld.addEventListener("keydown", function(e){ if (e.key === "Enter") spielerSuchen(); });
-    var knopf = make("button", null, t("suchen"));
-    knopf.type = "button";
-    knopf.addEventListener("click", spielerSuchen);
+    // Vorschlaege laufen live mit, nicht erst nach einem Knopfdruck - mit
+    // kurzer Wartezeit, damit nicht bei jedem Tastenanschlag eine Anfrage lossaust.
+    feld.addEventListener("input", function(e){
+      suchText = e.target.value;
+      if (suchTimer) clearTimeout(suchTimer);
+      suchTimer = setTimeout(spielerSuchen, 300);
+    });
+    feld.addEventListener("keydown", function(e){
+      if (e.key === "Enter"){
+        if (suchTimer) clearTimeout(suchTimer);
+        spielerSuchen();
+      }
+    });
     zeile.appendChild(feld);
-    zeile.appendChild(knopf);
     box.appendChild(zeile);
 
     var ergebnis = make("div");
     ergebnis.id = "suchergebnis";
     box.appendChild(ergebnis);
+    if (suchText.trim().length >= 2) spielerSuchen();
 
     var erhalten = freunde.filter(function(f){ return f.status === "angefragt" && f.richtung === "erhalten"; });
     if (erhalten.length){
@@ -2979,7 +2999,7 @@
     el("feed").hidden = istKarte;
     if (!istKarte) closeSheet();
 
-    [["tabSpiele","feed"],["tabKarte","karte"],["tabTeams","teams"],
+    [["tabSpiele","feed"],["tabKarte","karte"],["tabTeams","teams"],["tabFreunde","freunde"],
      ["tabMeine","meine"],["tabProfil","profil"]].forEach(function(paar){
       var knopf = el(paar[0]);
       if (knopf) knopf.setAttribute("aria-current", paar[1] === name ? "true" : "false");
@@ -6108,10 +6128,10 @@
   function punkteSetzen(){
     var meine = el("punktMeine");
     var teams = el("punktTeams");
-    var prof = el("punktProfil");
+    var freundePunkt = el("punktFreunde");
     if (meine) meine.hidden = !(session && einladungen.length);
     if (teams) teams.hidden = !(session && tvtNeueZusagen().length);
-    if (prof) prof.hidden = !(session && freunde.some(function(f){
+    if (freundePunkt) freundePunkt.hidden = !(session && freunde.some(function(f){
       return f.status === "angefragt" && f.richtung === "erhalten";
     }));
   }
@@ -7280,6 +7300,7 @@
     el("tabSpieleText").textContent = t("tabSpiele");
     el("tabKarteText").textContent = t("tabKarte");
     el("tabTeamsText").textContent = t("tabTeams");
+    el("tabFreundeText").textContent = t("tabFreunde");
     el("tabMeineText").textContent = t("tabMeine");
     el("tabProfilText").textContent = t("tabProfil");
     el("fabNeuText").textContent = t("fabNeuesSpiel");
@@ -7395,6 +7416,7 @@
     el("tabSpiele").addEventListener("click", function(){ zeigeAnsicht("feed"); });
     el("tabKarte").addEventListener("click", function(){ zeigeAnsicht("karte"); });
     el("tabTeams").addEventListener("click", function(){ zeigeAnsicht("teams"); });
+    el("tabFreunde").addEventListener("click", function(){ zeigeAnsicht("freunde"); });
     el("tabMeine").addEventListener("click", function(){ zeigeAnsicht("meine"); });
     el("tabProfil").addEventListener("click", function(){ zeigeAnsicht("profil"); });
     el("fabNeu").addEventListener("click", spielAnlegenStarten);
