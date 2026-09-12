@@ -21,7 +21,7 @@ in welcher Reihenfolge, wie es sich anfühlen soll, was veröffentlicht wird.
 - **immer beschreiben, was gerade getan wird** — Esios ausdrückliche Bitte
 - Fehler klar benennen, auch die eigenen, und unbestätigte Ergebnisse als unbestätigt kennzeichnen
 
-**Die sechs Agenten sind das Team.** Jeder hat genau einen Auftrag und arbeitet nur nach
+**Die sieben Agenten sind das Team.** Jeder hat genau einen Auftrag und arbeitet nur nach
 Beauftragung durch den Projektleiter. Kein Agent spricht direkt mit Esio.
 
 ## Der Weg einer Aufgabe
@@ -37,6 +37,7 @@ Claude (Projektleiter)  ──── fragt zurück, wenn eine Produktentscheidun
    ├─► entwickler     baut es
    ├─► security       sucht Sicherheitslücken
    ├─► datenschutz    prüft Recht, Jugendschutz, Bildrechte
+   ├─► urheberrecht   prüft fremde Rechte und sichert das eigene Eigentum
    └─► test           prüft gegen die Abnahmekriterien
    │
    ▼
@@ -46,8 +47,9 @@ Claude berichtet Esio: fertig · offen · Entscheidung nötig
 Esio gibt die Veröffentlichung frei — oder nicht
 ```
 
-Die Korrekturanweisungen von **security**, **datenschutz** und **test** sind verbindlich,
-nicht optional. Solange einer von ihnen einen blockierenden Befund hat, wird nicht veröffentlicht.
+Die Korrekturanweisungen von **security**, **datenschutz**, **urheberrecht** und **test** sind
+verbindlich, nicht optional. Solange einer von ihnen einen blockierenden Befund hat, wird nicht
+veröffentlicht.
 
 ## Was der Projektleiter allein entscheidet
 
