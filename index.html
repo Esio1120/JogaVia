@@ -3720,6 +3720,83 @@
     pushToMap();
   }
 
+  // Nach unten wischen schliesst Fenster (Sheet, Modal) - wie "zurueck".
+  // Reagiert nur, wenn ganz oben gescrollt ist, sonst wuerde normales
+  // Scrollen im Inhalt (Chat, Kader, Fotoliste) staendig unterbrochen.
+  function wischZumSchliessen(elem, schliessen){
+    var startY = null, startScrollTop = 0, ziehtGerade = false;
+    elem.addEventListener("touchstart", function(ev){
+      if (!ev.touches || ev.touches.length !== 1) return;
+      startY = ev.touches[0].clientY;
+      startScrollTop = elem.scrollTop;
+      ziehtGerade = false;
+    }, { passive: true });
+    elem.addEventListener("touchmove", function(ev){
+      if (startY === null || !ev.touches) return;
+      var dy = ev.touches[0].clientY - startY;
+      if (startScrollTop <= 0 && dy > 0){
+        if (!ziehtGerade){ ziehtGerade = true; elem.style.transition = "none"; }
+        elem.style.transform = "translateY(" + Math.min(dy, 280) + "px)";
+      }
+    }, { passive: true });
+    function ende(ev){
+      if (startY === null) return;
+      var wollteZiehen = ziehtGerade;
+      var dy = 0;
+      try { dy = ev.changedTouches[0].clientY - startY; } catch(e){}
+      startY = null;
+      ziehtGerade = false;
+      if (!wollteZiehen) return;
+      elem.style.transition = "transform .18s ease";
+      if (dy > 90){
+        elem.style.transform = "translateY(120%)";
+        setTimeout(function(){ schliessen(); elem.style.transform = ""; elem.style.transition = ""; }, 160);
+      } else {
+        elem.style.transform = "";
+        setTimeout(function(){ elem.style.transition = ""; }, 200);
+      }
+    }
+    elem.addEventListener("touchend", ende);
+    elem.addEventListener("touchcancel", ende);
+  }
+
+  // Rechts-Wisch = derselbe Knopf, der schon "zurueck" oder "schliessen"
+  // macht - jedes Panel weiss selbst, wohin es zurueckgeht. Kein eigener
+  // Stapel noetig, nur ein Antippen des vorhandenen Knopfs simulieren.
+  // Faengt der Wisch auf dem Grossbild einer Galerie an, macht die Galerie
+  // ihr eigenes Vor/Zurueck - dort greift dieser Wisch nicht ein.
+  function panelZurueckKnopf(){
+    var text = t("cancel");
+    var kandidaten = el("panel").querySelectorAll(".quiet-link");
+    for (var i = 0; i < kandidaten.length; i++){
+      if (kandidaten[i].textContent === text) return kandidaten[i];
+    }
+    return null;
+  }
+
+  function wischZurueck(elem){
+    var startX = null, startY = null, inGalerie = false;
+    elem.addEventListener("touchstart", function(ev){
+      if (!ev.touches || ev.touches.length !== 1) return;
+      inGalerie = !!(ev.target.closest && ev.target.closest(".grossbild"));
+      startX = ev.touches[0].clientX;
+      startY = ev.touches[0].clientY;
+    }, { passive: true });
+    elem.addEventListener("touchend", function(ev){
+      if (startX === null || inGalerie){ startX = null; return; }
+      var dx = 0, dy = 0;
+      try {
+        dx = ev.changedTouches[0].clientX - startX;
+        dy = ev.changedTouches[0].clientY - startY;
+      } catch(e){}
+      startX = null;
+      if (dx > 80 && Math.abs(dx) > Math.abs(dy) * 1.5){
+        var knopf = panelZurueckKnopf();
+        if (knopf) knopf.click();
+      }
+    });
+  }
+
   var modalLocked = false;
   function openModal(render, locked){
     modalLocked = !!locked;
@@ -7377,6 +7454,9 @@
       applyFilters();
     });
     el("sheetClose").addEventListener("click", closeSheet);
+    wischZumSchliessen(el("sheet"), closeSheet);
+    wischZumSchliessen(el("panel"), closeModal);
+    wischZurueck(el("panel"));
     el("meldenBtn").addEventListener("click", function(){ pinModusAn("melden"); });
     el("sheetFotoBtn").addEventListener("click", function(){
       if (!selectedVenue) return;
