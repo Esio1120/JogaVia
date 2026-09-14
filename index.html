@@ -300,6 +300,39 @@
   .player{display:flex;align-items:center;gap:10px;font-size:14.5px;flex-wrap:wrap}
   .player .avatar,.player .avatar-fallback{width:30px;height:30px;font-size:12px}
   .player .who{flex:1;font-weight:600}
+  /* Endstand: liest sich wie eine Anzeigetafel - Mannschaft, Tore, Tore,
+     Mannschaft. Die Zahlen bleiben gross genug, um sie im Vorbeigehen zu lesen. */
+  .endstand{
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    background:var(--paper);border:1px solid var(--line);border-radius:12px;
+    padding:14px 10px;margin:0 0 6px;
+  }
+  .endstand .zahl{
+    font-family:var(--display);font-size:34px;font-weight:800;line-height:1;
+    letter-spacing:-.02em;min-width:36px;text-align:center;flex:0 0 auto;
+  }
+  .endstand .doppel{font-size:24px;color:var(--muted);font-weight:600;flex:0 0 auto}
+  .endstand .seite{
+    flex:1 1 0;min-width:0;display:flex;flex-direction:column;
+    align-items:center;justify-content:flex-end;gap:5px;
+  }
+  .endstand .seite .nam{
+    display:block;max-width:100%;font-size:12.5px;color:var(--muted);
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+  .endstand .seite.sieger .nam{color:var(--ink);font-weight:700}
+  /* Die verlierende Seite bekommt eine unsichtbare Krone als Platzhalter,
+     sonst stehen die beiden Namen nicht auf derselben Hoehe. */
+  .endstand .krone{display:block;height:15px;line-height:0}
+  .endstand .krone svg{display:block;height:15px;width:auto}
+  .endstand .krone.platz{visibility:hidden}
+  .ergeingabe{display:flex;align-items:center;justify-content:center;gap:12px;margin:0 0 12px}
+  .ergeingabe input{
+    width:74px;text-align:center;font-size:22px;font-weight:700;
+    padding:10px 6px;border:1px solid var(--line-strong);border-radius:11px;
+    background:var(--paper);color:var(--ink);
+  }
+  .ergeingabe .doppel{font-size:22px;color:var(--muted);font-weight:700}
   .slotbar{height:8px;border-radius:3px;background:var(--sand-deep);overflow:hidden;margin:2px 0 14px}
   .slotbar span{display:block;height:100%;background:var(--accent)}
   .tinylink{background:none;border:0;color:var(--muted);font-size:12px;font-weight:600;padding:2px 4px;text-decoration:underline;text-underline-offset:2px}
@@ -483,6 +516,16 @@
   .zeichen img{width:100%;height:100%;object-fit:cover;border-radius:10px;display:block}
   .zeichen.wappen{border:2px solid var(--accent);background:var(--surface);padding:0}
   .zeichen.wappen.gast{border-color:var(--clay)}
+
+  /* Wappen in der Team-Ansicht: gross genug, um zu erkennen, was man
+     hochgeladen hat, klein genug, um den Rest nicht wegzudruecken. */
+  .wappenbox{margin:0 0 14px}
+  .wappenschau{display:flex;align-items:center;gap:12px;margin:0 0 10px}
+  .wappenschau .hint{margin:0}
+  .wappenbild{
+    width:64px;height:64px;border-radius:12px;object-fit:cover;display:block;
+    border:2px solid var(--accent);background:var(--surface);
+  }
 
   .msg{--seite:var(--accent)}
   .msg.gastseite{--seite:var(--clay)}
@@ -979,6 +1022,18 @@
       fotoLoeschenAsk: "Dein Foto von diesem Platz löschen?",
       fotoZuViele: "Du hast heute schon zwanzig Fotos hochgeladen. Morgen geht es weiter.",
       profilTitel: "Spielerprofil", profilSeit: "dabei seit {n}",
+      ergTitel: "Endstand",
+      ergEintragen: "Ergebnis eintragen",
+      ergAendern: "Ergebnis ändern",
+      ergSpeichern: "Endstand speichern",
+      ergGespeichert: "Endstand gespeichert.",
+      ergSeite1: "Team 1",
+      ergSeite2: "Team 2",
+      ergVon: "eingetragen von {n}",
+      ergNochKeins: "Noch kein Ergebnis eingetragen.",
+      ergNurDabei: "Nur wer mitgespielt hat, kann das Ergebnis eintragen.",
+      ergNochNicht: "Das Spiel hat noch nicht begonnen.",
+
       statSpiele: "Spiele", statOrganisiert: "organisiert",
       statAbsagen: "kurzfristige Absagen", statQuote: "Absagequote",
       bewTitel: "Bewertung", bewKeine: "Noch keine Bewertung.",
@@ -1032,6 +1087,17 @@
       teamKapitaen: "Kapitän", teamSpieler: "Spieler",
       teamEinladen: "Mitglieder einladen",
       teamEinladenText: "Schick diesen Link an deine Leute. Wer ihn öffnet, landet direkt beim Beitritt.",
+      wappenTitel: "Wappen",
+      wappenKeins: "Noch kein Wappen.",
+      wappenSetzen: "Wappen hochladen",
+      wappenAendern: "Wappen ändern",
+      wappenEntfernen: "Wappen entfernen",
+      wappenRechte: "Lad nur ein Bild hoch, das ihr verwenden dürft. Vereinswappen gehören dem Verein.",
+      wappenZuGross: "Das Bild ist zu groß. Bis 2 MB geht.",
+      wappenFormat: "Das geht nur als JPG, PNG oder WebP.",
+      wappenFehler: "Das Wappen konnte nicht gespeichert werden.",
+      wappenGespeichert: "Wappen gespeichert.",
+      wappenWeg: "Wappen entfernt.",
       teamLinkKopiert: "Einladungslink kopiert.",
       teamVerlassen: "Team verlassen", teamVerlassenAsk: "Das Team wirklich verlassen?",
       teamEntfernen: "entfernen", teamEntfernenAsk: "{n} aus dem Team nehmen?",
@@ -1345,6 +1411,18 @@
       fotoLoeschenAsk: "Delete your photo of this pitch?",
       fotoZuViele: "You have uploaded twenty photos today. More tomorrow.",
       profilTitel: "Player profile", profilSeit: "member since {n}",
+      ergTitel: "Final score",
+      ergEintragen: "Enter result",
+      ergAendern: "Change result",
+      ergSpeichern: "Save score",
+      ergGespeichert: "Score saved.",
+      ergSeite1: "Team 1",
+      ergSeite2: "Team 2",
+      ergVon: "entered by {n}",
+      ergNochKeins: "No result entered yet.",
+      ergNurDabei: "Only players who took part can enter the result.",
+      ergNochNicht: "The game has not started yet.",
+
       statSpiele: "games", statOrganisiert: "organised",
       statAbsagen: "late cancellations", statQuote: "cancellation rate",
       bewTitel: "Rating", bewKeine: "No ratings yet.",
@@ -1398,6 +1476,17 @@
       teamKapitaen: "Captain", teamSpieler: "Player",
       teamEinladen: "Invite members",
       teamEinladenText: "Send this link to your people. Opening it takes them straight to joining.",
+      wappenTitel: "Crest",
+      wappenKeins: "No crest yet.",
+      wappenSetzen: "Upload crest",
+      wappenAendern: "Change crest",
+      wappenEntfernen: "Remove crest",
+      wappenRechte: "Only upload an image you are allowed to use. Club crests belong to the club.",
+      wappenZuGross: "That image is too large. Up to 2 MB works.",
+      wappenFormat: "Only JPG, PNG or WebP works here.",
+      wappenFehler: "The crest could not be saved.",
+      wappenGespeichert: "Crest saved.",
+      wappenWeg: "Crest removed.",
       teamLinkKopiert: "Invite link copied.",
       teamVerlassen: "Leave team", teamVerlassenAsk: "Really leave this team?",
       teamEntfernen: "remove", teamEntfernenAsk: "Remove {n} from the team?",
@@ -3370,6 +3459,103 @@
     };
   }
 
+  // Wappen einer Mannschaft. Sichtbar fuer alle im Team, aendern darf nur der
+  // Kapitaen - dieselbe Regel wie beim Umbenennen. Die Datenbank prueft das
+  // noch einmal selbst, hier geht es nur darum, niemandem einen Knopf
+  // hinzustellen, der dann abgewiesen wird.
+  function wappenBlock(panel, team){
+    panel.appendChild(make("p","section-label", t("wappenTitel")));
+    var box = make("div","wappenbox");
+    panel.appendChild(box);
+
+    var msg = make("div","err"); msg.hidden = true;
+    var schau = make("div","wappenschau");
+    box.appendChild(schau);
+
+    function zeichne(url){
+      clear(schau);
+      if (url){
+        var im = document.createElement("img");
+        im.className = "wappenbild"; im.src = url; im.alt = "";
+        schau.appendChild(im);
+      } else {
+        schau.appendChild(teamZeichen(team.name, false, false, null));
+        schau.appendChild(make("span","hint", t("wappenKeins")));
+      }
+    }
+    zeichne(team.wappen_url || null);
+
+    if (!team.bin_kapitaen) return;
+
+    var reihe = make("div","reihe");
+    box.appendChild(reihe);
+    box.appendChild(msg);
+    box.appendChild(make("p","hint", t("wappenRechte")));
+
+    var waehlen = make("button","minibtn leise", t(team.wappen_url ? "wappenAendern" : "wappenSetzen"));
+    waehlen.type = "button";
+    var feld = document.createElement("input");
+    feld.type = "file";
+    feld.accept = "image/jpeg,image/png,image/webp";
+    feld.hidden = true;
+    waehlen.addEventListener("click", function(){ feld.click(); });
+    reihe.appendChild(waehlen);
+    reihe.appendChild(feld);
+
+    var weg = make("button","minibtn leise", t("wappenEntfernen"));
+    weg.type = "button";
+    weg.hidden = !team.wappen_url;
+    reihe.appendChild(weg);
+
+    function fehler(text){ msg.textContent = text; msg.hidden = false; }
+
+    feld.addEventListener("change", function(){
+      var f = feld.files && feld.files[0];
+      feld.value = "";
+      if (!f || !session) return;
+      msg.hidden = true;
+      // Vor dem Hochladen pruefen, sonst laedt jemand am Platz ueber Mobilfunk
+      // zwei Minuten lang etwas hoch, das der Eimer danach ablehnt.
+      if (["image/jpeg","image/png","image/webp"].indexOf(f.type) === -1){
+        return fehler(t("wappenFormat"));
+      }
+      if (f.size > 2 * 1024 * 1024) return fehler(t("wappenZuGross"));
+
+      toast(t("uploading"));
+      var ext = f.type === "image/png" ? "png" : (f.type === "image/webp" ? "webp" : "jpg");
+      var pfad = team.id + "/wappen." + ext;
+      sb.storage.from("wappen").upload(pfad, f, { upsert: true }).then(function(res){
+        if (res.error) return fehler(res.error.message || t("wappenFehler"));
+        var url = sb.storage.from("wappen").getPublicUrl(pfad).data.publicUrl;
+        sb.rpc("team_wappen_setzen", { p_team: team.id, p_url: url }).then(function(r2){
+          if (r2 && r2.error) return fehler(r2.error.message || t("wappenFehler"));
+          // Fragezeichen dranhaengen, sonst zeigt der Browser das alte Bild
+          // aus dem Zwischenspeicher, wenn nur ersetzt wurde.
+          var frisch = url + "?v=" + Date.now();
+          team.wappen_url = frisch;
+          zeichne(frisch);
+          waehlen.textContent = t("wappenAendern");
+          weg.hidden = false;
+          toast(t("wappenGespeichert"));
+          ladeTeams();
+        });
+      }).catch(function(){ fehler(t("wappenFehler")); });
+    });
+
+    weg.addEventListener("click", function(){
+      msg.hidden = true;
+      sb.rpc("team_wappen_entfernen", { p_team: team.id }).then(function(r){
+        if (r && r.error) return fehler(r.error.message || t("wappenFehler"));
+        team.wappen_url = null;
+        zeichne(null);
+        waehlen.textContent = t("wappenSetzen");
+        weg.hidden = true;
+        toast(t("wappenWeg"));
+        ladeTeams();
+      });
+    });
+  }
+
   function teamPanel(team){
     return function(panel){
       clear(panel);
@@ -3398,6 +3584,8 @@
         });
         panel.appendChild(teilen);
       }
+
+      wappenBlock(panel, team);
 
       panel.appendChild(make("p","section-label", t("squad")));
       var liste = make("div","squad");
@@ -5592,6 +5780,123 @@
     };
   }
 
+  // Endstand. Ein Baustein fuer beide Spielarten: bei Team-gegen-Team stehen
+  // die Teamnamen darunter, bei offenen Spielen "Team 1" und "Team 2" - dort
+  // teilt man sich erst am Platz auf, ein Heim gibt es nicht.
+  // darfEintragen entscheidet die Datenbank noch einmal selbst; hier geht es
+  // nur darum, niemandem ein Feld hinzustellen, das dann abgewiesen wird.
+  var KRONE = '<svg viewBox="0 0 26 17" aria-hidden="true">' +
+    '<path fill="#D9A21B" d="M2 15.4V4.2c0-.8.95-1.2 1.52-.64L7.9 8 11.6 1.6a1.6 1.6 0 0 1 2.8 0' +
+    'L18.1 8l4.38-4.44c.57-.57 1.52-.16 1.52.64v11.2a1.1 1.1 0 0 1-1.1 1.1H3.1a1.1 1.1 0 0 1-1.1-1.1z"/></svg>';
+
+  function ergebnisBlock(panel, spiel, namen, darfEintragen, neuZeichnen, wappen){
+    panel.appendChild(make("p","section-label", t("ergTitel")));
+    var anker = make("div");
+    panel.appendChild(anker);
+    anker.appendChild(make("p","muted-line", "…"));
+
+    var begonnen = new Date(spiel.beginn).getTime() <= Date.now();
+
+    sb.rpc("spiel_ergebnis", { p_match: spiel.id }).then(function(res){
+      clear(anker);
+      var e = (res && res.data && res.data[0]) || null;
+
+      if (e){
+        var tafel = make("div","endstand");
+        // -1 heisst unentschieden. Bei Gleichstand traegt niemand die Krone:
+        // ein Remis hat keinen Sieger, und eine Krone auf beiden Seiten waere
+        // schlicht falsch.
+        var sieger = (e.tore_heim === e.tore_gast) ? -1
+                   : (e.tore_heim > e.tore_gast ? 0 : 1);
+        function endstandSeite(i){
+          var d = make("div","seite" + (sieger === i ? " sieger" : ""));
+          var kr = make("span","krone" + (sieger === i ? "" : " platz"));
+          kr.innerHTML = KRONE;
+          d.appendChild(kr);
+          // Wappen nur bei Team gegen Team. Bei offenen Spielen heissen die
+          // Seiten "Team 1" und "Team 2" - ein Zeichen dafuer zu erfinden
+          // wuerde eine Mannschaft vortaeuschen, die es nicht gibt.
+          if (wappen) d.appendChild(teamZeichen(namen[i], i === 1, true, wappen[i]));
+          d.appendChild(make("span","nam", namen[i]));
+          return d;
+        }
+        tafel.appendChild(endstandSeite(0));
+        tafel.appendChild(make("span","zahl", String(e.tore_heim)));
+        tafel.appendChild(make("span","doppel", ":"));
+        tafel.appendChild(make("span","zahl", String(e.tore_gast)));
+        tafel.appendChild(endstandSeite(1));
+        anker.appendChild(tafel);
+        if (e.eingetragen_von_name){
+          anker.appendChild(make("p","hint", t("ergVon", e.eingetragen_von_name)));
+        }
+      } else if (!begonnen){
+        anker.appendChild(make("p","muted-line", t("ergNochNicht")));
+        return;
+      } else {
+        anker.appendChild(make("p","muted-line", t("ergNochKeins")));
+      }
+
+      if (!begonnen) return;
+      if (!darfEintragen){
+        if (!e) anker.appendChild(make("p","hint", t("ergNurDabei")));
+        return;
+      }
+
+      var knopf = make("button","btn secondary", t(e ? "ergAendern" : "ergEintragen"));
+      knopf.type = "button";
+      anker.appendChild(knopf);
+
+      knopf.addEventListener("click", function(){
+        clear(anker);
+        var msg = make("div","err"); msg.hidden = true; anker.appendChild(msg);
+
+        var zeile = make("div","ergeingabe");
+        function zahlfeld(id, wert){
+          var i = input(id, "number", "0");
+          i.min = "0"; i.max = "99"; i.inputMode = "numeric";
+          i.value = (wert === null || wert === undefined) ? "" : String(wert);
+          return i;
+        }
+        var f1 = zahlfeld("erg-heim", e ? e.tore_heim : null);
+        var f2 = zahlfeld("erg-gast", e ? e.tore_gast : null);
+        zeile.appendChild(f1);
+        zeile.appendChild(make("span","doppel", ":"));
+        zeile.appendChild(f2);
+        anker.appendChild(zeile);
+
+        var beschriftung = make("p","hint", namen[0] + "  ·  " + namen[1]);
+        anker.appendChild(beschriftung);
+
+        var go = make("button","btn", t("ergSpeichern"));
+        go.type = "button";
+        go.addEventListener("click", function(){
+          var a = parseInt(f1.value, 10);
+          var b = parseInt(f2.value, 10);
+          if (isNaN(a) || isNaN(b) || a < 0 || b < 0 || a > 99 || b > 99){
+            msg.textContent = t("ergSpeichern"); msg.hidden = false; return;
+          }
+          go.disabled = true;
+          sb.rpc("spiel_ergebnis_setzen", { p_match: spiel.id, p_heim: a, p_gast: b })
+            .then(function(r){
+              go.disabled = false;
+              if (r && r.error){ msg.textContent = r.error.message; msg.hidden = false; return; }
+              toast(t("ergGespeichert"));
+              if (neuZeichnen) neuZeichnen();
+            });
+        });
+        anker.appendChild(go);
+
+        var ab = make("button","quiet-link", t("cancel"));
+        ab.type = "button";
+        ab.addEventListener("click", function(){ if (neuZeichnen) neuZeichnen(); });
+        anker.appendChild(ab);
+      });
+    }).catch(function(){
+      clear(anker);
+      anker.appendChild(make("p","muted-line", t("ergNochKeins")));
+    });
+  }
+
   function gamePanel(id){
     return function(panel){
       var g = games.filter(function(x){ return x.id === id; })[0];
@@ -5696,6 +6001,13 @@
             squad.appendChild(item);
           });
         });
+
+      // Nur wer zugesagt hat, plus der Organisator - dieselbe Regel wie
+      // in der Datenbank, die es noch einmal selbst prueft.
+      var darfErgebnis = !!(session && (myPart[id] === "zugesagt" ||
+                            g.organisator_id === session.user.id));
+      ergebnisBlock(panel, g, [t("ergSeite1"), t("ergSeite2")], darfErgebnis,
+        function(){ stopChat(); openModal(gamePanel(id)); });
 
       var darfChat = !!(session && (myPart[id] === "zugesagt" || myPart[id] === "warteliste" ||
                         g.organisator_id === session.user.id));
@@ -7110,6 +7422,17 @@
 
       if (r.gast_team_id){
         tvtAufstellungBlock(panel, r, selbst);
+
+        // Strenger als beim offenen Spiel: nur wer in der Aufstellung stand.
+        // mein_status === "zugesagt" heisst genau das. Die Datenbank prueft
+        // dieselbe Regel noch einmal selbst.
+        var darfErgebnisTvt = !!(session && r.mein_status === "zugesagt" &&
+                                 r.status !== "abgesagt");
+        ergebnisBlock(panel, { id: id, beginn: r.beginn },
+          [r.heim_team || "—", r.gast_team || "—"], darfErgebnisTvt,
+          function(){ stopChat(); openModal(tvtPanel(id, zurueck)); },
+          [r.heim_wappen || null, r.gast_wappen || null]);
+
         var darfSchreiben = !!(session && r.mein_team_id && r.status === "geplant");
         var gegnerName = r.wir_sind_heim === false ? r.heim_team : r.gast_team;
         if (session && r.mein_team_id){
