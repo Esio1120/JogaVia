@@ -18,7 +18,7 @@
 <link rel="apple-touch-icon" href="logo.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css">
 <style>
   :root{
@@ -39,8 +39,8 @@
     --clay-soft:#F7EAE2;
     --shadow-s:0 1px 2px rgba(0,0,0,.05);
     --shadow-m:0 2px 6px rgba(0,0,0,.06), 0 14px 28px -20px rgba(0,0,0,.28);
-    --display:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
-    --ui:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+    --display:"Manrope",system-ui,-apple-system,"Segoe UI",sans-serif;
+    --ui:"Manrope",system-ui,-apple-system,"Segoe UI",sans-serif;
     --r:10px;
     --r-sm:8px;
     --top:58px;
@@ -83,7 +83,7 @@
   }
   .brand{
     display:flex;align-items:center;
-    font-family:"Space Grotesk",var(--display);font-weight:700;font-size:22px;line-height:1;letter-spacing:-.01em;user-select:none;
+    font-family:var(--display);font-weight:700;font-size:22px;line-height:1;letter-spacing:-.01em;user-select:none;
     background:var(--accent);color:#FFFFFF;
     padding:7px 13px;border-radius:var(--r-sm);
   }
@@ -327,6 +327,21 @@
   .endstand .krone svg{display:block;height:15px;width:auto}
   .endstand .krone.platz{visibility:hidden}
   .ergeingabe{display:flex;align-items:center;justify-content:center;gap:12px;margin:0 0 12px}
+
+  /* Check-in und Frist */
+  .cibox{margin:0 0 14px}
+  .cibox .hint{margin:6px 0 0}
+  .ci-da{
+    margin:0;font-weight:700;color:var(--accent);
+    display:flex;align-items:center;gap:8px;
+  }
+  .ci-da::before{content:"✓";font-weight:800}
+  /* Die Frist gehoert zu den Zahlen, die man im Vorbeigehen liest. */
+  .ergfrist{
+    margin:0 0 10px;text-align:center;font-family:var(--display);
+    font-weight:700;font-variant-numeric:tabular-nums;color:var(--muted);
+  }
+  .pill.da{background:transparent;border:1px solid var(--accent);color:var(--accent)}
   .ergeingabe input{
     width:74px;text-align:center;font-size:22px;font-weight:700;
     padding:10px 6px;border:1px solid var(--line-strong);border-radius:11px;
@@ -1032,7 +1047,30 @@
       ergVon: "eingetragen von {n}",
       ergNochKeins: "Noch kein Ergebnis eingetragen.",
       ergNurDabei: "Nur wer mitgespielt hat, kann das Ergebnis eintragen.",
-      ergNochNicht: "Das Spiel hat noch nicht begonnen.",
+      ergNochNicht: "Das Ergebnis kannst du ab Spielende eintragen.",
+      ergDeine: "Deine Angabe",
+      ergAbgeben: "Endstand abgeben",
+      ergAendernKurz: "ändern",
+      ergFrist: "Noch {n} zum Eintragen",
+      ergFristAus: "Die Frist ist abgelaufen.",
+      ergNurDa: "Nur wer eingecheckt hat, kann den Endstand eintragen.",
+      ergGeheim: "Was die anderen eintragen, siehst du erst nach Ablauf der Frist.",
+      ergSteht: "{a} von {b} haben diesen Endstand eingetragen.",
+      ergUneinig: "Unentschieden in der Abstimmung — es zählt kein Ergebnis.",
+      ergZuwenig: "Zu wenige Angaben: {a} von {b} nötig.",
+      ergKeine: "Niemand hat einen Endstand eingetragen.",
+      ergStimmen: "{n}×",
+      ciTitel: "Bist du da?",
+      ciKnopf: "Ich bin am Platz",
+      ciLaeuft: "Standort wird geprüft …",
+      ciDa: "Angetreten, {n}.",
+      ciZuWeit: "Du bist {n} m vom Platz entfernt. Näher als 100 m muss es sein.",
+      ciKeinOrt: "Dein Gerät gibt den Standort nicht her. Der Organisator kann dich von Hand bestätigen.",
+      ciFrueh: "Check-in ab einer Stunde vor Anpfiff.",
+      ciHinweis: "Dein Standort wird nur mit dem Platz verglichen und nicht gespeichert.",
+      ciOhne: "Ohne Check-in zählt das Spiel nicht als Teilnahme.",
+      ciBestaetigen: "war da",
+      ciBestaetigt: "bestätigt",
 
       statSpiele: "Spiele", statOrganisiert: "organisiert",
       statAbsagen: "kurzfristige Absagen", statQuote: "Absagequote",
@@ -1421,7 +1459,30 @@
       ergVon: "entered by {n}",
       ergNochKeins: "No result entered yet.",
       ergNurDabei: "Only players who took part can enter the result.",
-      ergNochNicht: "The game has not started yet.",
+      ergNochNicht: "You can enter the result once the game has ended.",
+      ergDeine: "Your entry",
+      ergAbgeben: "Submit score",
+      ergAendernKurz: "change",
+      ergFrist: "{n} left to enter",
+      ergFristAus: "The deadline has passed.",
+      ergNurDa: "Only players who checked in can enter the score.",
+      ergGeheim: "You will see what the others entered once the deadline passes.",
+      ergSteht: "{a} of {b} entered this score.",
+      ergUneinig: "The vote is tied — no result counts.",
+      ergZuwenig: "Too few entries: {a} of {b} needed.",
+      ergKeine: "Nobody entered a score.",
+      ergStimmen: "{n}x",
+      ciTitel: "Are you there?",
+      ciKnopf: "I am at the pitch",
+      ciLaeuft: "Checking location …",
+      ciDa: "Checked in, {n}.",
+      ciZuWeit: "You are {n} m from the pitch. It has to be under 100 m.",
+      ciKeinOrt: "Your device will not share its location. The organiser can confirm you by hand.",
+      ciFrueh: "Check-in opens one hour before kick-off.",
+      ciHinweis: "Your location is only compared with the pitch and is not stored.",
+      ciOhne: "Without check-in the game does not count as taking part.",
+      ciBestaetigen: "was there",
+      ciBestaetigt: "confirmed",
 
       statSpiele: "games", statOrganisiert: "organised",
       statAbsagen: "late cancellations", statQuote: "cancellation rate",
@@ -1668,8 +1729,18 @@
 
   function t(key, n){
     var s = (STRINGS[lang] && STRINGS[lang][key]) || STRINGS.de[key] || key;
-    if (n !== undefined) s = s.replace("{n}", String(n));
-    return s;
+    if (n === undefined || n === null) return s;
+    // Ein Objekt ersetzt mehrere benannte Platzhalter: t("x", {a:3, b:5}).
+    // Eine einzelne Zahl bleibt {n}, damit alle bestehenden Aufrufe gelten.
+    if (typeof n === "object"){
+      for (var k in n){
+        if (Object.prototype.hasOwnProperty.call(n, k)){
+          s = s.split("{" + k + "}").join(String(n[k]));
+        }
+      }
+      return s;
+    }
+    return s.replace("{n}", String(n));
   }
 
   var ARTS = ["kaefig","rasen","kunstrasen","halle","beach","sonstige"];
@@ -3986,8 +4057,16 @@
   }
 
   var modalLocked = false;
+  // Der Countdown der Ergebnisfrist tickt im Sekundentakt. Er muss beim
+  // Wechsel und beim Schliessen weg, sonst laufen mehrere nebeneinander
+  // und schreiben in Elemente, die es nicht mehr gibt.
+  var ergTimer = null;
+  function stopCountdown(){
+    if (ergTimer){ clearInterval(ergTimer); ergTimer = null; }
+  }
   function openModal(render, locked){
     modalLocked = !!locked;
+    stopCountdown();
     el("modal").hidden = false;
     render(el("panel"));
     el("panel").scrollTop = 0;
@@ -3997,6 +4076,7 @@
     if (modalLocked) return;
     stopChat();
     stopDm();
+    stopCountdown();
     el("modal").hidden = true;
     clear(el("panel"));
     fabZeigen();
@@ -5780,120 +5860,237 @@
     };
   }
 
-  // Endstand. Ein Baustein fuer beide Spielarten: bei Team-gegen-Team stehen
-  // die Teamnamen darunter, bei offenen Spielen "Team 1" und "Team 2" - dort
-  // teilt man sich erst am Platz auf, ein Heim gibt es nicht.
-  // darfEintragen entscheidet die Datenbank noch einmal selbst; hier geht es
-  // nur darum, niemandem ein Feld hinzustellen, das dann abgewiesen wird.
+  // Check-in am Platz. Der Standort geht einmal an die Datenbank, wird dort
+  // mit dem Platz verglichen und faellt weg - gespeichert wird nur, DASS
+  // jemand angetreten ist. Ohne Check-in zaehlt das Spiel nicht als Teilnahme
+  // und man darf spaeter auch nicht ueber den Endstand mitbestimmen.
+  function checkinBlock(panel, spiel, zugesagt, neuZeichnen){
+    if (!session || !zugesagt) return;
+    var beginn = new Date(spiel.beginn).getTime();
+    var ende = beginn + (spiel.dauer_min || 60) * 60000;
+    var jetzt = Date.now();
+    if (jetzt > ende) return;
+
+    panel.appendChild(make("p","section-label", t("ciTitel")));
+    var box = make("div","cibox");
+    panel.appendChild(box);
+
+    // Der Baustein holt sich selbst, ob schon eingecheckt wurde. Auf die
+    // Teilnehmerliste zu warten hiesse, sich auf deren Ladereihenfolge zu
+    // verlassen - die steht im Code weiter unten.
+    sb.from("spieler_public").select("angetreten,angetreten_am")
+      .eq("match_id", spiel.id).eq("user_id", session.user.id)
+      .then(function(res){
+        var r = (res && res.data && res.data[0]) || null;
+        if (r && r.angetreten){
+          box.appendChild(make("p","ci-da", t("ciDa", uhrzeit(r.angetreten_am))));
+          return;
+        }
+        zeichneKnopf();
+      });
+
+    function zeichneKnopf(){
+    if (jetzt < beginn - 3600000){
+      box.appendChild(make("p","muted-line", t("ciFrueh")));
+      return;
+    }
+
+    var msg = make("div","err"); msg.hidden = true;
+    var knopf = make("button","btn", t("ciKnopf"));
+    knopf.type = "button";
+    box.appendChild(knopf);
+    box.appendChild(msg);
+    box.appendChild(make("p","hint", t("ciHinweis")));
+    box.appendChild(make("p","hint", t("ciOhne")));
+
+    function fehler(text){ msg.textContent = text; msg.hidden = false; knopf.disabled = false; }
+
+    knopf.addEventListener("click", function(){
+      if (!navigator.geolocation) return fehler(t("ciKeinOrt"));
+      knopf.disabled = true;
+      knopf.textContent = t("ciLaeuft");
+      navigator.geolocation.getCurrentPosition(function(pos){
+        sb.rpc("spiel_checkin", {
+          p_match: spiel.id,
+          p_lat: pos.coords.latitude,
+          p_lon: pos.coords.longitude
+        }).then(function(res){
+          knopf.textContent = t("ciKnopf");
+          if (res && res.error) return fehler(res.error.message);
+          var r = (res && res.data && res.data[0]) || null;
+          if (!r) return fehler(t("ciKeinOrt"));
+          if (!r.ok) return fehler(t("ciZuWeit", r.meter));
+          toast(t("ciDa", uhrzeit(new Date().toISOString())));
+          if (neuZeichnen) neuZeichnen();
+        });
+      }, function(){
+        knopf.textContent = t("ciKnopf");
+        fehler(t("ciKeinOrt"));
+      }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 });
+    });
+    }
+  }
+
   var KRONE = '<svg viewBox="0 0 26 17" aria-hidden="true">' +
     '<path fill="#D9A21B" d="M2 15.4V4.2c0-.8.95-1.2 1.52-.64L7.9 8 11.6 1.6a1.6 1.6 0 0 1 2.8 0' +
     'L18.1 8l4.38-4.44c.57-.57 1.52-.16 1.52.64v11.2a1.1 1.1 0 0 1-1.1 1.1H3.1a1.1 1.1 0 0 1-1.1-1.1z"/></svg>';
 
-  function ergebnisBlock(panel, spiel, namen, darfEintragen, neuZeichnen, wappen){
+  function restzeit(bis){
+    var ms = bis - Date.now();
+    if (ms < 0) ms = 0;
+    var std = Math.floor(ms / 3600000);
+    var min = Math.floor((ms % 3600000) / 60000);
+    var sek = Math.floor((ms % 60000) / 1000);
+    function zwei(n){ return n < 10 ? "0" + n : String(n); }
+    return std + ":" + zwei(min) + ":" + zwei(sek);
+  }
+
+  // Endstand als Abstimmung: jeder Angetretene gibt seinen eigenen Stand ab,
+  // 24 Stunden ab Spielende. Danach gewinnt der haeufigste. Waehrend die
+  // Frist laeuft, gibt die Datenbank bewusst nur die eigene Angabe heraus -
+  // wer den Zwischenstand sieht, schreibt ab.
+  function ergebnisBlock(panel, spiel, namen, neuZeichnen, wappen){
     panel.appendChild(make("p","section-label", t("ergTitel")));
     var anker = make("div");
     panel.appendChild(anker);
     anker.appendChild(make("p","muted-line", "…"));
 
-    var begonnen = new Date(spiel.beginn).getTime() <= Date.now();
-
     sb.rpc("spiel_ergebnis", { p_match: spiel.id }).then(function(res){
       clear(anker);
-      var e = (res && res.data && res.data[0]) || null;
+      var d = (res && res.data && res.data[0]) || null;
+      if (!d){ anker.appendChild(make("p","muted-line", t("ergKeine"))); return; }
 
-      if (e){
-        var tafel = make("div","endstand");
-        // -1 heisst unentschieden. Bei Gleichstand traegt niemand die Krone:
-        // ein Remis hat keinen Sieger, und eine Krone auf beiden Seiten waere
-        // schlicht falsch.
-        var sieger = (e.tore_heim === e.tore_gast) ? -1
-                   : (e.tore_heim > e.tore_gast ? 0 : 1);
-        function endstandSeite(i){
-          var d = make("div","seite" + (sieger === i ? " sieger" : ""));
+      // mitKrone nur beim feststehenden Ergebnis. Bei einer unentschiedenen
+      // Abstimmung stuenden sonst zwei Kronen nebeneinander und behaupteten
+      // zwei Sieger; die eigene Angabe waehrend der Frist ist noch keiner.
+      function tafel(h, g, mitKrone){
+        var box = make("div","endstand");
+        var sieger = (mitKrone && h !== g) ? (h > g ? 0 : 1) : -1;
+        function seite(i){
+          var el2 = make("div","seite" + (sieger === i ? " sieger" : ""));
           var kr = make("span","krone" + (sieger === i ? "" : " platz"));
           kr.innerHTML = KRONE;
-          d.appendChild(kr);
-          // Wappen nur bei Team gegen Team. Bei offenen Spielen heissen die
-          // Seiten "Team 1" und "Team 2" - ein Zeichen dafuer zu erfinden
-          // wuerde eine Mannschaft vortaeuschen, die es nicht gibt.
-          if (wappen) d.appendChild(teamZeichen(namen[i], i === 1, true, wappen[i]));
-          d.appendChild(make("span","nam", namen[i]));
-          return d;
+          el2.appendChild(kr);
+          if (wappen) el2.appendChild(teamZeichen(namen[i], i === 1, true, wappen[i]));
+          el2.appendChild(make("span","nam", namen[i]));
+          return el2;
         }
-        tafel.appendChild(endstandSeite(0));
-        tafel.appendChild(make("span","zahl", String(e.tore_heim)));
-        tafel.appendChild(make("span","doppel", ":"));
-        tafel.appendChild(make("span","zahl", String(e.tore_gast)));
-        tafel.appendChild(endstandSeite(1));
-        anker.appendChild(tafel);
-        if (e.eingetragen_von_name){
-          anker.appendChild(make("p","hint", t("ergVon", e.eingetragen_von_name)));
-        }
-      } else if (!begonnen){
+        box.appendChild(seite(0));
+        box.appendChild(make("span","zahl", String(h)));
+        box.appendChild(make("span","doppel", ":"));
+        box.appendChild(make("span","zahl", String(g)));
+        box.appendChild(seite(1));
+        return box;
+      }
+
+      if (d.phase === "vor_ende"){
         anker.appendChild(make("p","muted-line", t("ergNochNicht")));
         return;
-      } else {
-        anker.appendChild(make("p","muted-line", t("ergNochKeins")));
       }
 
-      if (!begonnen) return;
-      if (!darfEintragen){
-        if (!e) anker.appendChild(make("p","hint", t("ergNurDabei")));
+      if (d.phase === "offen"){
+        var uhr = make("p","ergfrist", t("ergFrist", restzeit(new Date(d.frist).getTime())));
+        anker.appendChild(uhr);
+        stopCountdown();
+        ergTimer = setInterval(function(){
+          if (!document.body.contains(uhr)) return stopCountdown();
+          var rest = new Date(d.frist).getTime() - Date.now();
+          if (rest <= 0){ stopCountdown(); if (neuZeichnen) neuZeichnen(); return; }
+          uhr.textContent = t("ergFrist", restzeit(new Date(d.frist).getTime()));
+        }, 1000);
+
+        if (!d.ich_darf){
+          anker.appendChild(make("p","muted-line", t("ergNurDa")));
+          return;
+        }
+
+        var hatSchon = d.meine_heim !== null && d.meine_heim !== undefined;
+        if (hatSchon){
+          anker.appendChild(tafel(d.meine_heim, d.meine_gast));
+          anker.appendChild(make("p","hint", t("ergDeine")));
+        }
+
+        var eingabeOffen = !hatSchon;
+        var formular = make("div");
+        anker.appendChild(formular);
+
+        function zeichneFormular(){
+          clear(formular);
+          if (!eingabeOffen){
+            var auf = make("button","btn secondary", t("ergAendernKurz"));
+            auf.type = "button";
+            auf.addEventListener("click", function(){ eingabeOffen = true; zeichneFormular(); });
+            formular.appendChild(auf);
+            formular.appendChild(make("p","hint", t("ergGeheim")));
+            return;
+          }
+          var msg = make("div","err"); msg.hidden = true; formular.appendChild(msg);
+          var zeile = make("div","ergeingabe");
+          function zahlfeld(id, wert){
+            var i = input(id, "number", "0");
+            i.min = "0"; i.max = "99"; i.inputMode = "numeric";
+            i.value = (wert === null || wert === undefined) ? "" : String(wert);
+            return i;
+          }
+          var f1 = zahlfeld("erg-heim", hatSchon ? d.meine_heim : null);
+          var f2 = zahlfeld("erg-gast", hatSchon ? d.meine_gast : null);
+          zeile.appendChild(f1);
+          zeile.appendChild(make("span","doppel", ":"));
+          zeile.appendChild(f2);
+          formular.appendChild(zeile);
+          formular.appendChild(make("p","hint", namen[0] + "  ·  " + namen[1]));
+
+          var go = make("button","btn", t("ergAbgeben"));
+          go.type = "button";
+          go.addEventListener("click", function(){
+            var a = parseInt(f1.value, 10);
+            var b = parseInt(f2.value, 10);
+            if (isNaN(a) || isNaN(b) || a < 0 || b < 0 || a > 99 || b > 99){
+              msg.textContent = t("ergAbgeben"); msg.hidden = false; return;
+            }
+            go.disabled = true;
+            sb.rpc("spiel_stimme_setzen", { p_match: spiel.id, p_heim: a, p_gast: b })
+              .then(function(r){
+                go.disabled = false;
+                if (r && r.error){ msg.textContent = r.error.message; msg.hidden = false; return; }
+                toast(t("ergGespeichert"));
+                if (neuZeichnen) neuZeichnen();
+              });
+          });
+          formular.appendChild(go);
+          formular.appendChild(make("p","hint", t("ergGeheim")));
+        }
+        zeichneFormular();
         return;
       }
 
-      var knopf = make("button","btn secondary", t(e ? "ergAendern" : "ergEintragen"));
-      knopf.type = "button";
-      anker.appendChild(knopf);
-
-      knopf.addEventListener("click", function(){
-        clear(anker);
-        var msg = make("div","err"); msg.hidden = true; anker.appendChild(msg);
-
-        var zeile = make("div","ergeingabe");
-        function zahlfeld(id, wert){
-          var i = input(id, "number", "0");
-          i.min = "0"; i.max = "99"; i.inputMode = "numeric";
-          i.value = (wert === null || wert === undefined) ? "" : String(wert);
-          return i;
+      // phase === "fertig"
+      if (d.lage === "steht"){
+        anker.appendChild(tafel(d.tore_heim, d.tore_gast, true));
+        anker.appendChild(make("p","hint",
+          t("ergSteht", { a: d.abgegeben, b: d.angetretene })));
+        return;
+      }
+      if (d.lage === "uneinig"){
+        var liste = d.varianten || [];
+        var spitze = liste.length ? liste[0].anzahl : 0;
+        for (var i = 0; i < liste.length; i++){
+          if (liste[i].anzahl < spitze) continue;
+          anker.appendChild(tafel(liste[i].heim, liste[i].gast));
+          anker.appendChild(make("p","hint", t("ergStimmen", liste[i].anzahl)));
         }
-        var f1 = zahlfeld("erg-heim", e ? e.tore_heim : null);
-        var f2 = zahlfeld("erg-gast", e ? e.tore_gast : null);
-        zeile.appendChild(f1);
-        zeile.appendChild(make("span","doppel", ":"));
-        zeile.appendChild(f2);
-        anker.appendChild(zeile);
-
-        var beschriftung = make("p","hint", namen[0] + "  ·  " + namen[1]);
-        anker.appendChild(beschriftung);
-
-        var go = make("button","btn", t("ergSpeichern"));
-        go.type = "button";
-        go.addEventListener("click", function(){
-          var a = parseInt(f1.value, 10);
-          var b = parseInt(f2.value, 10);
-          if (isNaN(a) || isNaN(b) || a < 0 || b < 0 || a > 99 || b > 99){
-            msg.textContent = t("ergSpeichern"); msg.hidden = false; return;
-          }
-          go.disabled = true;
-          sb.rpc("spiel_ergebnis_setzen", { p_match: spiel.id, p_heim: a, p_gast: b })
-            .then(function(r){
-              go.disabled = false;
-              if (r && r.error){ msg.textContent = r.error.message; msg.hidden = false; return; }
-              toast(t("ergGespeichert"));
-              if (neuZeichnen) neuZeichnen();
-            });
-        });
-        anker.appendChild(go);
-
-        var ab = make("button","quiet-link", t("cancel"));
-        ab.type = "button";
-        ab.addEventListener("click", function(){ if (neuZeichnen) neuZeichnen(); });
-        anker.appendChild(ab);
-      });
+        anker.appendChild(make("p","muted-line", t("ergUneinig")));
+        return;
+      }
+      if (d.lage === "zuwenig"){
+        anker.appendChild(make("p","muted-line",
+          t("ergZuwenig", { a: d.abgegeben, b: d.noetig })));
+        return;
+      }
+      anker.appendChild(make("p","muted-line", t("ergKeine")));
     }).catch(function(){
       clear(anker);
-      anker.appendChild(make("p","muted-line", t("ergNochKeins")));
+      anker.appendChild(make("p","muted-line", t("ergKeine")));
     });
   }
 
@@ -5939,7 +6136,7 @@
       panel.appendChild(make("p","section-label", t("squad")));
       var squad = make("div","squad");
       panel.appendChild(squad);
-      sb.from("spieler_public").select("user_id,status,anzeigename,bild_url,zugesagt_am")
+      sb.from("spieler_public").select("user_id,status,anzeigename,bild_url,zugesagt_am,angetreten,angetreten_am")
         .eq("match_id", id).order("zugesagt_am")
         .then(function(res){
           clear(squad);
@@ -5956,6 +6153,28 @@
             });
             item.appendChild(namKn);
             if (r.status === "warteliste") item.appendChild(make("span","pill", t("waitlistLabel")));
+
+            // Angetreten oder nicht. Der Organisator kann von Hand
+            // bestaetigen - Ortung laesst sich abschalten, und zwischen
+            // Altbauten liegt sie oft weit daneben.
+            if (r.status === "zugesagt"){
+              if (r.angetreten){
+                item.appendChild(make("span","pill da", t("ciBestaetigt")));
+              } else if (session && g.organisator_id === session.user.id &&
+                         Date.now() > new Date(g.beginn).getTime()){
+                var dabei = make("button","tinylink", t("ciBestaetigen"));
+                dabei.type = "button";
+                dabei.addEventListener("click", function(){
+                  sb.rpc("teilnahme_bestaetigen", { p_match: id, p_user: r.user_id })
+                    .then(function(res){
+                      if (res && res.error){ toast(res.error.message); return; }
+                      stopChat(); openModal(gamePanel(id));
+                    });
+                });
+                item.appendChild(dabei);
+              }
+            }
+
             if (session && r.user_id !== session.user.id){
               var sperr = make("button","tinylink", t("blockUser"));
               sperr.type = "button";
@@ -6002,12 +6221,9 @@
           });
         });
 
-      // Nur wer zugesagt hat, plus der Organisator - dieselbe Regel wie
-      // in der Datenbank, die es noch einmal selbst prueft.
-      var darfErgebnis = !!(session && (myPart[id] === "zugesagt" ||
-                            g.organisator_id === session.user.id));
-      ergebnisBlock(panel, g, [t("ergSeite1"), t("ergSeite2")], darfErgebnis,
-        function(){ stopChat(); openModal(gamePanel(id)); });
+      var neuAuf = function(){ stopChat(); openModal(gamePanel(id)); };
+      checkinBlock(panel, g, myPart[id] === "zugesagt", neuAuf);
+      ergebnisBlock(panel, g, [t("ergSeite1"), t("ergSeite2")], neuAuf);
 
       var darfChat = !!(session && (myPart[id] === "zugesagt" || myPart[id] === "warteliste" ||
                         g.organisator_id === session.user.id));
@@ -7426,11 +7642,11 @@
         // Strenger als beim offenen Spiel: nur wer in der Aufstellung stand.
         // mein_status === "zugesagt" heisst genau das. Die Datenbank prueft
         // dieselbe Regel noch einmal selbst.
-        var darfErgebnisTvt = !!(session && r.mein_status === "zugesagt" &&
-                                 r.status !== "abgesagt");
+        var neuAufTvt = function(){ stopChat(); openModal(tvtPanel(id, zurueck)); };
+        checkinBlock(panel, { id: id, beginn: r.beginn, dauer_min: r.dauer_min },
+          r.mein_status === "zugesagt" && r.status !== "abgesagt", neuAufTvt);
         ergebnisBlock(panel, { id: id, beginn: r.beginn },
-          [r.heim_team || "—", r.gast_team || "—"], darfErgebnisTvt,
-          function(){ stopChat(); openModal(tvtPanel(id, zurueck)); },
+          [r.heim_team || "—", r.gast_team || "—"], neuAufTvt,
           [r.heim_wappen || null, r.gast_wappen || null]);
 
         var darfSchreiben = !!(session && r.mein_team_id && r.status === "geplant");
