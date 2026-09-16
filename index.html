@@ -100,6 +100,50 @@
     display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13.5px;flex:0 0 auto;
   }
   #accountBtn{display:flex;align-items:center;gap:8px;background:none;border:0;padding:0}
+  /* Glocke mit Zaehler. Der Zaehler sitzt am Rand des Symbols, damit er auch
+     bei zweistelligen Zahlen nicht ueber die Kopfzeile hinauslaeuft. */
+  .glocke{position:relative;display:block;width:26px;height:26px;color:var(--ink)}
+  .glocke svg{display:block;width:26px;height:26px}
+  .glockenzahl{
+    position:absolute;top:-4px;right:-5px;min-width:17px;height:17px;padding:0 4px;
+    border-radius:9px;background:var(--accent);color:#FFFFFF;
+    font-size:11px;font-weight:800;line-height:17px;text-align:center;
+  }
+  /* Keine Kaesten: eine Liste aus Zeilen mit Haarlinie dazwischen. Ein
+     Kasten je Meldung macht aus zwanzig Meldungen zwanzig Flaechen, und die
+     Liste wird unruhiger, je mehr drinsteht. */
+  .bnkopf{display:flex;justify-content:flex-end;margin:0 0 2px}
+  .bnkopf .quiet-link{width:auto;margin:0;padding:4px 0}
+  .bnliste{display:block}
+  .benachr{
+    display:flex;align-items:flex-start;gap:10px;width:100%;text-align:left;
+    padding:13px 2px;margin:0;border:0;border-bottom:1px solid var(--line);
+    border-radius:0;background:none;color:var(--ink);
+  }
+  .benachr:last-child{border-bottom:0}
+  .bnmitte{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1 1 auto}
+  /* Bild und Symbol teilen sich dieselbe Flaeche, damit der Text in jeder
+     Zeile an derselben Kante beginnt. */
+  .benachr .avatar,
+  .benachr .avatar-fallback,
+  .benachr .bnsymbol{
+    flex:0 0 auto;width:38px;height:38px;border-radius:50%;margin-top:1px;
+  }
+  .bnsymbol{
+    display:flex;align-items:center;justify-content:center;
+    background:var(--paper);border:1px solid var(--line);color:var(--muted);
+  }
+  .bnsymbol svg{width:20px;height:20px;display:block}
+  .benachr .bntext{font-size:14.5px;line-height:1.35}
+  .benachr .bnzeit{font-size:12px;color:var(--muted)}
+  /* Ungelesenes markiert ein Punkt am Anfang der Zeile. Gelesenes behaelt
+     denselben Platz, damit die Liste beim Lesen nicht verrutscht. */
+  .bnpunkt{
+    flex:0 0 auto;width:8px;height:8px;border-radius:50%;
+    background:transparent;margin-top:15px;
+  }
+  .benachr.neu .bnpunkt{background:var(--accent)}
+  .benachr.neu .bntext{font-weight:700}
 
   #controls{
     position:fixed;top:var(--top);left:0;right:0;z-index:20;
@@ -749,8 +793,8 @@
     Joga<span>V</span>
   </div>
   <div class="grow"></div>
-  <button id="themeBtn" class="ghost" type="button" aria-pressed="false"></button>
-  <button id="langBtn" class="ghost" type="button">EN</button>
+  <button id="themeBtn" class="ghost" type="button" aria-pressed="false" hidden></button>
+  <button id="langBtn" class="ghost" type="button" hidden>EN</button>
   <button id="accountBtn" type="button"><span class="ghost">Anmelden</span></button>
 </header>
 
@@ -1071,6 +1115,20 @@
       ciOhne: "Ohne Check-in zählt das Spiel nicht als Teilnahme.",
       ciBestaetigen: "war da",
       ciBestaetigt: "bestätigt",
+      bnTitel: "Benachrichtigungen",
+      bnKeine: "Nichts Neues.",
+      bnAlleGelesen: "Alle als gelesen markieren",
+      bnNachrichtSpiel: "Neue Nachricht im Chat · {n}",
+      bnNachrichtDm: "{n} hat dir geschrieben",
+      bnEinladungSpiel: "{a} lädt dich zu einem Spiel ein · {b}",
+      bnEinladungTeam: "{a} lädt dich zu {b} ein",
+      bnErinnerungSpiel: "In einer Stunde geht es los · {n}",
+      bnErgebnisEintragen: "Endstand eintragen · {n}",
+      bnErgebnisFrist: "Noch 3 Stunden für den Endstand · {n}",
+      bnErgebnisSteht: "Das Ergebnis steht fest · {n}",
+      darstellungLabel: "Darstellung",
+      darstellungHell: "Hell",
+      darstellungDunkel: "Dunkel",
 
       statSpiele: "Spiele", statOrganisiert: "organisiert",
       statAbsagen: "kurzfristige Absagen", statQuote: "Absagequote",
@@ -1483,6 +1541,20 @@
       ciOhne: "Without check-in the game does not count as taking part.",
       ciBestaetigen: "was there",
       ciBestaetigt: "confirmed",
+      bnTitel: "Notifications",
+      bnKeine: "Nothing new.",
+      bnAlleGelesen: "Mark all as read",
+      bnNachrichtSpiel: "New message in the chat · {n}",
+      bnNachrichtDm: "{n} messaged you",
+      bnEinladungSpiel: "{a} invites you to a game · {b}",
+      bnEinladungTeam: "{a} invites you to {b}",
+      bnErinnerungSpiel: "Kick-off in one hour · {n}",
+      bnErgebnisEintragen: "Enter the final score · {n}",
+      bnErgebnisFrist: "3 hours left for the final score · {n}",
+      bnErgebnisSteht: "The result is final · {n}",
+      darstellungLabel: "Appearance",
+      darstellungHell: "Light",
+      darstellungDunkel: "Dark",
 
       statSpiele: "games", statOrganisiert: "organised",
       statAbsagen: "late cancellations", statQuote: "cancellation rate",
@@ -2224,6 +2296,7 @@
 
   // renderFeed ist nur noch die Weiche. Jeder Reiter hat seine eigene Funktion.
   function renderFeed(){
+    if (ansicht === "benachrichtigungen"){ renderBenachrichtigungen(); return; }
     if (ansicht === "teams"){ renderTeams(); return; }
     if (ansicht === "freunde"){ renderFreundeSeite(); return; }
     if (ansicht === "profil"){ renderProfil(); return; }
@@ -2596,6 +2669,137 @@
     box.appendChild(karte);
   }
 
+  // ---------- Benachrichtigungen ----------
+
+  // Die Datenbank liefert nur, WAS passiert ist und WOZU es gehoert. Der Satz
+  // entsteht erst hier, damit er der eingestellten Sprache folgt.
+  // Derselbe Ball wie in der Reiterleiste - ein zweiter Entwurf desselben
+  // Gegenstands laesst die App zusammengewuerfelt wirken.
+  var SYM_BALL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+    'stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<circle cx="12" cy="12" r="8.6"/><path d="M12 7.4l3.4 2.5-1.3 4h-4.2l-1.3-4z"/>' +
+    '<path d="M12 3.4v4M20.2 9.9l-3.9 1.3M17 19.6l-2.5-3.3M7 19.6l2.5-3.3M3.8 9.9l3.9 1.3"/></svg>';
+  var SYM_SCHILD = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+    'stroke-width="1.7" stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M12 3l7 3v5.5c0 4.3-2.9 7.7-7 9.5-4.1-1.8-7-5.2-7-9.5V6z"/></svg>';
+
+  // Links steht das Profilbild des Absenders. Erinnerungen und Ergebnisse
+  // kommen von niemandem, und beim Spiel-Chat haelt die Datenbank bewusst
+  // nicht fest, wer zuletzt geschrieben hat - sonst griffe die Entdopplung
+  // nicht. Fuer die steht ein Symbol in derselben Flaeche, damit die Liste
+  // nicht ausfranst.
+  function benachrBild(b){
+    if (b.von_id) return avatarBild(b.von_bild, b.von_name || "?");
+    var huelle = make("span","bnsymbol");
+    huelle.innerHTML = b.team_id ? SYM_SCHILD : SYM_BALL;
+    return huelle;
+  }
+
+  function benachrText(b){
+    var platz = b.platz || "—";
+    if (b.art === "nachricht"){
+      return b.quelle === "dm"
+        ? t("bnNachrichtDm", b.von_name || "—")
+        : t("bnNachrichtSpiel", platz);
+    }
+    if (b.art === "einladung"){
+      return b.team_id
+        ? t("bnEinladungTeam", { a: b.von_name || "—", b: b.team_name || "—" })
+        : t("bnEinladungSpiel", { a: b.von_name || "—", b: platz });
+    }
+    if (b.art === "erinnerung_spiel") return t("bnErinnerungSpiel", platz);
+    if (b.art === "erinnerung_ergebnis"){
+      return b.quelle === "nachzuegler"
+        ? t("bnErgebnisFrist", platz)
+        : t("bnErgebnisEintragen", platz);
+    }
+    if (b.art === "ergebnis_steht") return t("bnErgebnisSteht", platz);
+    return platz;
+  }
+
+  function zaehleBenachrichtigungen(){
+    if (!session) return;
+    sb.rpc("benachrichtigungen_offen").then(function(res){
+      var n = (res && res.data) || 0;
+      var zahl = el("glockenzahl");
+      if (!zahl) return;
+      zahl.textContent = n > 9 ? "9+" : String(n);
+      zahl.hidden = !n;
+    }).catch(function(){});
+  }
+
+  // Eigene Ansicht, kein Fenster ueber der Karte. Benachrichtigungen sind
+  // kein Zwischenschritt, den man wegklickt - man bleibt dort, tippt sich
+  // durch und geht ueber die Reiterleiste weiter.
+  function renderBenachrichtigungen(){
+    var box = el("feed");
+    clear(box);
+    box.appendChild(make("h2","feedkopf", t("bnTitel")));
+
+    if (!session){
+      box.appendChild(make("p","muted-line", t("bnKeine")));
+      return;
+    }
+
+    var kopfzeile = make("div","bnkopf");
+    box.appendChild(kopfzeile);
+    var liste = make("div","bnliste");
+    box.appendChild(liste);
+    liste.appendChild(make("p","muted-line", "…"));
+
+    sb.rpc("benachrichtigungen_liste", { p_limit: 40 }).then(function(res){
+      clear(liste);
+      var rows = (res && res.data) || [];
+      if (!rows.length){
+        liste.appendChild(make("p","muted-line", t("bnKeine")));
+        return;
+      }
+
+      if (rows.some(function(r){ return !r.gelesen_am; })){
+        var alle = make("button","quiet-link", t("bnAlleGelesen"));
+        alle.type = "button";
+        alle.addEventListener("click", function(){
+          sb.rpc("benachrichtigung_gelesen", { p_id: null }).then(function(){
+            zaehleBenachrichtigungen();
+            renderBenachrichtigungen();
+          });
+        });
+        kopfzeile.appendChild(alle);
+      }
+
+      rows.forEach(function(b){
+        var zeile = make("button","benachr" + (b.gelesen_am ? "" : " neu"));
+        zeile.type = "button";
+        zeile.appendChild(benachrBild(b));
+        var mitte = make("span","bnmitte");
+        mitte.appendChild(make("span","bntext", benachrText(b)));
+        mitte.appendChild(make("span","bnzeit", fmtWhen(b.erstellt_am)));
+        zeile.appendChild(mitte);
+        zeile.appendChild(make("span","bnpunkt"));
+        zeile.addEventListener("click", function(){
+          sb.rpc("benachrichtigung_gelesen", { p_id: b.id }).then(function(){
+            zaehleBenachrichtigungen();
+          });
+          // Dorthin springen, worum es geht. Ohne das ist die Glocke nur
+          // eine Liste von Hinweisen, die man dann selbst suchen muss.
+          if (b.match_id){ openModal(gamePanel(b.match_id)); return; }
+          if (b.art === "nachricht" && b.quelle === "dm" && b.von_id){
+            openModal(dmPanel({ partner_id: b.von_id, anzeigename: b.von_name }));
+            return;
+          }
+          if (b.team_id){
+            var team = meineTeams.filter(function(x){ return x.id === b.team_id; })[0];
+            if (team) openModal(teamPanel(team));
+          }
+        });
+        liste.appendChild(zeile);
+      });
+    }).catch(function(){
+      clear(liste);
+      liste.appendChild(make("p","muted-line", t("bnKeine")));
+    });
+  }
+
   // ---------- Reiter "Profil" ----------
 
   function renderProfil(){
@@ -2610,6 +2814,7 @@
       anmelden.addEventListener("click", function(){ openModal(authPanel("login")); });
       box.appendChild(anmelden);
       spracheZeile(box);
+      darstellungZeile(box);
       return;
     }
 
@@ -2639,6 +2844,7 @@
 
     box.appendChild(make("p","tagkopf", t("einstellungen")));
     spracheZeile(box);
+    darstellungZeile(box);
 
     var out = make("button","btn secondary", t("signOut"));
     out.type = "button";
@@ -2662,6 +2868,25 @@
     del.type = "button";
     del.addEventListener("click", function(){ openModal(profilePanel(false)); });
     box.appendChild(del);
+  }
+
+  // Hell/Dunkel und Sprache sitzen jetzt unter Profil, nicht mehr in der
+  // Kopfzeile - dort steht die Glocke. Beide Knoepfe oben bleiben als
+  // verborgene Schaltflaechen bestehen, damit die Umschaltlogik an einer
+  // Stelle bleibt.
+  function darstellungZeile(box){
+    var dunkel = document.documentElement.getAttribute("data-theme") === "dark";
+    var knopf = make("button","btn secondary",
+      t("darstellungLabel") + ": " + t(dunkel ? "darstellungDunkel" : "darstellungHell"));
+    knopf.type = "button";
+    knopf.style.marginTop = "9px";
+    knopf.addEventListener("click", function(){
+      el("themeBtn").click();
+      var jetztDunkel = document.documentElement.getAttribute("data-theme") === "dark";
+      knopf.textContent = t("darstellungLabel") + ": " +
+        t(jetztDunkel ? "darstellungDunkel" : "darstellungHell");
+    });
+    box.appendChild(knopf);
   }
 
   function spracheZeile(box){
@@ -7769,23 +7994,30 @@
     };
   }
 
+  var GLOCKE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+    'stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/>' +
+    '<path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>';
+
+  // Oben rechts steht die Glocke, nicht mehr das Profil - das ist unten in
+  // der Reiterleiste ohnehin erreichbar. Wer abgemeldet ist, braucht dort
+  // aber weiter den Einstieg zum Anmelden, sonst kommt er nirgends hin.
   function renderAccount(){
     var btn = el("accountBtn");
     clear(btn);
-    if (session && profile){
-      if (profile.bild_url){
-        var img = document.createElement("img");
-        img.className = "avatar";
-        img.src = profile.bild_url;
-        img.alt = profile.anzeigename || "";
-        btn.appendChild(img);
-      } else {
-        btn.appendChild(make("div","avatar-fallback", initials(profile.anzeigename)));
-      }
-    } else if (session){
-      btn.appendChild(make("span","ghost", t("profile")));
+    if (session){
+      var huelle = make("span","glocke");
+      huelle.innerHTML = GLOCKE;
+      var zahl = make("span","glockenzahl");
+      zahl.id = "glockenzahl";
+      zahl.hidden = true;
+      huelle.appendChild(zahl);
+      btn.appendChild(huelle);
+      btn.setAttribute("aria-label", t("bnTitel"));
+      zaehleBenachrichtigungen();
     } else {
       btn.appendChild(make("span","ghost", t("signIn")));
+      btn.removeAttribute("aria-label");
     }
     el("myGamesBtn").hidden = !session;
   }
@@ -8053,7 +8285,7 @@
     });
     el("accountBtn").addEventListener("click", function(){
       if (!session) openModal(authPanel("login"));
-      else openModal(profilePanel(false));
+      else zeigeAnsicht("benachrichtigungen");
     });
     el("modal").addEventListener("click", function(e){
       if (e.target === el("modal")) closeModal();
